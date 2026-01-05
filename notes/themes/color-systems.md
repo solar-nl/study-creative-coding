@@ -17,41 +17,58 @@ This document analyzes these aspects across frameworks to inform the design of a
 
 ## Color Space Comparison Matrix
 
+### Frameworks
+
 | Framework | RGB | HSV/HSB | HSL | LAB | LCH | XYZ | LUV | OkLab | CMYK |
 |-----------|:---:|:-------:|:---:|:---:|:---:|:---:|:---:|:-----:|:----:|
 | **nannou** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | - | - | - |
-| **wgpu** | ✓ | - | - | - | - | - | - | - | - |
 | **openrndr** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | - | - |
-| **orx** | ✓ | ✓ | ✓ | - | - | - | - | - | - |
 | **p5.js** | ✓ | ✓ | ✓ | - | - | - | - | - | - |
 | **Processing** | ✓ | ✓ | - | - | - | - | - | - | - |
-| **three.js** | ✓ | - | ✓ | - | - | ✓ | - | - | - |
-| **toxiclibs** | ✓ | ✓ | - | ✓ | - | - | - | - | ✓ |
 | **tixl** | ✓ | - | - | - | ✓ | - | - | ✓ | - |
+
+### Libraries
+
+| Library | RGB | HSV/HSB | HSL | LAB | LCH | XYZ | LUV | OkLab | CMYK |
+|---------|:---:|:-------:|:---:|:---:|:---:|:---:|:---:|:-----:|:----:|
+| **wgpu** | ✓ | - | - | - | - | - | - | - | - |
+| **three.js** | ✓ | - | ✓ | - | - | ✓ | - | - | - |
+| **orx** | ✓ | ✓ | ✓ | - | - | - | - | - | - |
+| **toxiclibs** | ✓ | ✓ | - | ✓ | - | - | - | - | ✓ |
+| **mixbox** | ✓ | - | - | - | - | - | - | - | - |
 
 **Key observations:**
 - **openrndr** has the most comprehensive color space support (16+ models)
 - **nannou** leverages the Rust `palette` crate for extensive support
 - **tixl** uniquely implements **OkLab** (modern perceptual model) in GPU shaders
-- **toxiclibs** is the only framework with **CMYK** support
-- Web frameworks (p5.js, three.js) focus on RGB/HSL basics
+- **toxiclibs** (library) is the only one with **CMYK** support
+- **mixbox** (library) provides pigment-based mixing, not color spaces
+- Web libraries (three.js) focus on RGB/HSL basics
 
 ---
 
 ## Internal Representations
 
-How each framework stores color values internally:
+How frameworks and libraries store color values internally:
+
+### Frameworks
 
 | Framework | Storage Type | Range | Notes |
 |-----------|--------------|-------|-------|
 | **nannou** | `palette` crate types | 0.0-1.0 (f32) | Type-safe, generic over scalar |
-| **wgpu** | `Color { r, g, b, a }` | 0.0-1.0 (f64) | Simple struct, GPU-focused |
 | **openrndr** | `data class ColorRGBa` | 0.0-1.0 (Double) | Kotlin data classes per space |
 | **p5.js** | `levels` array | 0-255 (internal 0-1) | Normalized internally, 8-bit output |
 | **Processing** | `int` (32-bit ARGB) | 0-255 packed | Bit-shifted components |
+| **tixl** | `Vector4` / `float4` | 0.0-1.0 (float) | RGBA in shaders |
+
+### Libraries
+
+| Library | Storage Type | Range | Notes |
+|---------|--------------|-------|-------|
+| **wgpu** | `Color { r, g, b, a }` | 0.0-1.0 (f64) | Simple struct, GPU-focused |
 | **three.js** | `Color { r, g, b }` | 0.0-1.0 (Number) | No alpha in Color class |
 | **toxiclibs** | `TColor` (float fields) | 0.0-1.0 (float) | Implicit RGB/HSV/CMYK access |
-| **tixl** | `Vector4` / `float4` | 0.0-1.0 (float) | RGBA in shaders |
+| **mixbox** | `[u8; 3]` / `vec3` | 0-255 or 0.0-1.0 | Language-dependent |
 
 ### Code Examples
 

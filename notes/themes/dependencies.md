@@ -21,23 +21,34 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Graphics/Rendering Backends
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Primary Backend | Abstraction Level | Cross-Platform |
 |-----------|-----------------|-------------------|----------------|
 | **nannou** | wgpu | High (wgpu API) | Yes (Vulkan/Metal/DX12/WebGPU) |
-| **wgpu** | Vulkan/Metal/DX12/WebGPU | Low-Medium | Yes |
 | **openrndr** | OpenGL 3.3+ via LWJGL | Medium | Yes (JVM) |
-| **orx** | (uses openrndr) | Medium | Yes (JVM) |
 | **tixl** | DirectX 11 via SharpDX | Medium | Windows primary |
 | **p5.js** | Canvas 2D / WebGL | High | Web only |
-| **three.js** | WebGL / WebGPU | High (scene graph) | Web only |
 | **cables** | WebGL | High (node graph) | Web only |
 | **openframeworks** | OpenGL | Medium | Yes (native) |
 | **cinder** | OpenGL | Medium | Yes (native) |
 | **processing** | OpenGL via JOGL | High | Yes (JVM) |
-| **toxiclibs** | (library, no renderer) | N/A | N/A |
-| **webgpu-samples** | WebGPU | Low | Web only |
+
+### Libraries
+
+| Library | Primary Backend | Abstraction Level | Cross-Platform |
+|---------|-----------------|-------------------|----------------|
+| **wgpu** | Vulkan/Metal/DX12/WebGPU | Low-Medium | Yes |
+| **three.js** | WebGL / WebGPU | High (scene graph) | Web only |
+| **orx** | (uses openrndr) | Medium | Yes (JVM) |
+| **toxiclibs** | (no renderer) | N/A | N/A |
+| **mixbox** | (color library) | N/A | N/A |
+
+### Examples
+
+| Repository | Primary Backend | Notes |
+|------------|-----------------|-------|
+| **webgpu-samples** | WebGPU | Reference examples |
 
 ### Key Dependencies
 
@@ -62,19 +73,25 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Windowing Libraries
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Windowing Library | Event Model |
 |-----------|-------------------|-------------|
 | **nannou** | winit | Callback-based |
-| **wgpu** | winit (examples) | Callback-based |
 | **openrndr** | LWJGL-GLFW | Polling + callbacks |
 | **tixl** | Silk.NET | Event-based |
 | **p5.js** | Browser DOM | Event listeners |
-| **three.js** | Browser DOM | Event listeners |
+| **cables** | Browser DOM | Event listeners |
 | **openframeworks** | GLFW/native | Polling |
 | **cinder** | Native/GLFW | Polling |
 | **processing** | AWT/Swing | Event dispatch |
+
+### Libraries
+
+| Library | Windowing Library | Event Model |
+|---------|-------------------|-------------|
+| **wgpu** | winit (examples) | Callback-based |
+| **three.js** | Browser DOM | Event listeners |
 
 ### Key Dependencies
 
@@ -95,19 +112,26 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Math Libraries
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Math Library | Features |
 |-----------|--------------|----------|
 | **nannou** | glam (via wgpu) | SIMD, no generics |
-| **wgpu** | glam | SIMD, no generics |
 | **openrndr** | Custom + LWJGL | DSL-friendly |
 | **tixl** | SharpDX.Mathematics / System.Numerics | .NET native |
 | **p5.js** | Custom (p5.Vector) | Simple, mutable |
-| **three.js** | Custom (THREE.Vector3, etc.) | Scene graph integrated |
+| **cables** | Custom | Node-graph compatible |
 | **openframeworks** | glm | C++ standard |
 | **cinder** | glm / custom | C++ standard |
 | **processing** | PVector (custom) | Simple, mutable |
+
+### Libraries
+
+| Library | Math Library | Features |
+|---------|--------------|----------|
+| **wgpu** | glam | SIMD, no generics |
+| **three.js** | Custom (THREE.Vector3, etc.) | Scene graph integrated |
+| **toxiclibs** | Custom (Vec2D, Vec3D) | Geometry focused |
 
 ### Key Dependencies
 
@@ -128,18 +152,24 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Audio Libraries
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Audio Library | Features |
 |-----------|---------------|----------|
 | **nannou** | nannou_audio (cpal) | Cross-platform streams |
 | **openrndr** | LWJGL-OpenAL | 3D positional audio |
-| **orx** | Minim | Processing-style audio |
 | **tixl** | ManagedBass, NAudio | Windows audio, MIDI |
 | **p5.js** | Web Audio API | Browser native |
-| **three.js** | Web Audio API | 3D positional |
+| **cables** | Web Audio API | Node-based audio |
 | **openframeworks** | OpenAL / native | Platform-specific |
 | **processing** | Minim / native | Simple playback |
+
+### Libraries
+
+| Library | Audio Library | Features |
+|---------|---------------|----------|
+| **three.js** | Web Audio API | 3D positional |
+| **orx** | Minim | Processing-style audio |
 
 ### Key Dependencies
 
@@ -160,18 +190,24 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Image Loading
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Image Library | Formats |
 |-----------|---------------|---------|
 | **nannou** | image crate | PNG, JPEG, GIF, BMP, etc. |
-| **wgpu** | image crate | PNG (examples) |
 | **openrndr** | LWJGL STB | Common formats |
 | **tixl** | OpenCvSharp4, custom | Extensive |
 | **p5.js** | Browser native | Web formats |
-| **three.js** | Browser native | Web formats |
+| **cables** | Browser native | Web formats |
 | **openframeworks** | FreeImage / native | Extensive |
 | **processing** | Java ImageIO | Common formats |
+
+### Libraries
+
+| Library | Image Library | Formats |
+|---------|---------------|---------|
+| **wgpu** | image crate | PNG (examples) |
+| **three.js** | Browser native | Web formats |
 
 ### Key Dependencies
 
@@ -191,21 +227,28 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Build Systems
 
-### Comparison Matrix
+### Frameworks
 
 | Framework | Build System | Package Manager |
 |-----------|--------------|-----------------|
 | **nannou** | Cargo | crates.io |
-| **wgpu** | Cargo | crates.io |
 | **openrndr** | Gradle | Maven Central |
-| **orx** | Gradle | Maven Central |
 | **tixl** | MSBuild | NuGet |
 | **p5.js** | npm/Grunt | npm |
-| **three.js** | npm/Rollup | npm |
 | **cables** | npm/Webpack | npm |
 | **openframeworks** | CMake/Make | Manual/addons |
 | **cinder** | CMake | Manual |
 | **processing** | Ant | Manual |
+
+### Libraries
+
+| Library | Build System | Package Manager |
+|---------|--------------|-----------------|
+| **wgpu** | Cargo | crates.io |
+| **three.js** | npm/Rollup | npm |
+| **orx** | Gradle | Maven Central |
+| **toxiclibs** | Maven/Gradle | Maven Central |
+| **mixbox** | Multiple | Cargo/npm/pip/NuGet |
 
 ### Patterns Observed
 
@@ -217,11 +260,11 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 ## Cross-Platform Strategies
 
-| Strategy | Frameworks | Pros | Cons |
-|----------|------------|------|------|
-| **Native abstraction (wgpu)** | nannou, wgpu | Best performance | Complex implementation |
+| Strategy | Frameworks/Libraries | Pros | Cons |
+|----------|---------------------|------|------|
+| **Native abstraction (wgpu)** | nannou, wgpu (library) | Best performance | Complex implementation |
 | **JVM abstraction** | openrndr, processing | Write once | JVM overhead |
-| **Web only** | p5.js, three.js, cables | Easy distribution | Browser limitations |
+| **Web only** | p5.js, cables, three.js (library) | Easy distribution | Browser limitations |
 | **Per-platform builds** | openframeworks, cinder | Full control | Maintenance burden |
 | **Single platform** | tixl (Windows primary) | Optimized | Limited reach |
 

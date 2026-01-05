@@ -18,12 +18,10 @@ This repository collects major creative coding frameworks as git submodules alon
 |-----------|----------|-------|
 | [p5.js](frameworks/p5js) | JavaScript | Beginner-friendly API, immediate-mode |
 | [Processing](frameworks/processing) | Java | Original creative coding framework |
-| [toxiclibs](frameworks/toxiclibs) | Java | Computational geometry, physics, color |
 
 ### 3D/GPU Focused
 | Framework | Language | Focus |
 |-----------|----------|-------|
-| [three.js](frameworks/threejs) | JavaScript | WebGL, scene graphs, materials |
 | [OpenFrameworks](frameworks/openframeworks) | C++ | Native, addon ecosystem |
 | [Cinder](frameworks/cinder) | C++ | High-performance, excellent API |
 | [cables.gl](frameworks/cables) | JavaScript | Node-based visual programming |
@@ -32,19 +30,32 @@ This repository collects major creative coding frameworks as git submodules alon
 | Framework | Language | Focus |
 |-----------|----------|-------|
 | [openrndr](frameworks/openrndr) | Kotlin | Modern JVM, DSL patterns |
-| [orx](frameworks/orx) | Kotlin | Extensions library |
 
 ### Modern/Experimental
 | Framework | Language | Focus |
 |-----------|----------|-------|
-| [tixl](frameworks/tixl) | Rust | 3D creative coding |
-| [WebGPU samples](frameworks/webgpu-samples) | JS/Rust | Next-gen graphics API |
+| [tixl](frameworks/tixl) | C#/.NET | Node-based 3D creative coding |
 
 ### Rust-Native References
 | Framework | Language | Focus |
 |-----------|----------|-------|
 | [nannou](frameworks/nannou) | Rust | Established Rust creative coding |
-| [wgpu](frameworks/wgpu) | Rust | WebGPU implementation |
+
+## Libraries Under Study
+
+| Library | Language | Focus |
+|---------|----------|-------|
+| [toxiclibs](libraries/toxiclibs) | Java | Computational geometry, physics, color theory |
+| [orx](libraries/orx) | Kotlin | Extensions for openrndr |
+| [mixbox](libraries/mixbox) | Multi | Pigment-based color mixing (Kubelka-Munk) |
+| [three.js](libraries/threejs) | JavaScript | WebGL 3D graphics library |
+| [wgpu](libraries/wgpu) | Rust | WebGPU implementation (nannou backend) |
+
+## Examples & Samples
+
+| Repository | Language | Focus |
+|------------|----------|-------|
+| [WebGPU samples](examples/webgpu-samples) | JS/TS | Next-gen graphics API examples |
 
 ## Repository Structure
 
@@ -53,7 +64,9 @@ study-creative-coding/
 ├── README.md                    # This file
 ├── FRAMEWORK_COMPARISON.md      # High-level comparison matrix
 │
-├── frameworks/                  # Git submodules (13 total)
+├── frameworks/                  # Creative coding frameworks (8 submodules)
+├── libraries/                   # Reusable libraries (5 submodules)
+├── examples/                    # Sample code & demos (1 submodule)
 │
 ├── notes/
 │   ├── per-framework/           # Deep dives into each framework
@@ -63,6 +76,9 @@ study-creative-coding/
 │   │       ├── rendering-pipeline.md
 │   │       ├── api-design.md
 │   │       └── code-traces/     # Annotated walkthroughs
+│   │
+│   ├── per-library/             # Library-specific notes
+│   ├── per-example/             # Example-specific notes
 │   │
 │   └── themes/                  # Cross-cutting analysis
 │       ├── architecture-patterns.md

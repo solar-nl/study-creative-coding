@@ -52,3 +52,7 @@ openrndr/
 - [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
+
+## Related Libraries
+
+- [orx](../../per-library/orx/) — Extensions library for openrndr (color, noise, shapes, etc.)

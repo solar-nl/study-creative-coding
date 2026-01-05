@@ -81,3 +81,7 @@ Start reading here to understand the framework:
 - [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
+
+## Related Libraries
+
+- [wgpu](../../per-library/wgpu/) — WebGPU implementation that powers nannou's graphics backend

@@ -5,10 +5,10 @@
 	path = frameworks/processing
 	url = https://github.com/processing/processing4.git
 [submodule "frameworks/toxiclibs"]
-	path = frameworks/toxiclibs
+	path = libraries/toxiclibs
 	url = https://github.com/postspectacular/toxiclibs.git
 [submodule "frameworks/threejs"]
-	path = frameworks/threejs
+	path = libraries/threejs
 	url = https://github.com/mrdoob/three.js.git
 [submodule "frameworks/openframeworks"]
 	path = frameworks/openframeworks
@@ -23,17 +23,20 @@
 	path = frameworks/openrndr
 	url = https://github.com/openrndr/openrndr.git
 [submodule "frameworks/orx"]
-	path = frameworks/orx
+	path = libraries/orx
 	url = https://github.com/openrndr/orx.git
 [submodule "frameworks/tixl"]
 	path = frameworks/tixl
 	url = https://github.com/tixl3d/tixl.git
 [submodule "frameworks/webgpu-samples"]
-	path = frameworks/webgpu-samples
+	path = examples/webgpu-samples
 	url = https://github.com/webgpu/webgpu-samples.git
 [submodule "frameworks/nannou"]
 	path = frameworks/nannou
 	url = https://github.com/nannou-org/nannou.git
 [submodule "frameworks/wgpu"]
-	path = frameworks/wgpu
+	path = libraries/wgpu
 	url = https://github.com/gfx-rs/wgpu.git
+[submodule "frameworks/mixbox"]
+	path = libraries/mixbox
+	url = https://github.com/scrtwpns/mixbox.git
