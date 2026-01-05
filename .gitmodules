@@ -1,0 +1,39 @@
+[submodule "frameworks/p5js"]
+	path = frameworks/p5js
+	url = https://github.com/processing/p5.js.git
+[submodule "frameworks/processing"]
+	path = frameworks/processing
+	url = https://github.com/processing/processing4.git
+[submodule "frameworks/toxiclibs"]
+	path = frameworks/toxiclibs
+	url = https://github.com/postspectacular/toxiclibs.git
+[submodule "frameworks/threejs"]
+	path = frameworks/threejs
+	url = https://github.com/mrdoob/three.js.git
+[submodule "frameworks/openframeworks"]
+	path = frameworks/openframeworks
+	url = https://github.com/openframeworks/openFrameworks.git
+[submodule "frameworks/cinder"]
+	path = frameworks/cinder
+	url = https://github.com/cinder/Cinder.git
+[submodule "frameworks/cables"]
+	path = frameworks/cables
+	url = https://github.com/cables-gl/cables.git
+[submodule "frameworks/openrndr"]
+	path = frameworks/openrndr
+	url = https://github.com/openrndr/openrndr.git
+[submodule "frameworks/orx"]
+	path = frameworks/orx
+	url = https://github.com/openrndr/orx.git
+[submodule "frameworks/tixl"]
+	path = frameworks/tixl
+	url = https://github.com/tixl3d/tixl.git
+[submodule "frameworks/webgpu-samples"]
+	path = frameworks/webgpu-samples
+	url = https://github.com/webgpu/webgpu-samples.git
+[submodule "frameworks/nannou"]
+	path = frameworks/nannou
+	url = https://github.com/nannou-org/nannou.git
+[submodule "frameworks/wgpu"]
+	path = frameworks/wgpu
+	url = https://github.com/gfx-rs/wgpu.git

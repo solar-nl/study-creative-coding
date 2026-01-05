@@ -1,0 +1,51 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (from submodules if built locally)
+node_modules/
+target/
+build/
+dist/
+out/
+bin/
+obj/
+*.o
+*.a
+*.so
+*.dylib
+
+# Java
+*.class
+*.jar
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Framework-specific build outputs
+frameworks/*/build/
+frameworks/*/node_modules/
+frameworks/*/target/
+frameworks/*/.gradle/
+
+# Keep empty directories with .gitkeep
+!.gitkeep
