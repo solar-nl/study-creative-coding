@@ -333,6 +333,59 @@ use nannou::color::Mix;
 let mixed = red.mix(&blue, 0.5);
 ```
 
+### The RGB Mixing Problem
+
+Standard RGB interpolation produces **muddy, desaturated results** when mixing complementary colors:
+
+| Colors | RGB Result | Expected (Paint) |
+|--------|------------|------------------|
+| Blue + Yellow | Gray/Brown | Green |
+| Red + Blue | Muddy Purple | Vibrant Purple |
+| Red + Green | Brown | Brown (correct) |
+
+This happens because RGB is an **additive** color model (light), while artists expect **subtractive** behavior (pigments).
+
+### Mixbox: Pigment-Based Mixing
+
+[Mixbox](https://github.com/scrtwpns/mixbox) solves this using **Kubelka-Munk theory** - a physical model of how light interacts with pigments.
+
+**How it works:**
+1. Convert RGB to a pigment "latent space" (via LUT texture)
+2. Mix in pigment space (simulating paint behavior)
+3. Convert back to RGB
+
+```rust
+// Rust - Pigment-based mixing
+let blue = [0, 33, 133];
+let yellow = [252, 211, 0];
+let t = 0.5;
+
+let [r, g, b] = mixbox::lerp(&blue, &yellow, t);
+// Result: Green! (not gray)
+```
+
+```glsl
+// GLSL shader - requires LUT texture
+uniform sampler2D mixbox_lut;
+#include "mixbox.glsl"
+
+vec3 mixed = mixbox_lerp(blue, yellow, 0.5);  // Natural green
+```
+
+**Available pigments** (with calibrated RGB values):
+
+| Pigment | RGB |
+|---------|-----|
+| Cadmium Yellow | 254, 236, 0 |
+| Ultramarine Blue | 25, 0, 89 |
+| Cadmium Red | 255, 39, 2 |
+| Phthalo Green | 0, 60, 50 |
+| Burnt Sienna | 123, 72, 0 |
+| Cobalt Blue | 0, 33, 133 |
+| Phthalo Blue | 13, 27, 68 |
+
+**Platform support:** Rust, C/C++, Python, JavaScript, GLSL, HLSL, Metal, Unity, Godot
+
 ### Blend Modes
 
 Blend modes define how colors combine. Common modes:
@@ -540,7 +593,24 @@ pub trait ColorHarmony {
 }
 ```
 
-### 6. Handle Linearity Explicitly
+### 6. Consider Pigment-Based Mixing
+
+For paint-like applications, integrate or learn from [Mixbox](https://github.com/scrtwpns/mixbox):
+
+```rust
+// Add as optional dependency
+mixbox = "2.0.0"
+
+// Use for natural color gradients
+let natural_mix = mixbox::lerp(&color1, &color2, t);
+```
+
+Kubelka-Munk mixing is essential for:
+- Digital painting tools
+- Gradient generation that "feels right"
+- Any application targeting artists familiar with physical media
+
+### 7. Handle Linearity Explicitly
 
 Make the distinction clear:
 
@@ -553,7 +623,7 @@ pub fn linear_rgb(r: f32, g: f32, b: f32) -> LinSrgb<f32>; // Math
 let linear = display_color.into_linear();
 ```
 
-### 7. Flexible Input Parsing
+### 8. Flexible Input Parsing
 
 Support multiple formats like three.js:
 
@@ -571,14 +641,16 @@ impl From<(f32, f32, f32)> for Color { } // (1.0, 0.0, 0.0)
 2. **toxiclibs** has the best color theory - port its strategies to Rust
 3. **nannou/palette** shows idiomatic Rust color handling
 4. **OkLab** is the modern choice for perceptual color - implement in shaders
-5. **Type safety vs ergonomics** is the key tradeoff - provide both layers
-6. **Linear workflow** is essential for correct rendering - make it explicit
+5. **Mixbox** enables natural pigment mixing - essential for paint-like applications
+6. **Type safety vs ergonomics** is the key tradeoff - provide both layers
+7. **Linear workflow** is essential for correct rendering - make it explicit
 
 ---
 
 ## References
 
 - [palette crate](https://crates.io/crates/palette) - Rust color library
+- [Mixbox](https://github.com/scrtwpns/mixbox) - Pigment-based color mixing (Kubelka-Munk)
 - [OkLab by Björn Ottosson](https://bottosson.github.io/posts/oklab/) - Modern perceptual color space
 - [toxiclibs color](http://toxiclibs.org/docs/colorutils/) - Color theory reference
 - [openrndr color](https://openrndr.org/) - Kotlin color implementation
