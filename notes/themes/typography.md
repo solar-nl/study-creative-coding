@@ -1,420 +1,472 @@
 # Theme: Typography
 
-> Cross-cutting analysis of how different creative coding frameworks handle text rendering, font loading, and typography.
+> Why is drawing text so much harder than drawing shapes?
 
-## Concept Overview
+---
 
-Typography in creative coding requires balancing multiple concerns:
-- **Accessibility**: Simple API for beginners to display text
-- **Flexibility**: Font loading from files, system fonts, or URLs
-- **Performance**: GPU-accelerated rendering via texture atlases
-- **Expressiveness**: Path-based text for generative art, per-glyph manipulation
-- **Cross-platform**: Consistent rendering across OS/GPU combinations
+## The Problem: Text Is Deceptively Complex
 
-Creative coding typography differs from traditional GUI text in its emphasis on **visual expressiveness** - text as graphic element rather than just information carrier.
+You might think rendering text would be simple. After all, fonts are just collections of shapes, right? Load the file, get the shapes, draw them. Done.
 
-## Framework Implementations
+But try to actually implement text rendering, and you'll quickly discover a rabbit hole:
 
-### p5.js
-**Approach**: JavaScript + opentype.js for font parsing, Canvas 2D/WebGL rendering
+- **Fonts are complex binary formats.** TrueType, OpenType, WOFF—each with their own tables, encoding schemes, and quirks. Just parsing them correctly is a project in itself.
 
-**Key files**:
-- `src/typography/p5.Font.js`
-- `src/typography/loading_displaying.js`
-- `src/webgl/text.js`
+- **Characters aren't independent.** The space between "AV" should be different from "AI" (that's kerning). Some character pairs combine into single glyphs (ligatures: "fi" → "ﬁ"). Languages like Arabic change letter shapes based on position in a word.
+
+- **Performance matters.** A naive approach renders each character separately—thousands of draw calls per frame. Real-time creative coding demands batching.
+
+- **Scaling is tricky.** Bitmap fonts blur when scaled. Vector fonts need GPU tessellation. Both have trade-offs.
+
+- **Platforms differ.** The same font renders slightly differently on macOS, Windows, and Linux. Users notice.
+
+Creative coding adds another dimension: we often want to **treat text as graphic material**—animate individual letters, fill text with textures, convert characters to paths for generative effects. Most text systems optimize for reading, not art.
+
+Let's explore how six creative coding frameworks tackle these challenges, and what we can learn from their approaches.
+
+---
+
+## The Mental Model: Three Layers of Typography
+
+Before diving into implementations, it helps to understand what any text system must do:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: Font Parsing                                      │
+│  "Turn a .ttf file into usable glyph data"                 │
+│  Libraries: FreeType, opentype.js, RustType, STB TrueType  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 2: Text Shaping                                      │
+│  "Turn a string into positioned glyphs"                     │
+│  Handles: kerning, ligatures, line breaking, alignment      │
+│  Libraries: HarfBuzz, CoreText, platform-native APIs        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 3: Rendering                                         │
+│  "Turn positioned glyphs into pixels on screen"            │
+│  Approaches: Bitmap atlas, SDF, vector tessellation        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Think of it like a translation pipeline. A font file is like a dictionary—it contains all the letter shapes. Text shaping is like grammar—it decides how letters combine and flow. Rendering is like handwriting—actually putting ink on paper.
+
+Different frameworks make different choices at each layer, with profound implications for features and performance.
+
+---
+
+## Framework Deep Dives
+
+### p5.js: The Dual-System Dilemma
+
+**The approach:** p5.js uses [opentype.js](https://opentype.js.org/) to parse fonts in JavaScript, then renders via Canvas 2D or WebGL.
+
+**What makes this interesting:** p5.js faces a uniquely web-specific challenge. Browsers already have powerful text rendering built in—the Canvas API's `fillText()` handles fonts, kerning, and even complex scripts automatically. So why not just use that?
+
+The answer is: creative coders want more than just *displaying* text. They want to *manipulate* it. And here's where `fillText()` falls short—it's a black box. You can't ask "where exactly is each letter?" or "give me the outline of this character."
+
+That's why p5.js brings in opentype.js. It can parse font files directly and expose glyph data:
 
 ```javascript
-// Font loading
-let font;
-function preload() {
-  font = loadFont('assets/inconsolata.otf');
-}
-
-// Basic text rendering
-function draw() {
-  textFont(font);
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text('Hello p5.js', width/2, height/2);
-}
-
-// Path extraction for generative art
-let points = font.textToPoints('p5*js', 50, 100, 64, {
+// This is why opentype.js exists in p5.js
+let points = font.textToPoints('hello', 0, 0, 72, {
   sampleFactor: 0.5
 });
+
+// Now we have actual coordinate data to play with
 for (let p of points) {
+  // Each point has x, y, and even the angle of the curve at that point
   ellipse(p.x, p.y, 4);
 }
 ```
 
-**Strengths**:
-- `textToPoints()` enables powerful generative text effects
-- Supports TTF, OTF, WOFF, WOFF2 formats
-- Automatic @font-face injection for CSS compatibility
-- WebGL text rendering with texture-mapped Bezier curves
+This enables generative typography—particles flowing along letter shapes, text that wiggles, characters that explode into fragments.
 
-**Weaknesses**:
-- Dual system tension: opentype.js vs CSS @font-face (see [#6391](https://github.com/processing/p5.js/issues/6391))
-- No variable font support ([#5607](https://github.com/processing/p5.js/issues/5607))
-- textToPoints alignment inconsistencies ([#8315](https://github.com/processing/p5.js/issues/8315))
+**The catch:** Now p5.js has two text systems that don't quite agree. Use `text()` for basic rendering (fast, uses browser's engine). Use `textToPoints()` for creative manipulation (slower, uses opentype.js). But they can behave differently—alignment might not match perfectly, certain fonts work in one but not the other.
 
----
+The community has been wrestling with this tension for years. GitHub issue [#6391](https://github.com/processing/p5.js/issues/6391) is a fascinating read—it explores potential solutions like SDF fonts or unifying on opentype.js, each with trade-offs.
 
-### Processing
-**Approach**: Java AWT fonts with bitmap caching, OpenGL texture atlas for 3D
-
-**Key files**:
-- `core/src/processing/core/PFont.java`
-- `core/src/processing/core/PGraphics.java`
-- `core/src/processing/opengl/FontTexture.java`
-
-```java
-// Dynamic font creation
-PFont font = createFont("Helvetica", 32, true);
-
-// Bitmap font loading (.vlw format)
-PFont bitmapFont = loadFont("MyFont-48.vlw");
-
-// Drawing
-textFont(font);
-textSize(24);
-textAlign(CENTER, TOP);
-text("Hello Processing", width/2, 50);
-```
-
-**Strengths**:
-- Lazy glyph loading - renders characters on-demand
-- Pre-baked .vlw bitmap fonts for consistent rendering
-- OpenGL texture atlas with 1-pixel borders prevents sampling artifacts
-- Extensive default character set (Latin-1 + math symbols)
-
-**Weaknesses**:
-- Binary search for Unicode glyph lookup (O(log n) vs O(1) for ASCII)
-- No vector path access from user code
-- Bitmap scaling can blur at large sizes
+**Key files to study:**
+- `src/typography/p5.Font.js` — The `textToPoints()` magic lives here
+- `src/typography/loading_displaying.js` — Font loading and the `text()` function
+- `src/webgl/text.js` — How text works in 3D mode (texture-mapped Bezier curves!)
 
 ---
 
-### OpenFrameworks
-**Approach**: FreeType for font parsing and rasterization, OpenGL texture atlas
+### Processing: The Lazy Approach (In a Good Way)
 
-**Key files**:
-- `libs/openFrameworks/graphics/ofTrueTypeFont.h`
-- `libs/openFrameworks/graphics/ofTrueTypeFont.cpp`
+**The approach:** Processing uses Java's built-in AWT font system, with a clever twist for OpenGL rendering.
+
+**The key insight:** Most programs only use a fraction of a font's characters. Loading all 65,000+ Unicode glyphs upfront wastes memory. Processing's solution? Load glyphs on demand.
+
+Here's how it works. When you call `createFont("Helvetica", 32)`, Processing doesn't render every character immediately. Instead, it creates a `PFont` object that knows *how* to render characters but hasn't done so yet. The first time you actually draw a specific character, Processing:
+
+1. Asks Java's AWT to render that character to a small offscreen image
+2. Scans the image to find the actual glyph bounds (not all characters use their full cell)
+3. Extracts the bitmap and stores it for future use
+
+This lazy loading is why you'll sometimes see a tiny pause the first time a character appears—especially with CJK fonts that have thousands of characters.
+
+For OpenGL rendering, Processing packs these bitmaps into a texture atlas (see `FontTexture.java`). There's a subtle detail here: each glyph gets a 1-pixel transparent border. Why? When the GPU samples textures, it can blend neighboring pixels. Without borders, you'd see ghostly fragments of adjacent glyphs bleeding into your text.
+
+**The limitation you'll hit:** Processing treats fonts as bitmaps. Great for consistency, but you can't get vector paths out. If you want to draw text as shapes, fill it with a gradient, or animate individual control points... you'll need a different framework.
+
+**Key files to study:**
+- `core/src/processing/core/PFont.java` — The `Glyph` inner class shows the bitmap extraction logic
+- `core/src/processing/opengl/FontTexture.java` — Atlas packing with those crucial 1-pixel borders
+
+---
+
+### OpenFrameworks: The FreeType Powerhouse
+
+**The approach:** OpenFrameworks wraps FreeType, the industry-standard open-source font engine.
+
+**Why this matters:** FreeType is battle-tested. It's what renders fonts on Linux, Android, and many game engines. Using it means OpenFrameworks gets excellent font compatibility and features that would take years to implement from scratch.
+
+But raw FreeType is low-level—you're dealing with fixed-point math, manual memory management, and callback-based outline traversal. OpenFrameworks wraps this complexity in a friendlier API while still exposing the power underneath.
+
+The most interesting part is the contour system. When you load a font with `settings.contours = true`, OpenFrameworks extracts the actual Bezier curves that define each character:
 
 ```cpp
-// Font loading with settings
-ofTrueTypeFontSettings settings("fonts/arial.ttf", 32);
-settings.antialiased = true;
-settings.contours = true;  // Enable path access
-settings.dpi = 72;
-settings.ranges = { ofUnicode::Latin1Supplement };
+ofTrueTypeFontSettings settings("font.ttf", 64);
+settings.contours = true;  // This is the magic flag
 
 ofTrueTypeFont font;
 font.load(settings);
 
-// Drawing
-font.drawString("Hello OpenFrameworks", 100, 100);
+// Now you can get actual vector paths
+vector<ofPath> paths = font.getStringAsPoints("hello", true, true);
 
-// Vector paths
-font.drawStringAsShapes("Outline text", 100, 200);
-vector<ofPath> paths = font.getStringAsPoints("Path text", true, true);
+// Each path has moveTo, lineTo, curveTo commands you can inspect or modify
+for (auto& path : paths) {
+    for (auto& cmd : path.getCommands()) {
+        // Do something creative with each point
+    }
+}
 ```
 
-**Strengths**:
-- Full FreeType integration with kerning support
-- Contour decomposition to ofPath (moveTo, lineTo, bezierTo)
-- Unicode range support (Latin, Greek, Cyrillic, CJK, Emoji)
-- Bidirectional text (LTR/RTL)
-- Mesh-based batch rendering
+Under the hood, this uses FreeType's outline decomposition API. The font file stores outlines as a series of points with on-curve/off-curve flags. FreeType walks through these and calls back with move, line, conic (quadratic), and cubic commands. OpenFrameworks translates these to its `ofPath` type.
 
-**Weaknesses**:
-- Small font glyph simplification ([#825](https://github.com/openframeworks/openFrameworks/issues/825))
-- DPI scaling issues ([#6970](https://github.com/openframeworks/openFrameworks/issues/6970))
-- No HarfBuzz for complex text shaping
-
----
-
-### Cinder
-**Approach**: Platform-native backends (CoreText/GDI+/FreeType) + GPU TextureFont
-
-**Key files**:
-- `include/cinder/Font.h`
-- `src/cinder/gl/TextureFont.cpp`
-- `include/cinder/Text.h`
+**What you should know about:** Unicode ranges. OpenFrameworks lets you specify exactly which character sets to load—Latin, Greek, Cyrillic, CJK, Emoji. This matters because pre-rendering all glyphs (required for the contour system) can be slow and memory-intensive for large character sets.
 
 ```cpp
-// Font loading
-auto font = Font("Arial", 48);
-auto fontFromFile = Font(loadFile("font.ttf"), 48);
-
-// TextureFont for GPU rendering
-auto textureFont = gl::TextureFont::create(font,
-    gl::TextureFont::Format()
-        .textureWidth(2048)
-        .enableMipmapping(true),
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-
-// Draw with options
-textureFont->drawString("Hello Cinder", vec2(100, 100),
-    gl::TextureFont::DrawOptions()
-        .scale(2.0f)
-        .ligate(true)
-        .pixelSnap(true));
-
-// TextBox for layout
-auto tb = TextBox()
-    .text("Lorem ipsum...")
-    .font(font)
-    .size(400, TextBox::GROW)
-    .alignment(TextBox::CENTER);
-
-vec2 size = tb.measure();
-Surface textSurface = tb.render();
+settings.ranges = {
+    ofUnicode::Latin,
+    ofUnicode::LatinExtendedA,
+    ofUnicode::Emoji  // Why not?
+};
 ```
 
-**Strengths**:
-- Platform-native text shaping (CoreText on macOS, GDI+ on Windows)
-- Builder pattern APIs (TextBox, DrawOptions, Format)
-- Custom shader support for text effects
-- Per-glyph color support
-- Ligature support
-
-**Weaknesses**:
-- Cross-platform rendering inconsistencies ([#416](https://github.com/cinder/Cinder/issues/416))
-- Font memory leaks ([#524](https://github.com/cinder/Cinder/issues/524))
-- TextBox measurement accuracy ([#347](https://github.com/cinder/Cinder/issues/347))
+**Key files to study:**
+- `libs/openFrameworks/graphics/ofTrueTypeFont.cpp` — Lines 188-229 show the FreeType outline callback magic
 
 ---
 
-### openrndr
-**Approach**: STB TrueType driver + FontImageMap texture atlas + orx-text-writer for advanced layout
+### Cinder: The Platform-Native Pragmatist
 
-**Key files**:
-- `openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/font/Font.kt`
-- `openrndr-jvm/openrndr-fontdriver-stb/src/main/kotlin/FontDriverStbTt.kt`
-- `libraries/orx/orx-text-writer/src/commonMain/kotlin/TextWriter.kt`
+**The approach:** Cinder delegates to platform APIs—CoreText on macOS, GDI+ on Windows, FreeType on Linux.
+
+**The philosophy here is pragmatic:** Apple and Microsoft have spent decades perfecting text rendering for their platforms. Their engines handle complex scripts (Arabic, Hindi, Chinese), advanced OpenType features (stylistic alternates, contextual ligatures), and accessibility requirements. Reimplementing all that would be enormous effort.
+
+So Cinder says: use what the platform provides, wrap it in a consistent API.
+
+The `TextBox` class exemplifies Cinder's builder-pattern approach:
+
+```cpp
+auto text = TextBox()
+    .text("Hello, world!")
+    .font(Font("Garamond", 24))
+    .size(vec2(400, TextBox::GROW))  // Fixed width, auto height
+    .alignment(TextBox::CENTER)
+    .color(Color::white())
+    .backgroundColor(ColorA(0, 0, 0, 0.5f));
+
+// Compute the layout
+vec2 size = text.measure();
+
+// Render to a Surface (CPU) or use TextureFont for GPU
+Surface rendered = text.render();
+```
+
+**The GPU side:** `TextureFont` pre-renders a character set to a texture atlas, similar to other frameworks. But Cinder adds some nice touches—you can specify custom shaders for effects, and there's per-glyph color support:
+
+```cpp
+vector<ColorA8u> colors = { RED, RED, GREEN, GREEN, BLUE };
+textureFont->drawGlyphs(glyphs, baseline, options, colors);
+```
+
+**The trade-off:** Platform-native rendering means platform-specific behavior. The same font at the same size might render a pixel or two differently on macOS vs Windows. For most applications, this is fine. For pixel-perfect cross-platform consistency, it's a problem. See [issue #416](https://github.com/cinder/Cinder/issues/416) for war stories.
+
+**Key files to study:**
+- `src/cinder/Text.cpp` — The `calculateLineBreaks()` function shows platform-specific line breaking
+- `src/cinder/gl/TextureFont.cpp` — Atlas generation and batch rendering
+
+---
+
+### openrndr: The Pluggable Architecture
+
+**The approach:** openrndr uses a driver abstraction with STB TrueType as the default backend, plus a sophisticated layout library (`orx-text-writer`).
+
+**The design pattern that stands out:** openrndr separates the "how to parse fonts" question from the "how to use fonts" question:
 
 ```kotlin
-// Font loading
-drawer.fontMap = loadFont("fonts/IBMPlexMono-Regular.ttf", 24.0)
-
-// Basic drawing
-drawer.text("Hello OPENRNDR", Vector2(100.0, 100.0))
-
-// Advanced layout with TextWriter
-writer {
-    style.horizontalAlign = 0.5  // Center
-    style.tracking = 2.0         // Letter spacing
-    style.leading = 10.0         // Line spacing
-    box = Rectangle(0.0, 0.0, 400.0, 300.0)
-    newLine()
-    text("Multi-line text layout")
+interface FontDriver {
+    fun loadFace(fileOrUrl: String): Face
 }
 
-// Glyph-level access for effects
-writer {
-    text(text, visible = false)  // Layout only
-    // Transform glyphs individually
-    drawer.image((drawer.fontMap as FontImageMap).texture,
-        glyphOutput.rectangles.mapIndexed { index, it ->
-            Pair(it.first, it.second.movedBy(
-                Vector2(0.0, 20.0 * cos(index * 0.5 + seconds * 10.0))
-            ))
-        }
-    )
+interface Face {
+    fun glyphForCharacter(character: Char): Glyph
+    fun kernAdvance(scale: Double, left: Char, right: Char): Double
+    // ...
+}
+
+interface Glyph {
+    fun shape(scale: Double): Shape  // Vector outline!
+    fun advanceWidth(scale: Double): Double
+    // ...
 }
 ```
 
-**Strengths**:
-- Driver pattern allows swappable font implementations
-- Face/Glyph interfaces provide shape() for vector paths
-- orx-text-writer provides sophisticated layout (alignment, tracking, leading)
-- Token-based layout enables pre-render inspection
-- GlyphOutput capture for post-render effects
-- Kerning table support
+This means you could swap STB TrueType for FreeType, or a platform-native backend, without changing user code. In practice, most people just use the default, but the abstraction is there.
 
-**Weaknesses**:
-- FontImageMap texture binding conflicts ([#394](https://github.com/openrndr/openrndr/issues/394))
-- STB TrueType lacks HarfBuzz-level shaping
-- No variable font support
+**Where openrndr really shines:** The `orx-text-writer` extension library. It introduces a concept of "tokens"—computed text positions before any drawing happens:
+
+```kotlin
+writer {
+    text("hello world", visible = false)  // Layout only, don't draw yet
+
+    // Now glyphOutput.rectangles contains where each glyph would be drawn
+    // We can transform these however we want before actually drawing
+}
+```
+
+This separation of layout and rendering enables effects that would be awkward otherwise—text that follows curves, per-character animation, custom hit-testing.
+
+The `WriteStyle` class shows what typographic controls the library exposes:
+
+```kotlin
+class WriteStyle {
+    var leading = 0.0         // Extra line spacing
+    var tracking = 0.0        // Letter spacing (kerning adjustment)
+    var horizontalAlign = 0.0 // 0.0 = left, 0.5 = center, 1.0 = right
+    var verticalAlign = 0.0   // 0.0 = top, 0.5 = center, 1.0 = bottom
+    var ellipsis: String? = "…"  // Overflow handling
+}
+```
+
+**Key files to study:**
+- `openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/font/Font.kt` — The Face/Glyph interfaces
+- `libraries/orx/orx-text-writer/src/commonMain/kotlin/TextWriter.kt` — The token-based layout system
 
 ---
 
-### nannou
-**Approach**: RustType for font parsing + lyon for path tessellation
+### nannou: The Rust-Native Solution
 
-**Key files**:
-- `nannou/src/text/font.rs`
-- `nannou/src/text/glyph.rs`
-- `nannou/src/draw/primitive/text.rs`
+**The approach:** nannou uses RustType for font parsing and lyon for path tessellation—pure Rust, no C dependencies.
+
+**Why this matters for Rust developers:** RustType parses fonts and generates glyph outlines. Lyon tessellates vector paths into triangles. Both are idiomatic Rust with proper memory safety. No unsafe FFI to C libraries means easier compilation, better error messages, and integration with Rust's tooling.
+
+The API uses nannou's characteristic builder pattern:
 
 ```rust
-// Font loading
-let font = text::font::from_file("assets/fonts/NotoSans.ttf")?;
-
-// Builder pattern for text
-draw.text("Hello nannou")
-    .font(font.clone())
-    .font_size(24)
+draw.text("Hello, nannou!")
+    .font_size(48)
     .color(BLACK)
-    .wh(win_rect.wh())
-    .center_justify()
-    .align_middle_y();
+    .center_justify()      // Horizontal alignment
+    .align_middle_y()      // Vertical alignment
+    .wh(rect.wh());        // Bounding box
+```
 
-// Per-glyph colors
-draw.text(text)
-    .glyph_colors(vec![BLUE, BLUE, RED, RED, GREEN]);
+**The generative capability:** Converting text to paths works through RustType's shape extraction, then lyon's path builder:
 
-// Path extraction
-let text_layout = text("nannou")
+```rust
+// Build the text layout
+let text_layout = text("creative")
     .font_size(128)
     .build(win_rect);
 
+// Draw it as a filled path instead of textured quads
 draw.path()
     .fill()
     .color(BLACK)
     .events(text_layout.path_events());
 ```
 
-**Strengths**:
-- Builder pattern with method chaining
-- Glyph-to-lyon path conversion for fill/stroke
-- Iterator-based lazy evaluation
-- GPU cache integration (RustType)
-- Separate X (Justify) and Y (Align) alignment
+Under the hood, `path_events()` iterates through RustType's glyph contours (sequences of lines and quadratic Beziers) and yields lyon `PathEvent`s. This means you can fill text with gradients, stroke outlines, or feed the paths into any lyon-compatible system.
 
-**Weaknesses**:
-- Incomplete draw.text() in Bevy refactor ([#1003](https://github.com/nannou-org/nannou/issues/1003))
-- Memory leaks reported ([#786](https://github.com/nannou-org/nannou/issues/786))
-- RustType maintenance status uncertain
-- No OpenType feature support ([#364](https://github.com/nannou-org/nannou/issues/364))
+**Per-glyph coloring** is a nice touch:
+
+```rust
+draw.text("rainbow")
+    .glyph_colors(vec![RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET]);
+```
+
+**The current limitation:** nannou is undergoing a major refactor to integrate with Bevy. The text system is partially implemented—see [issue #1003](https://github.com/nannou-org/nannou/issues/1003). If you're starting a project today, check the current state of `bevy_nannou_draw`.
+
+**Key files to study:**
+- `nannou/src/text/glyph.rs` — The RustType-to-lyon conversion in `contours_to_path()`
+- `nannou/src/draw/primitive/text.rs` — The builder pattern implementation
 
 ---
 
-## Comparison Matrix
+## The Trade-offs, Visualized
 
-| Framework | Font Library | Formats | Glyph Path Access | Text Shaping | GPU Atlas | Kerning |
-|-----------|-------------|---------|-------------------|--------------|-----------|---------|
-| p5.js | opentype.js | TTF/OTF/WOFF/WOFF2 | textToPoints() | Basic | WebGL textures | Via opentype.js |
-| Processing | Java AWT | TTF/OTF/.vlw | None | Java 2D | FontTexture | FontMetrics |
-| OpenFrameworks | FreeType | TTF/OTF | getStringAsPoints() | FreeType | Texture atlas | FT_Get_Kerning |
-| Cinder | Platform-native + FreeType | TTF/OTF | getGlyphShape() | CoreText/GDI+ | TextureFont | Platform-native |
-| openrndr | STB TrueType | TTF/OTF | glyph.shape() | Basic | FontImageMap | kernAdvance() |
-| nannou | RustType | TTF/OTF | path_events() | Basic | GPU cache | Via RustType |
+Here's how the frameworks compare on key dimensions:
 
-| Framework | Variable Fonts | Complex Scripts | Line Wrap | Text Alignment | Per-Glyph Color |
-|-----------|---------------|-----------------|-----------|----------------|-----------------|
-| p5.js | No ([#5607](https://github.com/processing/p5.js/issues/5607)) | No | Word/Char | H + V | No |
-| Processing | No | Limited | Box bounds | H + V | No |
-| OpenFrameworks | No | Unicode ranges | Manual | Manual | No |
-| Cinder | Via CoreText | Via platform | TextBox | H + V | Yes |
-| openrndr | No | Unicode ranges | orx-text-writer | H + V | Via GlyphOutput |
-| nannou | No | No | Word/Char | Justify + Align | glyph_colors() |
+```
+                    Vector Paths?    Complex Scripts?    Pure Language?
+                    (generative)     (Arabic, etc.)      (no C deps)
+                         │                 │                  │
+    p5.js          ●●●●●○○○         ○○○○○○○○          ●●●●●●●●
+    Processing     ○○○○○○○○         ●●●○○○○○          ●●●●●●●●
+    OpenFrameworks ●●●●●●●●         ●●●○○○○○          ○○○○○○○○
+    Cinder         ●●●●●●○○         ●●●●●●●●          ○○○○○○○○
+    openrndr       ●●●●●●●○         ●●●○○○○○          ●●●●●●●●
+    nannou         ●●●●●●●●         ○○○○○○○○          ●●●●●●●●
+```
 
-## Best Practices Extracted
+| Framework | Font Library | What It Gets You | What You Give Up |
+|-----------|-------------|------------------|------------------|
+| p5.js | opentype.js | `textToPoints()` for generative art | Consistency (dual-system issues) |
+| Processing | Java AWT | Reliability, lazy loading | No path access |
+| OpenFrameworks | FreeType | Industry-standard rendering, full Unicode | C++ dependency complexity |
+| Cinder | Platform-native | Best OS integration, ligatures | Cross-platform consistency |
+| openrndr | STB TrueType | Pluggable architecture, token-based layout | Basic shaping only |
+| nannou | RustType | Pure Rust, clean path API | Limited feature set |
 
-1. **Builder Pattern**: Cinder's TextBox and nannou's draw.text() demonstrate ergonomic configuration APIs:
-   ```rust
-   draw.text("hello")
-       .font_size(24)
-       .center_justify()
-       .color(WHITE)
-   ```
+---
 
-2. **Separate Alignment Axes**: nannou separates horizontal (Justify: Left/Center/Right) from vertical (Align: Start/Middle/End) for clarity.
+## What We Can Learn for a Rust Framework
 
-3. **Lazy Glyph Loading**: Processing's on-demand glyph rendering prevents wasted memory for unused characters.
+After studying these implementations, several patterns emerge as worth adopting:
 
-4. **Token-Based Layout**: OPENRNDR's TextWriter returns `List<TextToken>` before rendering, enabling inspection and transformation.
+### Separate Layout from Rendering
 
-5. **Path Conversion**: All mature frameworks convert glyphs to vector paths (Bezier curves) for generative applications.
+openrndr's token-based approach is powerful. Compute where glyphs go first, *then* decide how to draw them. This enables:
 
-6. **Driver Abstraction**: OPENRNDR's FontDriver interface allows swapping implementations (STB, FreeType, platform-native).
-
-## Anti-Patterns to Avoid
-
-1. **Dual System Confusion**: p5.js's split between opentype.js and CSS @font-face creates user confusion about capabilities.
-
-2. **Fixed Character Sets**: Pre-baking only ASCII/Latin limits international use. Use Unicode ranges or lazy loading.
-
-3. **Platform Rendering Differences**: Cinder's cross-platform inconsistencies show the danger of relying on platform-native APIs without normalization.
-
-4. **Undocumented Leaks**: Memory leaks in font caching (Cinder #524, nannou #786) indicate need for explicit resource management.
-
-5. **Missing Scaling Consideration**: OpenFrameworks' DPI issues show importance of HiDPI-aware design from the start.
-
-## Recommendations for Rust Framework
-
-### Suggested Approach
-
-Use a layered architecture:
-1. **Font Parsing**: cosmic-text or fontdue for parsing (actively maintained, pure Rust)
-2. **Text Shaping**: rustybuzz (HarfBuzz port) for complex scripts
-3. **Path Output**: lyon for tessellation
-4. **GPU Rendering**: wgpu texture atlas with glyph caching
-
-### API Sketch
+- Pre-render inspection ("how wide will this text be?")
+- Per-glyph transformation (animation, effects)
+- Alternative renderers (fill vs. stroke vs. texture)
 
 ```rust
-// Font loading with Into<FontSource> for flexibility
-let font = Font::load("assets/font.ttf")?;
-let font = Font::load(FontSource::Bytes(bytes))?;
-let font = Font::system("Helvetica")?;
-
-// Builder pattern for text configuration
-draw.text("Hello")
-    .font(&font)
-    .size(24.0)
-    .color(Color::WHITE)
-    .align(HAlign::Center, VAlign::Middle)
-    .wrap(Wrap::Word)
-    .tracking(1.5)      // Letter spacing
-    .leading(1.2);      // Line height multiplier
-
-// Layout inspection before rendering
-let layout = Text::layout("Hello")
+// Proposed pattern
+let layout = Text::layout("hello")
     .font(&font)
     .size(24.0)
     .wrap_width(200.0)
     .build();
 
-for glyph in layout.glyphs() {
-    // Access position, bounds, path
-}
+// Inspect before drawing
+println!("Text width: {}", layout.bounds().width);
 
-// Path extraction for generative use
-let path: Path = layout.to_path();
-draw.path(&path).fill(Color::BLACK);
-
-// Per-glyph transformation
+// Draw with transformations
 for (i, glyph) in layout.glyphs().enumerate() {
-    let offset = (i as f32 * 0.5 + time).sin() * 10.0;
-    draw.glyph(&glyph)
-        .offset(0.0, offset)
-        .color(rainbow(i));
+    let wave = (i as f32 * 0.5 + time).sin() * 10.0;
+    draw.glyph(&glyph).offset_y(wave);
 }
 ```
 
-### Key Design Decisions
+### Use Builder Patterns for Configuration
 
-1. **Use `cosmic-text`** for text shaping - actively maintained, supports complex scripts
-2. **Separate layout from drawing** - compute layout once, render multiple times
-3. **Glyph iteration** - first-class support for per-glyph manipulation
-4. **Path extraction** - convert any text to lyon Path for generative effects
-5. **Resource management** - explicit Font lifetime with Arc<> sharing
+Both Cinder and nannou demonstrate that typography has too many options for positional parameters. Builders make code readable:
 
-### Trade-offs
+```rust
+// Clear and self-documenting
+draw.text("Hello")
+    .font(&font)
+    .size(24.0)
+    .color(WHITE)
+    .align(HAlign::Center, VAlign::Top)
+    .tracking(1.5)   // Letter spacing
+    .leading(1.2);   // Line height multiplier
+```
 
-- **Pro**: Pure Rust stack avoids C/C++ dependencies
-- **Pro**: HarfBuzz-level shaping via rustybuzz
-- **Pro**: Clean builder API learned from nannou/Cinder
-- **Con**: cosmic-text less mature than FreeType
-- **Con**: No variable font support in pure Rust (yet)
+### Make Path Extraction First-Class
 
-### Open Questions
+Every creative coding framework eventually adds path access because users demand it. Build it in from the start:
 
-- How to handle font fallback chains for missing glyphs?
-- Should layout be mutable for animation, or always rebuild?
-- How to expose OpenType features (ligatures, stylistic alternates)?
-- Web target: use browser's text shaping or bring own?
+```rust
+// Should be this easy
+let path = text_layout.to_path();
+draw.path(&path).fill(gradient);
+```
+
+### Consider the Shaping Gap
+
+None of the pure-language solutions (p5.js, openrndr, nannou) properly handle complex scripts. For a Rust framework, [rustybuzz](https://github.com/RazrFalcon/rustybuzz) (a HarfBuzz port) could fill this gap:
+
+```
+Font Parsing      Text Shaping         Rendering
+     │                 │                   │
+     ▼                 ▼                   ▼
+ cosmic-text  ──▶  rustybuzz  ──▶  wgpu texture atlas
+ (or fontdue)      (HarfBuzz)      (with glyph caching)
+```
+
+### Don't Forget Resource Management
+
+Several frameworks have had memory leak issues with font caching (Cinder [#524](https://github.com/cinder/Cinder/issues/524), nannou [#786](https://github.com/nannou-org/nannou/issues/786)). Rust's ownership system is an advantage here—make `Font` and `GlyphCache` lifetimes explicit:
+
+```rust
+// Explicit lifetime, automatic cleanup
+let font = Font::load("font.ttf")?;
+let cache = GlyphCache::new(&device);
+
+// When `cache` drops, GPU resources are freed
+```
+
+---
+
+## Open Questions for Further Research
+
+Some design questions don't have clear answers yet:
+
+**Font Fallback:** What happens when a font doesn't have a glyph? Should we automatically try other fonts? How does the user specify fallback chains?
+
+**Variable Fonts:** Modern fonts can have continuous weight/width axes. None of the studied frameworks expose this well. How should the API look?
+
+**Web Target:** When compiling to WebAssembly, should we use the browser's native text shaping (fast, good) or bring our own (consistent, controllable)?
+
+**Layout Mutability:** Should `TextLayout` be recomputable in place for animation, or always rebuild? Trade-off between ergonomics and predictability.
+
+---
+
+## Where to Go Next
+
+- **If you're implementing typography in Rust:** Start with [cosmic-text](https://github.com/pop-os/cosmic-text), which handles shaping and layout. Pair with [lyon](https://github.com/nical/lyon) for path rendering.
+
+- **If you want to understand font internals:** The [OpenType spec](https://learn.microsoft.com/en-us/typography/opentype/spec/) is dense but authoritative. [The Raster Tragedy](http://rastertragedy.com/) explains why font rendering is hard.
+
+- **If you're debugging text issues:** Each framework's GitHub issues are goldmines. Search for "font", "text", "typography", "kerning"—you'll find the edge cases others have hit.
+
+---
+
+## Source Files Reference
+
+| Framework | Key Typography Files |
+|-----------|---------------------|
+| p5.js | `src/typography/p5.Font.js`, `src/typography/loading_displaying.js` |
+| Processing | `core/src/processing/core/PFont.java`, `core/src/processing/opengl/FontTexture.java` |
+| OpenFrameworks | `libs/openFrameworks/graphics/ofTrueTypeFont.cpp` |
+| Cinder | `include/cinder/Font.h`, `src/cinder/gl/TextureFont.cpp`, `include/cinder/Text.h` |
+| openrndr | `openrndr-draw/.../font/Font.kt`, `orx-text-writer/.../TextWriter.kt` |
+| nannou | `nannou/src/text/font.rs`, `nannou/src/text/glyph.rs`, `nannou/src/draw/primitive/text.rs` |
+
+---
+
+## GitHub Issues Worth Reading
+
+These discussions reveal real-world pain points and design debates:
+
+| Issue | Framework | What You'll Learn |
+|-------|-----------|-------------------|
+| [#6391](https://github.com/processing/p5.js/issues/6391) | p5.js | The opentype.js vs CSS @font-face architectural tension |
+| [#5607](https://github.com/processing/p5.js/issues/5607) | p5.js | Why variable fonts are hard to support |
+| [#1131](https://github.com/openframeworks/openFrameworks/issues/1131) | OpenFrameworks | Feature discussion for ofTrueTypeFont redesign |
+| [#825](https://github.com/openframeworks/openFrameworks/issues/825) | OpenFrameworks | Small font rendering quality issues |
+| [#416](https://github.com/cinder/Cinder/issues/416) | Cinder | Cross-platform text inconsistencies |
+| [#1003](https://github.com/nannou-org/nannou/issues/1003) | nannou | Current state of Bevy integration |
