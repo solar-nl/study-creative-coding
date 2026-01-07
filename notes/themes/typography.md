@@ -421,17 +421,17 @@ let cache = GlyphCache::new(&device);
 
 ---
 
-## Open Questions for Further Research
+## Deep Dives: Further Research
 
-Some design questions don't have clear answers yet:
+These topics warranted their own detailed analysis:
 
-**Font Fallback:** What happens when a font doesn't have a glyph? Should we automatically try other fonts? How does the user specify fallback chains?
+- **[Font Fallback](typography-font-fallback.md)** — What happens when a font doesn't have a glyph? How do platform APIs, HarfBuzz, and cosmic-text handle missing characters? How should a Rust framework specify fallback chains?
 
-**Variable Fonts:** Modern fonts can have continuous weight/width axes. None of the studied frameworks expose this well. How should the API look?
+- **[Variable Fonts](typography-variable-fonts.md)** — Modern fonts with continuous weight/width axes. How the fvar table works, what swash provides, and API design patterns for creative coding.
 
-**Web Target:** When compiling to WebAssembly, should we use the browser's native text shaping (fast, good) or bring our own (consistent, controllable)?
+- **[WebAssembly Text Shaping](typography-wasm-shaping.md)** — Should you use the browser's native text engine or bring your own (rustybuzz)? Bundle size trade-offs, the hybrid approach, and when each makes sense.
 
-**Layout Mutability:** Should `TextLayout` be recomputable in place for animation, or always rebuild? Trade-off between ergonomics and predictability.
+- **[Layout Mutability](typography-layout-mutability.md)** — Should `TextLayout` be mutable for animation, or always rebuilt? Lessons from Android's StaticLayout/DynamicLayout, CSS FLIP technique, and Rust ownership patterns.
 
 ---
 
