@@ -1,87 +1,185 @@
-# three.js
+# Three.js WebGPU Renderer Study
 
-> A JavaScript 3D library that makes WebGL easy.
+> Analyzing Three.js's WebGPU rendering pipeline for potential wgpu patterns
 
-## Quick Facts
+## Why Study Three.js WebGPU?
 
-| Property | Value |
-|----------|-------|
-| **Language** | JavaScript |
-| **License** | MIT |
-| **First Release** | 2010 |
-| **Repository** | [mrdoob/three.js](https://github.com/mrdoob/three.js) |
-| **Documentation** | [threejs.org/docs](https://threejs.org/docs/) |
+Three.js has a mature WebGPU renderer with several patterns relevant to wgpu:
 
-## Philosophy & Target Audience
+1. **Backend Abstraction** - Clean separation of renderer logic from GPU-specific code
+2. **Node-Based Shaders (TSL)** - Compile shader graphs to WGSL
+3. **RenderObject Pattern** - Per-object render state management
+4. **Pipeline Caching** - Cache key generation for pipelines
+5. **Compute Shader Support** - First-class compute pipeline handling
 
-three.js abstracts WebGL complexity into a scene graph model. Key principles:
+## Document Structure
 
-- **Retained-mode rendering**: Build a scene graph, renderer handles drawing
-- **Object-oriented hierarchy**: Everything inherits from Object3D
-- **Material/Geometry separation**: Decouple appearance from shape
-- **Progressive complexity**: Simple defaults, deep customization available
+| Document | Focus | wgpu Relevance |
+|----------|-------|----------------|
+| [rendering-pipeline.md](rendering-pipeline.md) | High-level render loop | Overall architecture |
+| [webgpu-backend.md](webgpu-backend.md) | WebGPU-specific implementation | Direct wgpu mapping |
+| [pipeline-bindings.md](pipeline-bindings.md) | Pipeline and bind group management | Resource binding |
+| [node-system.md](node-system.md) | TSL shader compilation | Shader graph patterns |
 
-Target audience: Web developers building 3D experiences, games, visualizations.
+## Architecture Overview
 
-## Repository Structure
+Three.js uses a **backend abstraction pattern** that separates high-level rendering logic from GPU-specific code:
 
 ```
-threejs/
-├── src/
-│   ├── Three.js           # Main entry (imports Three.Core.js)
-│   ├── Three.Core.js      # Core API exports
-│   ├── Three.WebGPU.js    # WebGPU renderer variant
-│   ├── constants.js       # Global constants
-│   ├── core/              # Object3D, BufferGeometry, Raycaster
-│   ├── cameras/           # Camera types
-│   ├── scenes/            # Scene, Fog
-│   ├── renderers/         # WebGLRenderer, WebGPU, shaders
-│   │   ├── webgl/         # 33 WebGL modules
-│   │   ├── webgpu/        # WebGPU implementation
-│   │   └── shaders/       # ShaderLib, UniformsLib
-│   ├── objects/           # Mesh, Line, Points, Sprite
-│   ├── materials/         # 22 material types
-│   ├── geometries/        # 23 geometry types
-│   ├── lights/            # Light types
-│   ├── math/              # Vector, Matrix, Quaternion, Color
-│   ├── animation/         # AnimationMixer, clips, tracks
-│   ├── loaders/           # Asset loaders
-│   ├── textures/          # Texture types
-│   ├── audio/             # Web Audio integration
-│   ├── helpers/           # Debug visualizers
-│   └── nodes/             # Node-based materials (TSL)
-├── build/                 # Distribution builds
-└── examples/              # Extensive example collection
+┌─────────────────────────────────────────────────────────────────────┐
+│                        WebGPURenderer                                │
+│  (thin wrapper, configures backend + node library)                  │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                          Renderer                                    │
+│  (common/Renderer.js - 89KB of shared logic)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  • Scene traversal and render list building                         │
+│  • Frustum culling                                                   │
+│  • Opaque/transparent sorting                                        │
+│  • RenderObject management                                           │
+│  • Animation, lighting, post-processing                             │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Backend (abstract)                           │
+│  (common/Backend.js - interface for GPU backends)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  • init()                    • createProgram()                       │
+│  • beginRender()             • createRenderPipeline()               │
+│  • finishRender()            • createComputePipeline()              │
+│  • draw()                    • createBindings()                      │
+│  • compute()                 • updateBindings()                      │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│     WebGPUBackend       │     │    WebGLBackend         │
+│  (webgpu/WebGPUBackend) │     │  (webgl-fallback/)      │
+├─────────────────────────┤     ├─────────────────────────┤
+│  • GPUDevice            │     │  • WebGL2Context        │
+│  • CommandEncoder       │     │  • Shader compilation   │
+│  • RenderPass           │     │  • GL state management  │
+│  • WGSL shaders         │     │  • GLSL shaders         │
+└─────────────────────────┘     └─────────────────────────┘
 ```
 
-## Key Entry Points
+## Key Source Files
 
-Start reading here to understand the framework:
+```
+libraries/threejs/src/renderers/
+├── common/                          # Shared renderer infrastructure
+│   ├── Renderer.js                  # Main renderer (89KB)
+│   ├── Backend.js                   # Abstract backend interface
+│   ├── Pipelines.js                 # Pipeline caching
+│   ├── Bindings.js                  # Bind group management
+│   ├── RenderObject.js              # Per-object render state
+│   ├── RenderList.js                # Render list sorting
+│   ├── RenderContext.js             # Render pass context
+│   └── nodes/
+│       ├── Nodes.js                 # Node system integration
+│       └── NodeLibrary.js           # Node type mapping
+│
+├── webgpu/                          # WebGPU-specific code
+│   ├── WebGPURenderer.js            # Entry point
+│   ├── WebGPUBackend.js             # Backend implementation (67KB)
+│   ├── nodes/
+│   │   ├── WGSLNodeBuilder.js       # Node → WGSL compiler (66KB)
+│   │   └── StandardNodeLibrary.js   # Material node mappings
+│   └── utils/
+│       ├── WebGPUPipelineUtils.js   # Pipeline creation
+│       ├── WebGPUBindingUtils.js    # Bind group creation
+│       ├── WebGPUAttributeUtils.js  # Vertex buffer setup
+│       └── WebGPUTextureUtils.js    # Texture management
+│
+└── webgl-fallback/                  # WebGL 2 fallback backend
+    └── WebGLBackend.js
+```
 
-1. **`src/Three.Core.js`** — Core exports, shows API surface
-2. **`src/core/Object3D.js`** — Base class for all scene objects
-3. **`src/renderers/WebGLRenderer.js`** — Main rendering engine
-4. **`src/scenes/Scene.js`** — Scene container
-5. **`src/cameras/PerspectiveCamera.js`** — Most common camera
+## wgpu Concept Mapping
 
-## Notable Patterns
+| Three.js | wgpu | Notes |
+|----------|------|-------|
+| `Backend` | Trait/interface | Abstract GPU operations |
+| `WebGPUBackend` | `wgpu::Device` + helpers | WebGPU implementation |
+| `Renderer` | Render loop coordinator | Scene traversal, sorting |
+| `RenderObject` | Per-draw state bundle | Material + geometry + context |
+| `Pipelines` | `RenderPipeline` cache | Cache by render state key |
+| `Bindings` | `BindGroup` management | Resource binding |
+| `RenderContext` | Render pass state | Attachments, clear values |
+| `WGSLNodeBuilder` | Shader compiler | Node graph → WGSL |
 
-- **Scene graph**: Hierarchical Object3D tree with transforms
-- **Geometry + Material = Mesh**: Separation of shape and appearance
-- **Render targets**: Off-screen rendering for post-processing
-- **Shader chunks**: Modular GLSL building blocks
+## Render Loop Flow
+
+```
+renderer.render(scene, camera)
+    │
+    ├─► Update world matrices
+    ├─► Build render lists (opaque + transparent)
+    │   └─► Frustum culling
+    │   └─► Sort by material/depth
+    │
+    ├─► backend.beginRender(renderContext)
+    │   └─► Create CommandEncoder
+    │   └─► Begin RenderPass
+    │
+    ├─► For each render item:
+    │   ├─► Get/create RenderObject
+    │   ├─► Get/create Pipeline (cached by state)
+    │   ├─► Update Bindings (uniforms, textures)
+    │   └─► backend.draw(renderObject)
+    │       └─► setPipeline()
+    │       └─► setBindGroup()
+    │       └─► setVertexBuffer()
+    │       └─► draw() / drawIndexed()
+    │
+    └─► backend.finishRender(renderContext)
+        └─► End RenderPass
+        └─► queue.submit()
+```
+
+## Key Patterns to Extract
+
+1. **Backend Abstraction** - Separate GPU-agnostic logic from backend-specific code
+2. **RenderObject** - Bundle all per-draw state for efficient lookup
+3. **Pipeline Cache Keys** - Generate unique keys from render state
+4. **Node-Based Shaders** - Compile shader graphs to GPU code
+5. **Render Context** - Encapsulate render pass configuration
+6. **DataMap Pattern** - WeakMap-based caching for GPU resources
+
+## Node System (TSL)
+
+Three.js uses a node-based shader system called TSL (Three Shading Language):
+
+```javascript
+// TSL example - compiles to WGSL
+import { uniform, vec3, mix } from 'three/tsl';
+
+const colorA = uniform(new Color(0xff0000));
+const colorB = uniform(new Color(0x0000ff));
+const mixFactor = uniform(0.5);
+
+material.colorNode = mix(colorA, colorB, mixFactor);
+```
+
+This compiles to WGSL via `WGSLNodeBuilder`.
 
 ## Study Questions
 
-- [ ] How does the scene graph traverse and render?
-- [ ] How does WebGLRenderer batch draw calls?
-- [ ] How does the material/shader compilation work?
-- [ ] How does the geometry attribute system work?
-- [ ] How does the new node-based material system (TSL) work?
-- [ ] How is WebGPU support architected alongside WebGL?
+- [x] How does the backend abstraction work?
+- [ ] How are pipelines cached and invalidated?
+- [ ] How does RenderObject manage per-draw state?
+- [ ] How does WGSLNodeBuilder compile node graphs to WGSL?
+- [ ] How are bind groups structured and updated?
+- [ ] How does the render bundle system work?
 
 ## Related Documents
 
-- [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
-- [API Design](./api-design.md)
+- [WebGPU Backend](./webgpu-backend.md)
+- [Pipeline & Bindings](./pipeline-bindings.md)
+- [Node System (TSL)](./node-system.md)
