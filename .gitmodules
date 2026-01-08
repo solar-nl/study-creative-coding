@@ -40,3 +40,6 @@
 [submodule "frameworks/mixbox"]
 	path = libraries/mixbox
 	url = https://github.com/scrtwpns/mixbox.git
+[submodule "libraries/pixijs"]
+	path = libraries/pixijs
+	url = https://github.com/pixijs/pixijs
