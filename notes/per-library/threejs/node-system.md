@@ -1,16 +1,60 @@
 # Three.js Node System (TSL)
 
-> Three Shading Language - Node graph to WGSL compiler
+> What if shader code could write itself?
 
 ---
 
-## Overview
+## The Problem: Why Not Just Write WGSL Directly?
 
-Three.js uses a node-based shader system called **TSL (Three Shading Language)** for its WebGPU renderer. Instead of writing WGSL directly, you compose shader graphs using JavaScript that compile to WGSL.
+Picture this: you want a simple gradient from red to blue across a mesh. In raw WGSL, you would write something like:
+
+```wgsl
+struct Uniforms {
+    colorA: vec3f,
+    colorB: vec3f,
+}
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+@fragment
+fn main(@location(0) vUv: vec2f) -> @location(0) vec4f {
+    let color = mix(uniforms.colorA, uniforms.colorB, vUv.x);
+    return vec4f(color, 1.0);
+}
+```
+
+That is not terrible for a gradient. But now imagine you want to add some animated noise, maybe a fresnel rim effect, perhaps sample a texture and multiply it in. Your shader grows. You start copying code between projects. You want to reuse that nice fresnel function, but now it is tangled with your gradient code.
+
+The deeper problem is that shaders are strings. Strings do not compose. You cannot take two shader effects and combine them the way you combine JavaScript functions. You cannot inspect a shader at runtime to see what uniforms it needs. If you want to target both WebGPU and WebGL, you are writing everything twice.
+
+This is the problem Three Shading Language (TSL) solves: it lets you compose shaders the way you compose programs—as graphs of operations—and compiles them to whatever backend you need.
 
 ---
 
-## Architecture
+## The Mental Model: Spreadsheet Formulas
+
+Think of TSL like a spreadsheet. In a spreadsheet, you do not write a program that says "first calculate A1, then use that to calculate B2." Instead, you write formulas in cells that reference other cells: `=A1 * 2` or `=SUM(B1:B10)`. The spreadsheet figures out the order of evaluation automatically.
+
+TSL works the same way. When you write:
+
+```javascript
+material.colorNode = mix(colorA, colorB, uv().x);
+```
+
+You are not writing imperative code that executes top-to-bottom. You are describing a formula: "the color is the mix of colorA and colorB, weighted by the x coordinate of the UV." This formula references other formulas: `uv()` is itself a node that references vertex attributes, `colorA` might reference a uniform.
+
+Just like a spreadsheet:
+- Each "cell" (node) declares what it depends on
+- The system figures out evaluation order
+- Changing one input propagates through all dependent cells
+- You can inspect the dependency graph
+
+The difference? When you "run" this spreadsheet, it compiles to WGSL code that executes on the GPU.
+
+---
+
+## How Node Graphs Work
+
+Every TSL expression creates a node in a directed acyclic graph. When you write `mix(colorA, colorB, uv().x)`, you are building:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -32,10 +76,10 @@ Three.js uses a node-based shader system called **TSL (Three Shading Language)**
 │                   WGSLNodeBuilder                                    │
 │  (webgpu/nodes/WGSLNodeBuilder.js - 66KB)                          │
 ├─────────────────────────────────────────────────────────────────────┤
-│  • Traverse node graph                                               │
-│  • Generate WGSL code                                                │
-│  • Manage uniforms and bindings                                     │
-│  • Handle vertex/fragment stages                                    │
+│  - Traverse node graph                                               │
+│  - Generate WGSL code                                                │
+│  - Manage uniforms and bindings                                     │
+│  - Handle vertex/fragment stages                                    │
 └─────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -48,9 +92,84 @@ Three.js uses a node-based shader system called **TSL (Three Shading Language)**
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+The key insight is that nodes know two things: their output type (is this a `float` or a `vec3`?) and their dependencies (what other nodes do they need?). The `MixNode` knows it produces a color because `colorA` and `colorB` are colors. It knows it needs three inputs. It knows how to generate WGSL code for itself.
+
 ---
 
-## TSL Basics
+## Concrete Example: From TSL to WGSL
+
+Let us trace exactly what happens when you write this material:
+
+```javascript
+import { uniform, uv, mix, vec3 } from 'three/tsl';
+import { Color } from 'three';
+
+const material = new NodeMaterial();
+
+// Define uniforms
+const colorA = uniform(new Color(0xff0000));
+const colorB = uniform(new Color(0x0000ff));
+
+// Compose shader graph
+material.colorNode = mix(colorA, colorB, uv().x);
+```
+
+**Step 1: Node Creation**
+
+When you call `uniform(new Color(0xff0000))`, Three.js creates a `UniformNode`. This node stores a reference to your Color object and knows its type is `vec3`. When you call `uv()`, it creates a `UVNode` that references the vertex attribute. The `.x` swizzle creates another node that extracts a single float.
+
+**Step 2: Graph Assembly**
+
+The `mix(colorA, colorB, uv().x)` call creates a `MixNode` with three children: two uniform nodes and a swizzle node. At this point, nothing has been compiled—you have just built a data structure.
+
+**Step 3: Build Trigger**
+
+When the renderer needs to draw an object with this material, it realizes the material has not been compiled yet. It creates a `WGSLNodeBuilder` and hands it the node graph.
+
+**Step 4: Graph Traversal**
+
+The builder starts at `material.colorNode` (the output) and walks backward through the graph. For each node it visits, it:
+1. Recursively processes all input nodes first
+2. Asks the node for its WGSL code
+3. Collects any uniforms, samplers, or varyings the node needs
+
+**Step 5: Code Generation**
+
+As nodes are visited, the builder accumulates:
+- Uniform declarations: `colorA: vec3f, colorB: vec3f`
+- Varying declarations: `vUv: vec2f`
+- The final expression: `mix(uniforms.colorA, uniforms.colorB, input.vUv.x)`
+
+**Step 6: Output**
+
+The final WGSL emerges:
+
+```wgsl
+struct Uniforms {
+    colorA: vec3f,
+    colorB: vec3f,
+}
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+struct VertexOutput {
+    @builtin(position) position: vec4f,
+    @location(0) vUv: vec2f,
+}
+
+@fragment
+fn main(input: VertexOutput) -> @location(0) vec4f {
+    let color = mix(uniforms.colorA, uniforms.colorB, input.vUv.x);
+    return vec4f(color, 1.0);
+}
+```
+
+This shader is cached. Next frame, if nothing has changed, the cached shader is reused.
+
+---
+
+## TSL Syntax Reference
+
+Now that you understand what TSL is doing, here is the syntax in detail.
 
 ### Imports
 
@@ -77,68 +196,27 @@ import {
 } from 'three/tsl';
 ```
 
-### Simple Example
-
-```javascript
-import { uniform, uv, mix, vec3 } from 'three/tsl';
-import { Color } from 'three';
-
-const material = new NodeMaterial();
-
-// Define uniforms
-const colorA = uniform(new Color(0xff0000));
-const colorB = uniform(new Color(0x0000ff));
-
-// Compose shader graph
-material.colorNode = mix(colorA, colorB, uv().x);
-```
-
-**Generated WGSL:**
-
-```wgsl
-struct Uniforms {
-    colorA: vec3f,
-    colorB: vec3f,
-}
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
-
-struct VertexOutput {
-    @builtin(position) position: vec4f,
-    @location(0) vUv: vec2f,
-}
-
-@fragment
-fn main(input: VertexOutput) -> @location(0) vec4f {
-    let color = mix(uniforms.colorA, uniforms.colorB, input.vUv.x);
-    return vec4f(color, 1.0);
-}
-```
-
----
-
-## Node Types
-
 ### Value Nodes
 
 ```javascript
-// Constants
+// Constants (compile-time values, baked into shader)
 const f = float(1.5);
 const v2 = vec2(0.5, 0.5);
 const v3 = vec3(1.0, 0.0, 0.0);
 const v4 = vec4(1.0, 0.0, 0.0, 1.0);
 const i = int(42);
 
-// Uniforms (updated from JavaScript)
+// Uniforms (runtime values, updatable from JavaScript)
 const time = uniform(0.0);
 const color = uniform(new Color(0xffffff));
 const matrix = uniform(new Matrix4());
 
-// Attributes (per-vertex data)
+// Attributes (per-vertex data from geometry)
 const pos = attribute('position', 'vec3');
 const norm = attribute('normal', 'vec3');
 const texcoord = attribute('uv', 'vec2');
 
-// Varyings (vertex → fragment)
+// Varyings (interpolated from vertex to fragment)
 const vNormal = varying(transformedNormalWorld);
 ```
 
@@ -161,8 +239,6 @@ viewMatrix;        // View only
 
 // Camera
 cameraPosition;    // Camera world position
-cameraProjectionMatrix;
-cameraViewMatrix;
 ```
 
 ### Math Nodes
@@ -180,11 +256,6 @@ clamp(x, min, max);
 step(edge, x);
 smoothstep(edge0, edge1, x);
 
-// Trigonometry
-sin(x); cos(x); tan(x);
-asin(x); acos(x); atan(x);
-atan2(y, x);
-
 // Vector math
 dot(a, b);
 cross(a, b);
@@ -198,26 +269,23 @@ refract(I, N, eta);
 ### Texture Nodes
 
 ```javascript
-// Sample texture
+// Sample texture (filtered)
 const tex = texture(textureMap, uv());
 const texRGB = tex.rgb;
 const texA = tex.a;
 
-// Specific sampler
-const sampledColor = texture(textureMap, uv(), sampler(linearSampler));
-
 // Texture load (integer coords, no filtering)
 const pixel = textureLoad(textureMap, ivec2(0, 0), 0);
 
-// Storage texture (compute)
+// Storage texture (compute shaders)
 textureStore(storageTexture, ivec2(x, y), colorValue);
 ```
 
 ---
 
-## Custom Functions
+## Custom Functions: The Fn Decorator
 
-### Fn Decorator
+What makes TSL powerful is the ability to define reusable shader functions:
 
 ```javascript
 const myFunction = Fn(([a, b]) => {
@@ -230,7 +298,7 @@ const myFunction = Fn(([a, b]) => {
 material.colorNode = myFunction(colorA, colorB);
 ```
 
-**Generated WGSL:**
+This generates:
 
 ```wgsl
 fn myFunction(a: vec3f, b: vec3f) -> vec3f {
@@ -240,7 +308,7 @@ fn myFunction(a: vec3f, b: vec3f) -> vec3f {
 }
 ```
 
-### Complex Example
+Here is a more realistic example—a Fresnel rim effect:
 
 ```javascript
 const fresnelEffect = Fn(([normal, viewDir, power]) => {
@@ -275,25 +343,21 @@ const colorNode = If(condition, () => {
 
 ```javascript
 const result = Loop({ start: int(0), end: int(10), type: 'int' }, ({ i }) => {
-    // Loop body
     sum.addAssign(someArray.element(i));
 });
 
 // Break/Continue
 Loop({ start: 0, end: 100 }, ({ i }) => {
-    If(condition, () => {
-        Break();
-    });
-    If(skipCondition, () => {
-        Continue();
-    });
-    // ... body ...
+    If(condition, () => { Break(); });
+    If(skipCondition, () => { Continue(); });
 });
 ```
 
 ---
 
 ## Material Integration
+
+TSL integrates with Three.js's material system through node slots:
 
 ### Standard Material Nodes
 
@@ -334,11 +398,9 @@ material.fragmentNode = Fn(() => {
 
 ---
 
-## WGSLNodeBuilder
+## The WGSLNodeBuilder
 
-The node builder traverses the node graph and generates WGSL:
-
-### Build Process
+The builder is where graphs become code:
 
 ```javascript
 class WGSLNodeBuilder {
@@ -362,29 +424,6 @@ class WGSLNodeBuilder {
         };
     }
 
-    buildStage(stage) {
-        // Generate uniforms block
-        this.uniforms.forEach(uniform => {
-            this.addUniform(uniform);
-        });
-
-        // Generate varyings
-        this.varyings.forEach(varying => {
-            this.addVarying(varying);
-        });
-
-        // Generate main function
-        this.addCode(`@${stage}\nfn main(...) {\n`);
-
-        // Build each output node
-        for (const output of this.outputs) {
-            const code = this.buildNode(output.node);
-            this.addCode(`${output.name} = ${code};\n`);
-        }
-
-        this.addCode('}\n');
-    }
-
     buildNode(node) {
         // Recursively generate code for node and dependencies
         if (node.isOperatorNode) {
@@ -399,30 +438,31 @@ class WGSLNodeBuilder {
 }
 ```
 
-### Code Generation Example
+---
+
+## Edge Cases and Gotchas
+
+### Type Inference Can Fail
+
+TSL infers types from context. If you write `mix(colorA, someFloat, 0.5)`, it will error because you cannot mix a `vec3` with a `float`. Error messages are not always clear.
+
+### Generated Code Is Hard to Debug
+
+When something goes wrong, you are debugging generated code. The error might say "line 47 of fragment shader" but your actual code is `mix(colorA, colorB, uv().x)`.
+
+### Performance Gotcha: Node Creation Cost
+
+Creating nodes has overhead. Do not recreate your entire node graph every frame:
 
 ```javascript
-// TSL input
-material.colorNode = mix(
-    texture(diffuseMap, uv()),
-    vec3(1.0, 0.0, 0.0),
-    time
-);
+// Good: Create once, update uniform
+const timeUniform = uniform(0.0);
+material.colorNode = sin(timeUniform);
+// Later: timeUniform.value = elapsedTime;
 
-// Generated WGSL (simplified)
-struct Uniforms {
-    time: f32,
-}
-
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
-@group(0) @binding(1) var diffuseMap: texture_2d<f32>;
-@group(0) @binding(2) var diffuseMapSampler: sampler;
-
-@fragment
-fn main(@location(0) vUv: vec2f) -> @location(0) vec4f {
-    let tex_0 = textureSample(diffuseMap, diffuseMapSampler, vUv);
-    let color = mix(tex_0.rgb, vec3f(1.0, 0.0, 0.0), uniforms.time);
-    return vec4f(color, 1.0);
+// Bad: Creates new nodes every frame
+function animate() {
+    material.colorNode = sin(uniform(elapsedTime));  // New nodes!
 }
 ```
 
@@ -430,19 +470,15 @@ fn main(@location(0) vUv: vec2f) -> @location(0) vec4f {
 
 ## wgpu Considerations
 
-### Shader Graph Pattern
-
 A similar pattern could be implemented in Rust:
 
 ```rust
-// Node trait
 trait ShaderNode {
     fn output_type(&self) -> WgslType;
     fn generate(&self, builder: &mut ShaderBuilder) -> String;
     fn dependencies(&self) -> Vec<&dyn ShaderNode>;
 }
 
-// Example nodes
 struct UniformNode {
     name: String,
     ty: WgslType,
@@ -463,7 +499,6 @@ impl ShaderNode for MixNode {
     }
 }
 
-// Builder
 struct ShaderBuilder {
     uniforms: Vec<UniformDeclaration>,
     vertex_code: String,
@@ -472,7 +507,6 @@ struct ShaderBuilder {
 
 impl ShaderBuilder {
     fn build(&mut self, material: &NodeMaterial) -> CompiledShader {
-        // Traverse graph, generate WGSL
         let color_code = material.color_node.generate(self);
 
         self.fragment_code.push_str(&format!(
@@ -489,20 +523,34 @@ impl ShaderBuilder {
 }
 ```
 
-### Benefits of Node System
+Rust's ownership model helps here: nodes cannot accidentally share mutable state, and the borrow checker ensures you do not modify a graph while traversing it.
 
-1. **Composability** - Mix and match shader effects
-2. **Type Safety** - Node types enforce valid connections
-3. **Backend Agnostic** - Same graph compiles to WGSL or GLSL
-4. **Live Updates** - Uniforms can be animated without recompilation
-5. **Optimization** - Dead code elimination, constant folding
+---
+
+## Trade-offs
+
+### Benefits
+
+1. **Composability** — Mix and match shader effects like functions
+2. **Type Safety** — Node types enforce valid connections
+3. **Backend Agnostic** — Same graph compiles to WGSL or GLSL
+4. **Live Updates** — Uniforms can be animated without recompilation
+5. **Optimization** — Dead code elimination, constant folding at graph level
 
 ### Drawbacks
 
-1. **Complexity** - Large codebase (66KB for WGSLNodeBuilder)
-2. **Debugging** - Generated code harder to debug than handwritten
-3. **Performance** - Graph traversal overhead at compile time
-4. **Learning Curve** - Different mental model from traditional shaders
+1. **Complexity** — 66KB of code for WGSLNodeBuilder
+2. **Debugging** — Generated code harder to debug than handwritten
+3. **Compilation Overhead** — Graph traversal adds first-frame latency
+4. **Learning Curve** — Different mental model from traditional shaders
+
+---
+
+## Next Steps
+
+- **[Rendering Pipeline](rendering-pipeline.md)** — How the render loop orchestrates everything
+- **[WebGPU Backend](webgpu-backend.md)** — The backend that issues GPU commands
+- **[Pipeline & Bindings](pipeline-bindings.md)** — How compiled shaders get cached
 
 ---
 
@@ -511,7 +559,3 @@ impl ShaderBuilder {
 - `libraries/threejs/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
 - `libraries/threejs/src/nodes/` (node implementations)
 - `libraries/threejs/src/materials/nodes/NodeMaterial.js`
-
----
-
-*Previous: [Pipeline & Bindings](pipeline-bindings.md)*

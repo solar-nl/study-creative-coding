@@ -1,27 +1,48 @@
 # Three.js Pipeline & Bindings
 
-> Pipeline caching and bind group management
+> Why render the same pipeline twice when you could compile it once and remember?
 
 ---
 
-## Overview
+## The Problem: GPU Resource Creation Is Expensive
 
-Three.js uses two main systems for GPU resource management:
+Every draw call in WebGPU needs two things: a **pipeline** that tells the GPU *how* to draw (shaders, blending, depth testing), and **bind groups** that tell it *what* to draw with (uniforms, textures, samplers). The problem? Creating these is expensive.
 
-1. **Pipelines** - Caches render/compute pipelines by render state
-2. **Bindings** - Manages bind groups and resource updates
+A render pipeline involves compiling shaders, validating state combinations, and allocating internal GPU structures. On some drivers, this can take milliseconds. When you are trying to render at 60fps, you have about 16 milliseconds *total*. Burning several of those on pipeline creation is catastrophic.
+
+Bind groups are cheaper to create, but they are also immutable. Change a texture? You need a whole new bind group. Update a uniform value? That is fine, but swapping the underlying buffer means rebuilding.
+
+The naive approach would be creating these resources fresh every draw call. Your frame rate would collapse. A slightly less naive approach would be creating them once per object. But what if two objects share the same material, geometry layout, and render state? You have created two identical pipelines.
+
+Three.js solves this through two caching systems that work together: **Pipelines** for GPU pipeline state, and **Bindings** for resource groups. Understanding how they cooperate is key to understanding why the renderer can handle complex scenes at interactive frame rates.
 
 ---
 
-## Pipeline Caching
+## The Mental Model: A Restaurant Kitchen
 
-### Architecture
+Think of rendering like a busy restaurant kitchen:
+
+**Pipelines are recipes.** When an order comes in for Chicken Parmesan, the chef does not invent the recipe on the spot. The recipe exists already, indexed by dish name. If ten tables order Chicken Parmesan, they all use the same recipe. The recipe describes *how* to cook: what pan to use, what temperature, what order of operations. In GPU terms: what shaders to run, what blending mode, what depth function.
+
+**The cache key is the order.** "Chicken Parmesan, gluten-free pasta, extra crispy" uniquely identifies a recipe variant. Similarly, a pipeline cache key combines all the state that affects the GPU pipeline: shader IDs, transparency, blending mode, depth settings, geometry layout. Same key means same pipeline.
+
+**Bind groups are ingredient trays.** For each dish being prepared, someone assembles a tray with all the ingredients: the chicken, the sauce, the cheese. The chef grabs the tray and starts cooking. In GPU terms, the bind group bundles all the resources for a draw call: uniform buffers with matrices, textures with image data, samplers with filtering settings.
+
+**Uniform buffers are bowls on the tray.** The bowl itself (the buffer) stays on the tray, but you can update the contents (the data) without rebuilding the whole tray. That is why uniform updates are cheap but texture swaps require a new bind group.
+
+The beauty of this system is that most work happens once. The first time you draw an object with a specific state combination, the kitchen creates the recipe and assembles the tray. On subsequent frames, everything is ready. The only per-frame work is updating bowl contents: new model matrices, new time uniforms.
+
+---
+
+## How Pipeline Caching Works
+
+The pipeline cache has a simple structure: a map from cache keys to pipelines, plus three additional maps for shader programs (vertex, fragment, compute). The shader maps exist because different pipelines might share the same shaders.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          Pipelines                                   │
 ├─────────────────────────────────────────────────────────────────────┤
-│  caches: Map<cacheKey, Pipeline>       ─► Pipeline cache            │
+│  caches: Map<cacheKey, Pipeline>       → Pipeline cache             │
 │                                                                      │
 │  programs:                                                           │
 │    vertex: Map<shader, ProgrammableStage>                           │
@@ -30,7 +51,135 @@ Three.js uses two main systems for GPU resource management:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Get Pipeline for Render
+When rendering an object, the system follows this sequence:
+
+1. Generate shader code from the material's node graph
+2. Look up or create the vertex program
+3. Look up or create the fragment program
+4. Generate a cache key from *all* render state
+5. Look up or create the pipeline
+
+The cache key combines everything that affects the GPU pipeline into a single string:
+
+```javascript
+_getRenderCacheKey(renderObject, stageVertex, stageFragment) {
+    const { material, geometry } = renderObject;
+
+    return [
+        stageVertex.id,
+        stageFragment.id,
+        material.transparent,
+        material.blending,
+        material.side,
+        material.depthWrite,
+        material.depthTest,
+        material.depthFunc,
+        material.stencilWrite,
+        material.stencilFunc,
+        geometry.id,
+        renderObject.context.getCacheKey(),
+        renderObject.clippingContext?.cacheKey || ''
+    ].join(',');
+}
+```
+
+Notice what is in there: shader IDs (same shaders means potentially same pipeline), material properties that affect GPU state (blending, depth testing, stencil), geometry ID (different vertex layouts need different pipelines), and render context (different render targets might have different formats).
+
+---
+
+## Tracing a Pipeline Cache Lookup
+
+Let us trace exactly what happens when you call `getForRender()` for a mesh with a standard material:
+
+**Frame 1, first draw of this mesh:**
+
+1. The system checks if this RenderObject needs a pipeline update (it does, there is none)
+2. The node builder compiles the material into vertex and fragment WGSL
+3. `this.programs.vertex.get(vertexShader)` returns `undefined` — never seen this shader
+4. A new `ProgrammableStage` is created, `backend.createProgram()` compiles it
+5. Same happens for the fragment shader
+6. `_getRenderCacheKey()` generates something like `"12,45,false,1,0,true,true,3,false,0,77,ctx_0_d24s8,"`
+7. `this.caches.get(cacheKey)` returns `undefined` — never seen this state combo
+8. `_getRenderPipeline()` creates a new pipeline, stores it in the cache
+9. Usage counts are incremented: `pipeline.usedTimes++`
+
+**Frame 2 and beyond:**
+
+1. The system checks if this RenderObject needs a pipeline update (it does not)
+2. `data.pipeline` is returned immediately
+
+**Frame N, you change the material's blending mode:**
+
+1. The system checks if this RenderObject needs a pipeline update (it does, material version changed)
+2. Previous pipeline's usage count is decremented
+3. Shaders are the same, so programs are looked up successfully
+4. But the cache key is different now (blending changed)
+5. A new pipeline is created for the new state combination
+6. The old pipeline remains in the cache in case something else still uses it
+
+---
+
+## How Bindings Work
+
+While pipelines describe *how* to draw, bind groups describe *what resources* to use. The bindings system manages the lifecycle of these resources and their groupings.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          Bindings                                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  getForRender(renderObject)    → Get/create bind groups             │
+│  updateForRender(renderObject) → Update uniform data                │
+└─────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         BindGroup                                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  bindings: [                                                         │
+│    UniformBuffer { buffer, uniforms: [...] }                        │
+│    SampledTexture { texture, style }                                │
+│    Sampler { texture }                                              │
+│    StorageBuffer { buffer, access }                                 │
+│  ]                                                                   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+The key insight is that bind groups are immutable in WebGPU. Once created, you cannot swap out a texture. This means the bindings system must detect when resources change and rebuild the bind group:
+
+```javascript
+_update(bindGroup, bindings) {
+    let needsBindGroupRefresh = false;
+
+    for (const binding of bindGroup.bindings) {
+        if (binding.isUniformBuffer) {
+            // Update uniform buffer data - cheap, just writes bytes
+            const updated = binding.update();
+            if (updated) {
+                this.backend.updateBinding(binding);
+            }
+        } else if (binding.isSampledTexture) {
+            // Check if texture changed - expensive if yes
+            const textureData = this.backend.get(binding.texture);
+            if (textureData.texture !== binding._texture) {
+                needsBindGroupRefresh = true;
+            }
+        }
+    }
+
+    if (needsBindGroupRefresh) {
+        // Recreate bind group with new resources
+        this.backend.updateBindings(bindGroup, bindings, 0);
+    }
+}
+```
+
+This is why uniform updates (camera matrices every frame, time uniforms) are fast. The bind group stays the same. Only the buffer contents change. But swapping a texture triggers a full rebuild.
+
+---
+
+## Code Deep Dive: Pipeline Creation
+
+Here is the full `getForRender` implementation:
 
 ```javascript
 getForRender(renderObject, promises = null) {
@@ -86,307 +235,70 @@ getForRender(renderObject, promises = null) {
 }
 ```
 
-### Cache Key Generation
+---
+
+## Key Patterns
+
+### String-Based Cache Keys
+
+Three.js generates string cache keys by concatenating render state values:
 
 ```javascript
-_getRenderCacheKey(renderObject, stageVertex, stageFragment) {
-    const { material, geometry } = renderObject;
-
-    // Combine multiple state factors into cache key
-    return [
-        stageVertex.id,
-        stageFragment.id,
-        material.transparent,
-        material.blending,
-        material.side,
-        material.depthWrite,
-        material.depthTest,
-        material.depthFunc,
-        material.stencilWrite,
-        material.stencilFunc,
-        geometry.id,
-        renderObject.context.getCacheKey(),
-        renderObject.clippingContext?.cacheKey || ''
-    ].join(',');
-}
+return [stageVertex.id, stageFragment.id, material.transparent, ...].join(',');
 ```
 
-### Pipeline Creation (WebGPU)
+Simple and debuggable. The trade-off is performance — string operations are slower than numeric hashing. For most scenes this is fine.
+
+### Reference Counting
+
+Pipelines and programs track usage counts for potential cleanup:
 
 ```javascript
-// WebGPUPipelineUtils.createRenderPipeline
-createRenderPipeline(renderObject, promises) {
-    const { object, material, geometry, pipeline } = renderObject;
-    const { vertexProgram, fragmentProgram } = pipeline;
-    const device = this.backend.device;
-
-    // Build bind group layouts from bindings
-    const bindGroupLayouts = [];
-    for (const bindGroup of renderObject.getBindings()) {
-        const bindingsData = this.backend.get(bindGroup);
-        bindGroupLayouts.push(bindingsData.layout.layoutGPU);
-    }
-
-    // Build vertex buffer layouts
-    const vertexBuffers = this.backend.attributeUtils.createShaderVertexBuffers(renderObject);
-
-    // Build color target state
-    const targets = [];
-    const colorFormat = this.backend.utils.getCurrentColorFormat(renderObject.context);
-    const blending = this._getBlending(material);
-
-    targets.push({
-        format: colorFormat,
-        blend: blending,
-        writeMask: this._getColorWriteMask(material)
-    });
-
-    // Build depth/stencil state
-    let depthStencil = undefined;
-    if (renderObject.context.depth) {
-        depthStencil = {
-            format: this.backend.utils.getDepthStencilFormat(renderObject.context),
-            depthWriteEnabled: material.depthWrite,
-            depthCompare: this._getDepthCompare(material),
-            stencilFront: this._getStencilState(material),
-            stencilBack: this._getStencilState(material),
-        };
-    }
-
-    // Create pipeline descriptor
-    const descriptor = {
-        label: `renderPipeline_${material.name || material.type}`,
-        layout: device.createPipelineLayout({ bindGroupLayouts }),
-        vertex: {
-            module: this.backend.get(vertexProgram).module,
-            entryPoint: 'main',
-            buffers: vertexBuffers
-        },
-        fragment: {
-            module: this.backend.get(fragmentProgram).module,
-            entryPoint: 'main',
-            targets
-        },
-        primitive: {
-            topology: this._getPrimitiveTopology(object),
-            cullMode: this._getCullMode(material),
-            frontFace: 'ccw'
-        },
-        depthStencil,
-        multisample: {
-            count: this._getSampleCount(renderObject.context)
-        }
-    };
-
-    // Create pipeline (async if promises provided)
-    if (promises !== null) {
-        promises.push(device.createRenderPipelineAsync(descriptor));
-    } else {
-        return device.createRenderPipeline(descriptor);
-    }
-}
+pipeline.usedTimes++;
+if (pipeline.usedTimes === 0) this._releasePipeline(pipeline);
 ```
+
+This prevents unbounded memory growth in scenes with dynamic content.
+
+### Lazy Creation
+
+Resources are created on first access, not upfront. This keeps startup fast and memory proportional to what you actually render.
+
+### Async Pipeline Compilation
+
+For `compileAsync()`, pipelines use `createRenderPipelineAsync()` to avoid blocking the main thread during loading.
 
 ---
 
-## Bindings System
+## Edge Cases and Gotchas
 
-### Architecture
+### Pipeline Explosion
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          Bindings                                    │
-├─────────────────────────────────────────────────────────────────────┤
-│  getForRender(renderObject)    ─► Get/create bind groups            │
-│  updateForRender(renderObject) ─► Update uniform data               │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         BindGroup                                    │
-├─────────────────────────────────────────────────────────────────────┤
-│  bindings: [                                                         │
-│    UniformBuffer { buffer, uniforms: [...] }                        │
-│    SampledTexture { texture, style }                                │
-│    Sampler { texture }                                               │
-│    StorageBuffer { buffer, access }                                 │
-│  ]                                                                   │
-└─────────────────────────────────────────────────────────────────────┘
-```
+A scene with 50 materials and 3 render passes (main, shadow, reflection) could produce 150+ pipelines. Each unique combination needs its own pipeline.
 
-### Get Bindings for Render
+**Mitigation:** Minimize material variations, share materials where possible, use instancing.
 
-```javascript
-getForRender(renderObject) {
-    const bindings = renderObject.getBindings();
+### Bind Group Immutability
 
-    for (const bindGroup of bindings) {
-        const groupData = this.get(bindGroup);
+When textures change (video frames, procedural generation), entire bind groups are recreated.
 
-        if (groupData.bindGroup === undefined) {
-            // Initialize binding resources
-            this._init(bindGroup);
+**Mitigation:** Structure bindings so frequently-changing resources are in separate bind groups from stable ones.
 
-            // Create GPU bind group
-            this.backend.createBindings(bindGroup, bindings, 0);
+### Cache Key Collisions
 
-            groupData.bindGroup = bindGroup;
-        }
-    }
-
-    return bindings;
-}
-```
-
-### Initialize Bindings
-
-```javascript
-_init(bindGroup) {
-    for (const binding of bindGroup.bindings) {
-        if (binding.isSampledTexture) {
-            // Initialize texture
-            this.textures.updateTexture(binding.texture);
-        } else if (binding.isStorageBuffer) {
-            // Initialize storage buffer
-            const attribute = binding.attribute;
-            this.attributes.update(attribute, AttributeType.STORAGE);
-        }
-    }
-}
-```
-
-### Update Bindings
-
-```javascript
-updateForRender(renderObject) {
-    this._updateBindings(this.getForRender(renderObject));
-}
-
-_updateBindings(bindings) {
-    for (const bindGroup of bindings) {
-        this._update(bindGroup, bindings);
-    }
-}
-
-_update(bindGroup, bindings) {
-    let needsBindGroupRefresh = false;
-
-    for (const binding of bindGroup.bindings) {
-        if (binding.isUniformBuffer) {
-            // Update uniform buffer data
-            const updated = binding.update();
-            if (updated) {
-                this.backend.updateBinding(binding);
-            }
-        } else if (binding.isSampledTexture) {
-            // Update texture if changed
-            const texture = binding.texture;
-            if (texture.isVideoTexture) {
-                this.textures.updateTexture(texture);
-            }
-
-            // Check if texture changed (requires bind group rebuild)
-            const textureData = this.backend.get(binding.texture);
-            if (textureData.texture !== binding._texture) {
-                needsBindGroupRefresh = true;
-            }
-        }
-    }
-
-    if (needsBindGroupRefresh) {
-        // Recreate bind group with new resources
-        this.backend.updateBindings(bindGroup, bindings, 0);
-    }
-}
-```
-
----
-
-## WebGPU Bind Group Creation
-
-```javascript
-// WebGPUBindingUtils.createBindings
-createBindings(bindGroup, bindings, index) {
-    const device = this.backend.device;
-
-    // Create bind group layout
-    const entries = [];
-    for (let i = 0; i < bindGroup.bindings.length; i++) {
-        const binding = bindGroup.bindings[i];
-
-        if (binding.isUniformBuffer || binding.isStorageBuffer) {
-            entries.push({
-                binding: i,
-                visibility: binding.visibility,
-                buffer: {
-                    type: binding.isStorageBuffer ? 'storage' : 'uniform'
-                }
-            });
-        } else if (binding.isSampledTexture) {
-            entries.push({
-                binding: i,
-                visibility: binding.visibility,
-                texture: {
-                    sampleType: this._getSampleType(binding.texture),
-                    viewDimension: this._getViewDimension(binding.texture)
-                }
-            });
-        } else if (binding.isSampler) {
-            entries.push({
-                binding: i,
-                visibility: binding.visibility,
-                sampler: {
-                    type: this._getSamplerType(binding.texture)
-                }
-            });
-        }
-    }
-
-    const layout = device.createBindGroupLayout({ entries });
-
-    // Create bind group
-    const groupEntries = [];
-    for (let i = 0; i < bindGroup.bindings.length; i++) {
-        const binding = bindGroup.bindings[i];
-
-        if (binding.isUniformBuffer) {
-            groupEntries.push({
-                binding: i,
-                resource: { buffer: this.backend.get(binding).buffer }
-            });
-        } else if (binding.isSampledTexture) {
-            groupEntries.push({
-                binding: i,
-                resource: this.backend.get(binding.texture).texture.createView()
-            });
-        } else if (binding.isSampler) {
-            groupEntries.push({
-                binding: i,
-                resource: this.backend.get(binding.texture).sampler
-            });
-        }
-    }
-
-    const group = device.createBindGroup({ layout, entries: groupEntries });
-
-    // Store in data map
-    const bindingsData = this.backend.get(bindGroup);
-    bindingsData.layout = { layoutGPU: layout };
-    bindingsData.group = group;
-}
-```
+String cache keys could theoretically collide. In practice, Three.js uses unique IDs and explicit separators, making this extremely unlikely.
 
 ---
 
 ## wgpu Implementation
 
+Here is how these concepts translate to Rust:
+
 ```rust
-/// Pipeline cache
 struct Pipelines {
     render_cache: HashMap<String, Arc<wgpu::RenderPipeline>>,
     compute_cache: HashMap<String, Arc<wgpu::ComputePipeline>>,
 
-    // Shader module cache
     vertex_programs: HashMap<String, wgpu::ShaderModule>,
     fragment_programs: HashMap<String, wgpu::ShaderModule>,
     compute_programs: HashMap<String, wgpu::ShaderModule>,
@@ -458,7 +370,6 @@ impl Pipelines {
     }
 }
 
-/// Bindings management
 struct Bindings {
     bind_group_cache: HashMap<u64, wgpu::BindGroup>,
     layout_cache: HashMap<u64, wgpu::BindGroupLayout>,
@@ -469,53 +380,13 @@ impl Bindings {
         &mut self,
         device: &wgpu::Device,
         render_object: &RenderObject,
-    ) -> Vec<wgpu::BindGroup> {
+    ) -> Vec<&wgpu::BindGroup> {
         render_object.binding_groups.iter().map(|group| {
             let group_id = group.id();
-
             self.bind_group_cache.entry(group_id).or_insert_with(|| {
                 self.create_bind_group(device, group)
-            }).clone()
+            })
         }).collect()
-    }
-
-    fn create_bind_group(
-        &mut self,
-        device: &wgpu::Device,
-        group: &BindGroup,
-    ) -> wgpu::BindGroup {
-        // Create layout entries
-        let layout_entries: Vec<_> = group.bindings.iter().enumerate()
-            .map(|(i, binding)| {
-                wgpu::BindGroupLayoutEntry {
-                    binding: i as u32,
-                    visibility: binding.visibility,
-                    ty: binding.binding_type(),
-                    count: None,
-                }
-            })
-            .collect();
-
-        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &layout_entries,
-        });
-
-        // Create bind group entries
-        let entries: Vec<_> = group.bindings.iter().enumerate()
-            .map(|(i, binding)| {
-                wgpu::BindGroupEntry {
-                    binding: i as u32,
-                    resource: binding.as_binding_resource(),
-                }
-            })
-            .collect();
-
-        device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout: &layout,
-            entries: &entries,
-        })
     }
 
     fn update_for_render(&mut self, render_object: &mut RenderObject, queue: &wgpu::Queue) {
@@ -533,43 +404,21 @@ impl Bindings {
 }
 ```
 
+### Key wgpu Differences
+
+**Ownership model:** `Arc<RenderPipeline>` allows shared ownership across the cache and render objects.
+
+**Hash maps:** Consider using `FxHashMap` for performance-critical paths.
+
+**Layout caching:** You would likely want to cache bind group layouts separately and reuse them.
+
 ---
 
-## Key Patterns
+## Next Steps
 
-### 1. String-Based Cache Keys
-
-Three.js generates string cache keys by concatenating render state values. This is simple but may have performance overhead compared to numeric keys.
-
-### 2. Reference Counting
-
-Pipelines and programs track usage counts for potential cleanup:
-```javascript
-pipeline.usedTimes++;
-if (pipeline.usedTimes === 0) this._releasePipeline(pipeline);
-```
-
-### 3. Lazy Creation
-
-Resources are created on first access, not upfront:
-```javascript
-if (groupData.bindGroup === undefined) {
-    this.backend.createBindings(bindGroup, bindings, 0);
-}
-```
-
-### 4. Bind Group Refresh
-
-When textures change, entire bind groups are recreated (WebGPU bind groups are immutable):
-```javascript
-if (needsBindGroupRefresh) {
-    this.backend.updateBindings(bindGroup, bindings, 0);
-}
-```
-
-### 5. Async Pipeline Compilation
-
-For `compileAsync()`, pipelines use `createRenderPipelineAsync()` to avoid blocking.
+- **[Node System (TSL)](node-system.md)** — How materials become the shaders that pipelines reference
+- **[WebGPU Backend](webgpu-backend.md)** — How the backend issues draw commands using cached resources
+- **[Rendering Pipeline](rendering-pipeline.md)** — Where pipeline and binding lookups fit in the render loop
 
 ---
 
@@ -579,7 +428,3 @@ For `compileAsync()`, pipelines use `createRenderPipelineAsync()` to avoid block
 - `libraries/threejs/src/renderers/common/Bindings.js`
 - `libraries/threejs/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`
 - `libraries/threejs/src/renderers/webgpu/utils/WebGPUBindingUtils.js`
-
----
-
-*Next: [Node System (TSL)](node-system.md)*

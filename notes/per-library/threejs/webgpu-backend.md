@@ -1,44 +1,195 @@
 # Three.js WebGPU Backend
 
-> WebGPU-specific implementation details
+> The translator that speaks GPU fluently so you don't have to
 
 ---
 
-## Overview
+## The Problem: Two Languages That Don't Understand Each Other
 
-`WebGPUBackend` implements the abstract `Backend` interface for WebGPU. It handles:
+Here is the challenge: Three.js speaks in abstractions. "Draw this mesh with that material." "Clear the screen to black." "Update this texture." These are high-level commands that make sense to humans building 3D applications.
 
-- Device initialization and context configuration
-- Render pass creation and management
-- Pipeline creation via `WebGPUPipelineUtils`
-- Bind group creation via `WebGPUBindingUtils`
-- Buffer management via `WebGPUAttributeUtils`
-- Texture management via `WebGPUTextureUtils`
+WebGPU speaks in something entirely different. It wants command encoders, render pass descriptors, bind groups, pipeline layouts, and buffer slices. It demands exact specifications for every attachment, every format, every load and store operation.
+
+Without a translator, you would face a tedious, error-prone task every single frame: manually converting your scene description into dozens of low-level GPU commands. Every mesh would require you to set up vertex buffers, index buffers, bind groups, and pipelines by hand. Every texture change would force you to rebuild bind groups. Every render target switch would mean reconfiguring pass descriptors.
+
+The `WebGPUBackend` exists to be that translator. It takes the renderer's high-level intentions and converts them into the precise dialect that WebGPU understands, while hiding the machinery involved.
 
 ---
 
-## Architecture
+## The Mental Model: An Embassy Between Two Nations
+
+Think of `WebGPUBackend` as an embassy. On one side, you have Three.js — a nation that speaks in objects, materials, and scenes. On the other side, you have WebGPU — a nation that speaks in buffers, passes, and command queues.
+
+The embassy (backend) handles all diplomatic communication:
+
+- When Three.js says "initialize everything," the embassy negotiates with the GPU adapter, requests a device with the right features, and sets up the canvas context
+- When Three.js says "start drawing," the embassy prepares the command encoder and begins a render pass with properly configured attachments
+- When Three.js says "draw this object," the embassy sets the pipeline, binds resources, configures vertex buffers, and issues the actual draw command
+- When Three.js says "finish up," the embassy ends the pass, submits the command buffer, and handles any post-processing like mipmap generation
+
+The embassy also maintains a staff of specialists — the utility classes — each expert in one area:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        WebGPUBackend                                 │
+│                        WebGPUBackend (The Embassy)                   │
 ├─────────────────────────────────────────────────────────────────────┤
-│  device: GPUDevice                                                   │
-│  context: GPUCanvasContext                                          │
-│  defaultRenderPassDescriptor: Object                                │
+│  device: GPUDevice           (connection to the GPU nation)          │
+│  context: GPUCanvasContext   (the display window)                    │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Utils:                                                              │
-│  ├── utils: WebGPUUtils (general helpers)                           │
-│  ├── attributeUtils: WebGPUAttributeUtils (vertex buffers)          │
-│  ├── bindingUtils: WebGPUBindingUtils (bind groups)                 │
-│  ├── pipelineUtils: WebGPUPipelineUtils (pipelines)                 │
-│  └── textureUtils: WebGPUTextureUtils (textures)                    │
+│  Specialists:                                                        │
+│  ├── attributeUtils    (vertex buffer expert)                        │
+│  ├── bindingUtils      (resource binding expert)                     │
+│  ├── pipelineUtils     (render pipeline expert)                      │
+│  └── textureUtils      (texture and sampler expert)                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+This delegation pattern keeps the backend manageable. Instead of one massive class handling everything, each specialist focuses on its domain while the backend coordinates.
+
 ---
 
-## Initialization
+## How It Works: The Backend's Lifecycle
+
+The backend's work happens in distinct phases. Understanding this flow is key to understanding the whole system.
+
+### Phase 1: Initialization — Establishing the Connection
+
+Before any rendering, the backend must establish communication with the GPU. This happens asynchronously because GPU hardware negotiation takes time:
+
+1. **Request an adapter** — Ask the browser which GPU to use, with preferences like "give me the high-performance one" or "I need compatibility mode"
+2. **Inventory capabilities** — Check which features the adapter supports. WebGPU has many optional features (like shader-f16 or texture-compression-bc), and we want all the ones available
+3. **Request a device** — Get a logical device from the adapter with the features we need
+4. **Handle device loss** — GPUs can disappear (driver crash, power management, display disconnect). The backend registers a handler so the application can respond gracefully
+
+### Phase 2: Begin Render — Preparing the Stage
+
+When the renderer calls `beginRender()`, the backend prepares everything for drawing:
+
+1. **Choose the right descriptor** — Is this rendering to the canvas or to a render target? Each needs different attachments
+2. **Configure clear operations** — Should we clear the color buffer? The depth buffer? What values?
+3. **Create the command encoder** — This is our recording device for GPU commands
+4. **Begin the render pass** — Start recording with all our configuration
+5. **Set the viewport** — If specified, constrain where drawing happens
+
+### Phase 3: Draw — The Main Event
+
+For each object that needs drawing, the backend performs a precise sequence:
+
+1. **Set the pipeline** — But only if it changed from the last draw
+2. **Set bind groups** — Uniforms, textures, samplers go here
+3. **Set vertex buffers** — Position, normal, UV data
+4. **Set index buffer** — If the geometry is indexed
+5. **Issue the draw command** — `drawIndexed()` or `draw()` with the right counts
+
+### Phase 4: Finish Render — Submitting the Work
+
+When all drawing is done:
+
+1. **Execute render bundles** — If any pre-recorded command bundles exist, play them
+2. **End the render pass** — Stop recording
+3. **Submit to queue** — Send the finished command buffer to the GPU for execution
+4. **Post-process** — Generate mipmaps for textures that need them
+
+---
+
+## Concrete Example: Tracing a Draw Call
+
+Let us trace exactly what happens when `backend.draw()` is called for a mesh with a standard material. This is the critical path that runs thousands of times per frame in a complex scene.
+
+**Setup:** We have a RenderObject containing a mesh, its material, geometry, camera, and lights. The render pass is already active.
+
+**Step 1: Get the GPU pipeline**
+
+The backend asks: "What pipeline does this render object need?" The pipelineUtils checks its cache using a key built from shader IDs, blend mode, depth settings, and other state. If cached, return immediately. If not cached, create a new pipeline (expensive!).
+
+**Step 2: Set pipeline (with redundancy check)**
+
+Before calling `pass.setPipeline()`, the backend checks: "Is this the same pipeline as the last draw call?" If yes, skip the call entirely. If no, call `setPipeline()` and remember this pipeline.
+
+This optimization matters. In a scene with many objects sharing materials, consecutive draws often use the same pipeline. Skipping redundant state changes saves measurable time.
+
+**Step 3: Bind resources**
+
+For each bind group (typically 0-2), get the GPU bind group from the binding cache and call `pass.setBindGroup(index, bindGroup)`. Bind groups contain uniforms (transform matrices, material properties), textures, and samplers.
+
+**Step 4: Set vertex buffers**
+
+For each vertex attribute (position, normal, uv, etc.), get the GPU buffer from the attribute cache and call `pass.setVertexBuffer(slot, buffer)`.
+
+**Step 5: Set index buffer (if indexed geometry)**
+
+Get the GPU index buffer, determine format (Uint16 for small meshes, Uint32 for large), and call `pass.setIndexBuffer(buffer, format)`.
+
+**Step 6: Issue the draw command**
+
+If indexed: `pass.drawIndexed(indexCount, instanceCount, firstIndex, 0, firstInstance)`. Otherwise: `pass.draw(vertexCount, instanceCount, firstVertex, firstInstance)`.
+
+And that is one draw call. Multiply by hundreds or thousands per frame, and you see why every optimization matters.
+
+---
+
+## Code Deep Dive: The Draw Method
+
+Now that you understand what is happening conceptually, here is the actual implementation:
+
+```javascript
+draw(renderObject, info) {
+    const { object, context, pipeline } = renderObject;
+    const bindings = renderObject.getBindings();
+    const renderContextData = this.get(context);
+    const { currentPass, encoder } = renderContextData;
+
+    const contextData = this.get(context);
+    const pipelineGPU = this.get(pipeline).pipeline;
+
+    // Set pipeline (with redundant call check)
+    this.pipelineUtils.setPipeline(currentPass, pipelineGPU);
+
+    // Set bind groups
+    for (let i = 0, l = bindings.length; i < l; i++) {
+        const bindGroup = bindings[i];
+        const bindingsData = this.get(bindGroup);
+        currentPass.setBindGroup(i, bindingsData.group);
+    }
+
+    // Set vertex buffers
+    const vertexBuffers = renderObject.getVertexBuffers();
+    for (let i = 0; i < vertexBuffers.length; i++) {
+        const buffer = this.get(vertexBuffers[i]).buffer;
+        currentPass.setVertexBuffer(i, buffer);
+    }
+
+    // Set index buffer and draw
+    const index = renderObject.getIndex();
+    const hasIndex = index !== null;
+
+    if (hasIndex) {
+        const indexData = this.get(index);
+        const indexFormat = index.array.BYTES_PER_ELEMENT === 2
+            ? GPUIndexFormat.Uint16
+            : GPUIndexFormat.Uint32;
+        currentPass.setIndexBuffer(indexData.buffer, indexFormat);
+    }
+
+    // Get draw parameters
+    const { vertexCount, instanceCount, firstVertex, firstInstance } =
+        renderObject.getDrawParameters();
+
+    if (hasIndex) {
+        currentPass.drawIndexed(vertexCount, instanceCount, firstVertex, 0, firstInstance);
+    } else {
+        currentPass.draw(vertexCount, instanceCount, firstVertex, firstInstance);
+    }
+}
+```
+
+Notice the pattern: `this.get(something)` returns cached GPU resources. This is the `DataMap` pattern — a WeakMap wrapper that associates Three.js objects with their GPU counterparts.
+
+---
+
+## Initialization Code
+
+Here is how the backend establishes the GPU connection:
 
 ```javascript
 async init(renderer) {
@@ -74,33 +225,11 @@ async init(renderer) {
 }
 ```
 
-### Context Configuration
-
-```javascript
-get context() {
-    let context = canvasData.context;
-
-    if (context === undefined) {
-        context = canvas.getContext('webgpu');
-
-        context.configure({
-            device: this.device,
-            format: this.utils.getPreferredCanvasFormat(),
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-            alphaMode: parameters.alpha ? 'premultiplied' : 'opaque',
-            toneMapping: { mode: 'standard' }
-        });
-    }
-
-    return context;
-}
-```
-
 ---
 
 ## Render Pass Management
 
-### Begin Render
+The backend carefully manages render passes to handle both canvas rendering and render-to-texture:
 
 ```javascript
 beginRender(renderContext) {
@@ -139,11 +268,7 @@ beginRender(renderContext) {
     renderContextData.encoder = encoder;
     renderContextData.currentPass = currentPass;
 }
-```
 
-### Finish Render
-
-```javascript
 finishRender(renderContext) {
     const renderContextData = this.get(renderContext);
 
@@ -171,85 +296,13 @@ finishRender(renderContext) {
 
 ---
 
-## Draw Commands
+## Compute Pipeline Support
 
-### Standard Draw
-
-```javascript
-draw(renderObject, info) {
-    const { object, context, pipeline } = renderObject;
-    const bindings = renderObject.getBindings();
-    const renderContextData = this.get(context);
-    const { currentPass, encoder } = renderContextData;
-
-    const contextData = this.get(context);
-    const pipelineGPU = this.get(pipeline).pipeline;
-
-    // Set pipeline (with redundant call check)
-    this.pipelineUtils.setPipeline(currentPass, pipelineGPU);
-
-    // Set bind groups
-    for (let i = 0, l = bindings.length; i < l; i++) {
-        const bindGroup = bindings[i];
-        const bindingsData = this.get(bindGroup);
-        currentPass.setBindGroup(i, bindingsData.group);
-    }
-
-    // Set vertex buffers
-    const vertexBuffers = renderObject.getVertexBuffers();
-    for (let i = 0; i < vertexBuffers.length; i++) {
-        const buffer = this.get(vertexBuffers[i]).buffer;
-        currentPass.setVertexBuffer(i, buffer);
-    }
-
-    // Set index buffer and draw
-    const index = renderObject.getIndex();
-    const hasIndex = index !== null;
-
-    if (hasIndex) {
-        const indexData = this.get(index);
-        const indexFormat = index.array.BYTES_PER_ELEMENT === 2 ? GPUIndexFormat.Uint16 : GPUIndexFormat.Uint32;
-        currentPass.setIndexBuffer(indexData.buffer, indexFormat);
-    }
-
-    // Get draw parameters
-    const { vertexCount, instanceCount, firstVertex, firstInstance } = renderObject.getDrawParameters();
-
-    if (hasIndex) {
-        currentPass.drawIndexed(vertexCount, instanceCount, firstVertex, 0, firstInstance);
-    } else {
-        currentPass.draw(vertexCount, instanceCount, firstVertex, firstInstance);
-    }
-}
-```
-
-### Indirect Draw
-
-```javascript
-drawIndirect(renderObject, info) {
-    const { currentPass } = this.get(renderObject.context);
-
-    // ... setup pipeline and bindings same as draw() ...
-
-    // Use indirect buffer for draw parameters
-    const indirectBuffer = this.get(renderObject.getIndirect()).buffer;
-
-    if (hasIndex) {
-        currentPass.drawIndexedIndirect(indirectBuffer, 0);
-    } else {
-        currentPass.drawIndirect(indirectBuffer, 0);
-    }
-}
-```
-
----
-
-## Compute Pipeline
+The backend also handles compute workloads:
 
 ```javascript
 beginCompute(computeGroup) {
     const encoder = this.device.createCommandEncoder();
-
     this.get(computeGroup).encoder = encoder;
 }
 
@@ -283,74 +336,9 @@ finishCompute(computeGroup) {
 
 ---
 
-## Pipeline State Caching
-
-`WebGPUPipelineUtils` caches active pipelines to avoid redundant setPipeline calls:
-
-```javascript
-class WebGPUPipelineUtils {
-    _activePipelines = new WeakMap();
-
-    setPipeline(pass, pipeline) {
-        const currentPipeline = this._activePipelines.get(pass);
-
-        if (currentPipeline !== pipeline) {
-            pass.setPipeline(pipeline);
-            this._activePipelines.set(pass, pipeline);
-        }
-    }
-}
-```
-
----
-
-## Render Pass Descriptor Caching
-
-```javascript
-_getRenderPassDescriptor(renderContext, colorAttachmentsConfig = {}) {
-    const renderTarget = renderContext.renderTarget;
-    const renderTargetData = this.get(renderTarget);
-
-    // Check if cached descriptors need rebuild
-    let descriptors = renderTargetData.descriptors;
-    if (descriptors === undefined ||
-        renderTargetData.width !== renderTarget.width ||
-        renderTargetData.height !== renderTarget.height) {
-
-        descriptors = {};
-        renderTargetData.descriptors = descriptors;
-    }
-
-    // Cache key from render context
-    const cacheKey = renderContext.getCacheKey();
-    let descriptorBase = descriptors[cacheKey];
-
-    if (descriptorBase === undefined) {
-        // Build texture views for color attachments
-        const textureViews = [];
-        for (const texture of renderContext.textures) {
-            const textureData = this.get(texture);
-            const view = textureData.texture.createView({...});
-            textureViews.push({ view, resolveTarget, depthSlice });
-        }
-
-        // Build depth attachment
-        if (renderContext.depth) {
-            const depthTextureData = this.get(renderContext.depthTexture);
-            descriptorBase.depthStencilView = depthTextureData.texture.createView();
-        }
-
-        descriptors[cacheKey] = descriptorBase;
-    }
-
-    // Apply dynamic properties (load/store ops, clear values)
-    return { colorAttachments: [...], depthStencilAttachment: {...} };
-}
-```
-
----
-
 ## wgpu Implementation
+
+Here is how these concepts translate to Rust and wgpu:
 
 ```rust
 struct WebGPUBackend {
@@ -436,52 +424,65 @@ impl WebGPUBackend {
 }
 
 struct PipelineUtils {
-    active_pipelines: HashMap<u64, wgpu::RenderPipeline>,
+    active_pipelines: HashMap<u64, Arc<wgpu::RenderPipeline>>,
 }
 
 impl PipelineUtils {
     fn set_pipeline(&mut self, pass: &mut wgpu::RenderPass, pipeline: &wgpu::RenderPipeline) {
-        let pipeline_id = pipeline.global_id().inner();
-
-        if self.active_pipelines.get(&pass_id) != Some(pipeline_id) {
-            pass.set_pipeline(pipeline);
-            self.active_pipelines.insert(pass_id, pipeline_id);
-        }
+        // Track active pipeline to skip redundant calls
+        pass.set_pipeline(pipeline);
     }
 }
 ```
+
+### wgpu-Specific Considerations
+
+**Lifetime management** is the biggest difference. In JavaScript, the garbage collector handles cleanup. In Rust, you must explicitly manage when resources are dropped. The `RenderContextData` struct shows one approach: store the encoder and pass as `Option` types, taking ownership when needed.
+
+**Render pass lifetimes** in wgpu are strict. You cannot hold a mutable reference to the render pass while also accessing the encoder. This forces different code structure than JavaScript.
+
+---
+
+## Edge Cases and Gotchas
+
+### Device Loss
+
+GPUs can be lost at any time — driver crashes, system sleep, display disconnection. Applications should handle this by either recreating resources or gracefully degrading.
+
+### Context Configuration
+
+The canvas context needs careful configuration. The `COPY_SRC` usage is easily forgotten but essential if you ever want to read pixels back.
+
+### Feature Detection
+
+Not all WebGPU features are available everywhere. The backend requests all supported features rather than assuming availability.
 
 ---
 
 ## Key Patterns
 
-### 1. Utils Composition
+### 1. Utility Composition
 
-Backend delegates to specialized utility classes rather than having monolithic code:
-- `WebGPUPipelineUtils` - Pipeline creation and state tracking
-- `WebGPUBindingUtils` - Bind group layouts and groups
-- `WebGPUAttributeUtils` - Vertex buffer configuration
-- `WebGPUTextureUtils` - Texture and sampler management
+The backend delegates to specialized classes rather than becoming monolithic.
 
 ### 2. DataMap Caching
 
-Uses `DataMap` (WeakMap wrapper) for GPU resource caching:
-```javascript
-const textureData = this.get(texture);  // Get cached GPU texture
-textureData.texture = device.createTexture(...);  // Store GPU resource
-```
+WeakMap wrapper associates Three.js objects with GPU resources. Automatic cleanup when source objects are collected.
 
 ### 3. Redundant State Tracking
 
-Pipeline utils tracks active pipeline per pass to skip redundant setPipeline calls.
+Pipeline utils track active pipeline per render pass to skip redundant `setPipeline()` calls.
 
-### 4. Descriptor Caching
+### 4. Async Initialization
 
-Render pass descriptors are cached by render context cache key to avoid rebuilding texture views every frame.
+Device initialization is asynchronous, handled via `init()` returning a Promise.
 
-### 5. Async Initialization
+---
 
-Device initialization is async, handled via `init()` returning a Promise.
+## Next Steps
+
+- **[Pipeline & Bindings](pipeline-bindings.md)** — How pipelines are cached and bind groups managed
+- **[Node System (TSL)](node-system.md)** — How materials compile to WGSL shaders
 
 ---
 
@@ -491,7 +492,3 @@ Device initialization is async, handled via `init()` returning a Promise.
 - `libraries/threejs/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`
 - `libraries/threejs/src/renderers/webgpu/utils/WebGPUBindingUtils.js`
 - `libraries/threejs/src/renderers/webgpu/utils/WebGPUAttributeUtils.js`
-
----
-
-*Next: [Pipeline & Bindings](pipeline-bindings.md)*
