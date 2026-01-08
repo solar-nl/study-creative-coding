@@ -1,114 +1,130 @@
 # PixiJS Encoder System
 
-> Command encoding with aggressive state caching
+> The meticulous secretary who remembers everything so you don't have to
 
 ---
 
-## Overview
+## The Problem: Recording GPU Commands Without Repetition
 
-The `GpuEncoderSystem` is PixiJS's wrapper around WebGPU's command encoding. It manages the full render loop lifecycle while caching all GPU state to skip redundant calls.
+Picture a court stenographer transcribing a trial. Every word matters, so they record everything. But imagine if the lawyer kept repeating the same phrase: "Let the record show, let the record show, let the record show..." A good stenographer would note it once, not three times.
+
+GPU rendering faces a similar challenge. Every frame, your application issues potentially thousands of commands: set this pipeline, bind that buffer, draw these triangles. Many of these commands are redundant. If you just drew 50 sprites with the same texture, you've said "use this texture" 50 times when once would suffice.
+
+WebGPU faithfully records every command you give it. It doesn't know that command number 47 is identical to command number 46. That's where PixiJS's encoder system comes in. It acts as a thoughtful secretary, tracking what's already been said to avoid cluttering the transcript with repetition.
 
 ---
 
-## Frame Lifecycle
+## How to Think About Command Encoding
+
+Think of the encoder as a secretary taking meeting notes. The meeting (render frame) has structure:
+
+1. **Meeting opens** (renderStart) - Fresh notepad, new transcript
+2. **Topic begins** (beginRenderPass) - Clear context, start recording this section
+3. **Discussion happens** (draw calls) - Record only new information, skip "as I said before..."
+4. **Topic ends** (finishRenderPass) - Close this section
+5. **Meeting adjourns** (postrender) - Submit notes, declare meeting complete
+
+The secretary's key skill? Remembering what was already recorded. If someone says "Set the pipeline to X" and X is already the current pipeline, the secretary simply nods rather than writing it down again.
+
+---
+
+## The Frame Lifecycle: A Meeting in Four Acts
+
+Let's trace what happens during a single frame of rendering:
 
 ```
 renderStart()
-    │
-    └─► Create CommandEncoder
-        Create completion Promise
+    |
+    +---> Create CommandEncoder (fresh notepad)
+          Create completion Promise (meeting tracker)
 
 beginRenderPass(renderTarget)
-    │
-    ├─► End previous pass if exists
-    ├─► Clear state cache
-    └─► Begin new render pass
+    |
+    +---> End previous pass if exists
+    +---> Clear state cache (new section, reset context)
+    +---> Begin new render pass
 
-[Draw calls via setPipeline, setGeometry, setBindGroup, draw*]
-    │
-    └─► Each call checks cache before GPU call
+[Draw calls: setPipeline, setGeometry, setBindGroup, draw*]
+    |
+    +---> Each call checks cache before recording
 
 finishRenderPass()
-    │
-    └─► End render pass encoder
+    |
+    +---> End render pass encoder
 
 postrender()
-    │
-    ├─► Finish render pass
-    ├─► queue.submit([commandEncoder.finish()])
-    └─► Resolve completion Promise
+    |
+    +---> Finish render pass
+    +---> queue.submit([commandEncoder.finish()])
+    +---> Resolve completion Promise (meeting adjourned)
 ```
+
+The critical insight is the middle section: every draw call goes through a cache check. This is where redundant work gets filtered out.
 
 ---
 
-## State Caching
+## The Caching Strategy: Don't Repeat Yourself
 
-The encoder caches all bound state to avoid redundant GPU calls:
+Here's where it gets interesting. The encoder maintains a mental model of what the GPU currently has bound:
 
 ```typescript
 class GpuEncoderSystem {
-    // Cached state
-    private _boundBindGroup: Record<number, BindGroup> = {};
-    private _boundVertexBuffer: Record<number, Buffer> = {};
+    // The secretary's memory
+    // Note: Source uses Object.create(null) for prototype-free objects
+    private _boundBindGroup: Record<number, BindGroup> = Object.create(null);
+    private _boundVertexBuffer: Record<number, Buffer> = Object.create(null);
     private _boundIndexBuffer: Buffer;
     private _boundPipeline: GPURenderPipeline;
-
-    // Every setter checks cache first
-    setPipeline(pipeline: GPURenderPipeline) {
-        if (this._boundPipeline === pipeline) return;  // SKIP
-        this._boundPipeline = pipeline;
-        this.renderPassEncoder.setPipeline(pipeline);
-    }
-
-    private _setVertexBuffer(index: number, buffer: Buffer) {
-        if (this._boundVertexBuffer[index] === buffer) return;  // SKIP
-        this._boundVertexBuffer[index] = buffer;
-        this.renderPassEncoder.setVertexBuffer(
-            index,
-            this._renderer.buffer.updateBuffer(buffer)
-        );
-    }
-
-    private _setIndexBuffer(buffer: Buffer) {
-        if (this._boundIndexBuffer === buffer) return;  // SKIP
-        this._boundIndexBuffer = buffer;
-        const indexFormat = buffer.data.BYTES_PER_ELEMENT === 2 ? 'uint16' : 'uint32';
-        this.renderPassEncoder.setIndexBuffer(
-            this._renderer.buffer.updateBuffer(buffer),
-            indexFormat
-        );
-    }
-
-    setBindGroup(index: number, bindGroup: BindGroup, program: GpuProgram) {
-        if (this._boundBindGroup[index] === bindGroup) return;  // SKIP
-        this._boundBindGroup[index] = bindGroup;
-
-        // Touch for GC tracking
-        bindGroup._touch(this._renderer.gc.now, this._renderer.tick);
-
-        const gpuBindGroup = this._renderer.bindGroup.getBindGroup(bindGroup, program, index);
-        this.renderPassEncoder.setBindGroup(index, gpuBindGroup);
-    }
 }
 ```
 
-### Why Cache?
+Every setter method follows the same pattern: check first, record only if different.
 
-WebGPU/wgpu calls have overhead even when setting the same state:
-- Parameter validation
-- Command buffer recording
-- Internal state tracking
+```typescript
+setPipeline(pipeline: GPURenderPipeline) {
+    if (this._boundPipeline === pipeline) return;  // "Already noted"
+    this._boundPipeline = pipeline;
+    this.renderPassEncoder.setPipeline(pipeline);
+}
 
-By caching, PixiJS avoids:
-1. CPU overhead of redundant calls
-2. Larger command buffers
-3. Unnecessary validation work
+private _setVertexBuffer(index: number, buffer: Buffer) {
+    if (this._boundVertexBuffer[index] === buffer) return;  // "Already noted"
+    this._boundVertexBuffer[index] = buffer;
+    this.renderPassEncoder.setVertexBuffer(
+        index,
+        this._renderer.buffer.updateBuffer(buffer)
+    );
+}
+
+setBindGroup(index: number, bindGroup: BindGroup, program: GpuProgram) {
+    if (this._boundBindGroup[index] === bindGroup) return;  // "Already noted"
+    this._boundBindGroup[index] = bindGroup;
+
+    // Touch for GC tracking (keep-alive signal)
+    bindGroup._touch(this._renderer.gc.now, this._renderer.tick);
+
+    const gpuBindGroup = this._renderer.bindGroup.getBindGroup(bindGroup, program, index);
+    this.renderPassEncoder.setBindGroup(index, gpuBindGroup);
+}
+```
+
+The pattern is simple but the payoff is substantial. Consider drawing 1000 sprites with the same texture. Without caching, that's 1000 bind group calls. With caching, it's exactly one. The secretary writes "using texture X" once and then just records "another sprite, another sprite, another sprite..."
+
+### Why Bother? Isn't WebGPU Fast?
+
+You might wonder: if WebGPU handles these commands, why does redundancy matter? Three reasons:
+
+1. **CPU overhead** - Each API call involves parameter validation, even for no-ops
+2. **Command buffer bloat** - Redundant commands still take space in the buffer
+3. **Validation work** - The driver must check each command's validity
+
+The encoder acts as a filter, catching obvious waste before it reaches the GPU.
 
 ---
 
-## Cache Clearing
+## When the Secretary Gets Amnesia: Cache Clearing
 
-The cache is cleared when starting a new render pass:
+Here's a crucial detail: the cache must be cleared at the start of each render pass.
 
 ```typescript
 private _clearCache() {
@@ -122,25 +138,24 @@ private _clearCache() {
 
 beginRenderPass(gpuRenderTarget: GpuRenderTarget) {
     this.endRenderPass();
-    this._clearCache();  // Reset all cached state
+    this._clearCache();  // Forget everything
     this.renderPassEncoder = this.commandEncoder.beginRenderPass(gpuRenderTarget.descriptor);
 }
 ```
 
-This is necessary because:
-1. WebGPU render passes don't inherit state from previous passes
-2. A new `GPURenderPassEncoder` has no bound resources
-3. The cache must match the actual GPU state
+Why the amnesia? Because WebGPU render passes don't inherit state. When you call `beginRenderPass()`, you get a fresh encoder with nothing bound. If the secretary's notes say "pipeline X is active" but the GPU's render pass is brand new, the notes are wrong. Stale cache entries would cause missed bindings and broken rendering.
+
+Think of it like context switching in a conversation. When the meeting moves to a new topic, the chairman says "Let's reset - assume nothing from the previous discussion carries forward."
 
 ---
 
-## Geometry Binding
+## Handling Geometry: The Interleaving Optimization
 
-The `setGeometry` method handles vertex and index buffer binding with interleaving optimization:
+When setting up geometry for a draw call, the encoder does something clever:
 
 ```typescript
 setGeometry(geometry: Geometry, program: GpuProgram) {
-    // Only bind unique buffers (handles interleaved attributes)
+    // Get only the unique buffers needed
     const buffersToBind = this._renderer.pipeline.getBufferNamesToBind(geometry, program);
 
     for (const i in buffersToBind) {
@@ -156,23 +171,24 @@ setGeometry(geometry: Geometry, program: GpuProgram) {
 }
 ```
 
-### Interleaving Optimization
-
-When geometry has interleaved attributes (multiple attributes in one buffer), `getBufferNamesToBind` returns only unique buffers:
+The key insight is `getBufferNamesToBind`. Modern geometry often uses interleaved layouts where multiple attributes share one buffer:
 
 ```
-Interleaved Layout:
+Interleaved Buffer Layout:
 Buffer 0: [pos.x, pos.y, uv.u, uv.v, color] [pos.x, pos.y, uv.u, uv.v, color] ...
+           ← vertex 0 →                       ← vertex 1 →
 
-Without optimization: 3 setVertexBuffer calls (once per attribute)
-With optimization: 1 setVertexBuffer call (once per unique buffer)
+Without optimization: 3 setVertexBuffer calls (position, uv, color)
+With optimization:    1 setVertexBuffer call (one buffer holds everything)
 ```
+
+The naive approach would call `setVertexBuffer` for each attribute. But if position, UV, and color all live in the same buffer, that's three calls to bind the same thing. PixiJS deduplicates, binding each unique buffer exactly once.
 
 ---
 
-## High-Level Draw API
+## The High-Level Draw API: Convenience Built on Primitives
 
-The `draw()` method is a convenience that handles the full draw call setup:
+For most use cases, PixiJS provides a convenient `draw()` method that bundles the entire setup:
 
 ```typescript
 draw(options: {
@@ -187,16 +203,16 @@ draw(options: {
 }) {
     const { geometry, shader, state, topology, size, start, instanceCount, skipSync } = options;
 
-    // 1. Set pipeline (handles caching internally)
+    // 1. Set pipeline (with caching)
     this.setPipelineFromGeometryProgramAndState(geometry, shader.gpuProgram, state, topology);
 
-    // 2. Set geometry (vertex + index buffers)
+    // 2. Set geometry (vertex + index buffers, with caching)
     this.setGeometry(geometry, shader.gpuProgram);
 
     // 3. Set shader bind groups (uniforms, textures)
     this._setShaderBindGroups(shader, skipSync);
 
-    // 4. Issue draw call
+    // 4. Issue the actual draw call
     if (geometry.indexBuffer) {
         this.renderPassEncoder.drawIndexed(
             size || geometry.indexBuffer.data.length,
@@ -213,11 +229,13 @@ draw(options: {
 }
 ```
 
+This is convenient for general use, but the individual methods remain available for fine-grained control. The [batching system](./batching.md) uses these primitives directly to squeeze out maximum performance.
+
 ---
 
-## Uniform Syncing
+## Uniform Syncing: Keeping CPU and GPU in Agreement
 
-Before setting bind groups, uniforms are synced to their GPU buffers:
+Before bind groups can be set, any changed uniforms need to be uploaded to the GPU:
 
 ```typescript
 private _setShaderBindGroups(shader: Shader, skipSync?: boolean) {
@@ -243,13 +261,13 @@ private _syncBindGroup(bindGroup: BindGroup) {
 }
 ```
 
-The `skipSync` flag is an optimization for batched rendering where uniforms are known to be unchanged.
+The `skipSync` flag is an optimization escape hatch. During batched rendering, the system knows uniforms haven't changed and can skip the sync check entirely. This is another example of PixiJS trading convenience for performance when it matters.
 
 ---
 
-## Completion Tracking
+## Frame Completion Tracking
 
-PixiJS tracks frame completion via a Promise:
+Sometimes external code needs to know when a frame is truly done. PixiJS provides a Promise for this:
 
 ```typescript
 public commandFinished: Promise<void>;
@@ -265,37 +283,38 @@ renderStart(): void {
 postrender() {
     this.finishRenderPass();
     this._gpu.device.queue.submit([this.commandEncoder.finish()]);
-    this._resolveCommandFinished();  // Signal frame complete
+    this._resolveCommandFinished();  // Meeting adjourned
     this.commandEncoder = null;
 }
 ```
 
-This allows external code to `await renderer.encoder.commandFinished` to synchronize with frame completion.
+This allows code like `await renderer.encoder.commandFinished` to synchronize with frame boundaries. Useful for screenshots, video capture, or coordination with external systems.
 
 ---
 
-## Debug Support: Restore Render Pass
+## Debug Support: The Restore Mechanism
 
-For debugging (e.g., logging textures mid-frame), PixiJS can restore a render pass:
+Debugging GPU rendering is notoriously difficult. Sometimes you need to interrupt a render pass (say, to read back a texture for logging), then resume where you left off. PixiJS supports this with `restoreRenderPass`:
 
 ```typescript
 restoreRenderPass() {
-    // Save current state
+    // Get descriptor and start fresh pass first
+    const descriptor = this._renderer.renderTarget.adaptor.getDescriptor(...);
+    this.renderPassEncoder = this.commandEncoder.beginRenderPass(descriptor);
+
+    // Save the secretary's notes (before clearing)
     const boundPipeline = this._boundPipeline;
     const boundVertexBuffer = { ...this._boundVertexBuffer };
     const boundIndexBuffer = this._boundIndexBuffer;
     const boundBindGroup = { ...this._boundBindGroup };
 
-    // Clear and restart pass
-    const descriptor = this._renderer.renderTarget.adaptor.getDescriptor(...);
-    this.renderPassEncoder = this.commandEncoder.beginRenderPass(descriptor);
     this._clearCache();
 
     // Restore viewport
     const viewport = this._renderer.renderTarget.viewport;
     this.renderPassEncoder.setViewport(viewport.x, viewport.y, viewport.width, viewport.height, 0, 1);
 
-    // Reinstate all state
+    // Replay all the bindings from saved notes
     this.setPipeline(boundPipeline);
     for (const i in boundVertexBuffer) {
         this._setVertexBuffer(i as unknown as number, boundVertexBuffer[i]);
@@ -307,9 +326,13 @@ restoreRenderPass() {
 }
 ```
 
+It's like the secretary photocopying their notes, starting a new page, then transcribing everything back. Expensive, but invaluable when you need to peek at intermediate state.
+
 ---
 
 ## wgpu Implementation
+
+Here's how you might implement the same encoder pattern in Rust with wgpu:
 
 ```rust
 use std::collections::HashMap;
@@ -318,7 +341,7 @@ struct EncoderSystem {
     command_encoder: Option<wgpu::CommandEncoder>,
     render_pass: Option<wgpu::RenderPass<'static>>,
 
-    // State cache
+    // State cache - the secretary's memory
     bound_pipeline: Option<wgpu::RenderPipeline>,
     bound_bind_groups: HashMap<u32, wgpu::BindGroup>,
     bound_vertex_buffers: HashMap<u32, wgpu::Buffer>,
@@ -332,19 +355,18 @@ impl EncoderSystem {
 
     fn begin_render_pass(&mut self, descriptor: &wgpu::RenderPassDescriptor) {
         self.end_render_pass();
-        self.clear_cache();
+        self.clear_cache();  // Amnesia time
 
         if let Some(encoder) = &mut self.command_encoder {
-            // Note: In real code, render_pass lifetime is tricky
-            // This is simplified for illustration
+            // Note: Real implementation requires careful lifetime management
             self.render_pass = Some(encoder.begin_render_pass(descriptor));
         }
     }
 
     fn set_pipeline(&mut self, pipeline: &wgpu::RenderPipeline) {
-        // Check by ID comparison
+        // Compare by ID, not deep equality
         if self.bound_pipeline.as_ref().map(|p| p.global_id()) == Some(pipeline.global_id()) {
-            return;  // Skip redundant call
+            return;  // Already noted
         }
 
         self.bound_pipeline = Some(pipeline.clone());
@@ -386,14 +408,14 @@ impl EncoderSystem {
         }
     }
 
-    fn draw_indexed(&mut self, indices: u32, instances: u32, first_index: u32) {
+    fn draw_indexed(&mut self, indices: u32, instances: u32) {
         if let Some(pass) = &mut self.render_pass {
             pass.draw_indexed(0..indices, 0, 0..instances);
         }
     }
 
     fn end_render_pass(&mut self) {
-        self.render_pass = None;  // Drop ends the pass
+        self.render_pass = None;  // Dropping ends the pass
     }
 
     fn submit(&mut self, queue: &wgpu::Queue) {
@@ -413,59 +435,54 @@ impl EncoderSystem {
 }
 ```
 
+Key differences from JavaScript:
+
+- **Identity comparison**: wgpu objects provide `global_id()` for efficient identity checks
+- **Lifetime management**: Rust's borrowing rules make render pass lifetimes tricky. The render pass borrows the command encoder mutably, so you cannot call other encoder methods while a render pass is active. The simplified example above uses `Option` and dropping to manage this, but real implementations often use scoped patterns or split the encoder into separate phases.
+- **No garbage collection**: You manage resource lifetimes explicitly, so the "GC touch" pattern from PixiJS doesn't apply
+
 ---
 
-## Key Patterns
+## Key Patterns to Remember
 
-### 1. Identity Comparison for Caching
+### Identity, Not Equality
 
-PixiJS compares object references, not deep equality:
-
-```typescript
-if (this._boundPipeline === pipeline) return;  // Reference comparison
-```
-
-In Rust/wgpu, use `global_id()` for similar identity checks:
-
-```rust
-if self.bound_pipeline.as_ref().map(|p| p.global_id()) == Some(pipeline.global_id()) {
-    return;
-}
-```
-
-### 2. Lazy Buffer Updates
-
-The encoder calls `buffer.updateBuffer()` which lazily uploads CPU data to GPU:
+The cache compares object references, not contents:
 
 ```typescript
-this.renderPassEncoder.setVertexBuffer(
-    index,
-    this._renderer.buffer.updateBuffer(buffer)  // Upload if dirty
-);
+if (this._boundPipeline === pipeline) return;  // Same object?
 ```
 
-### 3. Per-Pass Cache Reset
+This is fast and sufficient because pipelines and bind groups are typically cached elsewhere (see [Pipeline Caching](./pipeline-caching.md)). Two identical configurations should share the same object, not be separate but equal objects.
 
-Every new render pass requires clearing the cache because WebGPU render passes don't inherit state.
+### Lazy Buffer Updates
 
-### 4. High-Level Convenience
+Vertex buffers aren't uploaded until needed:
 
-The `draw()` method bundles common operations but individual methods remain available for fine-grained control (used by the batch adaptor).
+```typescript
+this._renderer.buffer.updateBuffer(buffer)  // Upload if dirty
+```
+
+This deferred approach means CPU-side changes to buffer data don't immediately trigger GPU uploads. The upload happens exactly when the buffer is bound, and only if it's dirty.
+
+### Per-Pass Cache Reset
+
+Every new render pass requires clearing the cache. This isn't optional - it reflects the WebGPU reality that render passes start with a blank slate.
 
 ---
 
 ## Performance Impact
 
-State caching eliminates redundant calls across:
+The encoder's state caching eliminates redundant work across the board:
 
 | Operation | Without Cache | With Cache |
 |-----------|---------------|------------|
 | Same pipeline | N calls | 1 call |
 | Same vertex buffer | N calls | 1 call |
 | Same bind group | N calls | 1 call |
-| Batched sprites | 1000 calls | ~10 calls |
+| 1000 batched sprites | ~3000 calls | ~10 calls |
 
-The savings compound with batching—a batch of 1000 sprites with the same texture needs only 1 bind group call.
+The savings compound dramatically with batching. A thousand sprites sharing a texture atlas need exactly one texture bind, one pipeline set, and one vertex buffer bind. The secretary writes the setup once, then just tallies up the draws.
 
 ---
 
@@ -475,4 +492,4 @@ The savings compound with batching—a batch of 1000 sprites with the same textu
 
 ---
 
-*Next: [Bind Groups](bind-groups.md)*
+*Next: [Bind Groups](./bind-groups.md) - How resources get packaged for shaders*

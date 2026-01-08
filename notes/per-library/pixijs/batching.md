@@ -1,243 +1,140 @@
-# PixiJS Batching Strategy
+# Batching: Turning Thousands of Draw Calls into Dozens
 
-> How PixiJS minimizes draw calls through automatic batching
-
----
-
-## Overview
-
-PixiJS's batching system is one of its key performance features. It automatically combines multiple sprites/graphics into single draw calls based on:
-
-1. **Texture compatibility** - Can textures fit in a single bind group?
-2. **Blend mode** - Same blending operation?
-3. **Topology** - Same primitive type (triangles, triangle-strip)?
+> The postal sorting office principle applied to GPU rendering
 
 ---
 
-## The Batch Class
+## The Problem: Death by a Thousand Draw Calls
 
-A `Batch` represents a single draw call:
+Imagine a postal worker who delivers each letter individually. They walk to a house, deliver one letter, return to the post office, pick up the next letter, walk to a different house, return to the post office... This is absurd, obviously. Real postal systems sort mail by route first, then deliver entire bundles in sequence.
 
-```typescript
-// From Batcher.ts
-class Batch implements Instruction {
-    renderPipeId = 'batch';
-    action: 'startBatch' | 'renderBatch';
+GPU rendering faces the same problem. Every draw call has overhead: the CPU must prepare parameters, communicate with the GPU driver, and wait for confirmation. A game with 10,000 sprites could naively issue 10,000 draw calls. At roughly 100 microseconds per call, that's a full second of overhead before any actual rendering happens. Your frame budget is gone.
 
-    // Draw call parameters
-    start: number;           // Index offset into index buffer
-    size: number;            // Number of indices to draw
-
-    // State
-    textures: BatchTextureArray;  // Textures in this batch
-    blendMode: BLEND_MODES;       // Blend operation
-    topology: Topology;           // 'triangle-list', 'triangle-strip', etc.
-
-    // WebGPU-specific (cached for performance)
-    gpuBindGroup: GPUBindGroup;
-    bindGroup: BindGroup;
-
-    batcher: Batcher;
-}
-```
+The solution is the same as the postal system: sort and combine. Group sprites that can be drawn together, pack them into shared buffers, and issue one draw call for the whole bundle. This is batching.
 
 ---
 
-## BatchableElement Interface
+## The Mental Model: A Shipping Consolidator
 
-Elements that can be batched implement this interface:
+Think of the batcher as a shipping consolidator. Packages arrive throughout the day with different destinations, different shipping priorities, and different handling requirements. The consolidator groups compatible packages into containers before sending them to the loading dock.
 
-```typescript
-interface BatchableElement {
-    batcherName: string;     // Which batcher to use ("default")
-    texture: Texture;        // Texture to render
-    blendMode: BLEND_MODES;  // Blend operation
-    indexSize: number;       // Number of indices
-    attributeSize: number;   // Number of vertices
-    topology: Topology;      // Primitive type
-    packAsQuad: boolean;     // Optimization for rectangles
+The key insight is *compatibility*. Two packages can share a container if they:
+- Go to the same general region (same texture atlas)
+- Have the same priority (same blend mode)
+- Need the same handling (same primitive topology)
 
-    // Internal tracking
-    _textureId: number;      // Index in texture batch
-    _attributeStart: number; // Offset in attribute buffer
-    _indexStart: number;     // Offset in index buffer
-    _batcher: Batcher;
-    _batch: Batch;
-}
-```
+The moment any of these differ, you need a new container. The consolidator's job is to maximize container utilization while respecting these constraints.
 
-### Quad Optimization
-
-Sprites are always quads (4 vertices, 6 indices). PixiJS optimizes this:
-
-```typescript
-interface BatchableQuadElement extends BatchableElement {
-    packAsQuad: true;
-    attributeSize: 4;  // Always 4 vertices
-    indexSize: 6;      // Always 6 indices (two triangles)
-    bounds: BoundsData;
-}
-```
+In PixiJS terms:
+- **Packages** are sprites, graphics, and other renderable elements
+- **Containers** are batches (single draw calls)
+- **Loading dock** is the GPU command encoder
 
 ---
 
-## The Batching Algorithm
+## What Triggers a Batch Break?
 
-### Phase 1: Element Collection
+This is the critical question. Every batch break means another draw call, so you want to minimize them. PixiJS breaks batches when:
+
+```
+                    BATCH BREAK TRIGGERS
+
+    1. Texture slots full
+       The batch already has maxTextures bound, and this
+       sprite needs a different texture.
+
+    2. Blend mode changes
+       Switching from "normal" to "additive" blending
+       requires different GPU pipeline state.
+
+    3. Topology changes
+       Triangle lists can't mix with triangle strips
+       in a single draw call.
+
+    4. Non-batchable element encountered
+       Filters, masks, and custom shaders break the flow
+       and force the batch to flush.
+```
+
+Here's where it gets interesting: textures don't always break batches. PixiJS can bind multiple textures to a single draw call, up to the GPU's limit (typically 8-16). Each vertex stores which texture index it should sample from. Only when the batch runs out of texture slots does it need to break.
+
+---
+
+## How Batching Works: A Concrete Example
+
+Let's trace what happens when you render a scene with 1,000 sprites using 4 different textures, all with normal blending:
+
+**Phase 1: Collection**
+
+During scene traversal, each sprite registers with the batcher:
 
 ```typescript
-// During scene traversal
-batcher.add(element: BatchableElement) {
-    this._elements[this.elementSize++] = element;
+batcher.add(sprite) {
+    // Record where this sprite's data will go
+    sprite._indexStart = this.indexSize;
+    sprite._attributeStart = this.attributeSize;
 
-    // Track where this element's data will go
-    element._indexStart = this.indexSize;
-    element._attributeStart = this.attributeSize;
-    element._batcher = this;
-
-    // Accumulate sizes
-    this.indexSize += element.indexSize;
-    this.attributeSize += element.attributeSize * this.vertexSize;
+    // Accumulate sizes for buffer allocation
+    this.indexSize += 6;      // Quad = 6 indices
+    this.attributeSize += 4;  // Quad = 4 vertices
 }
 ```
 
-### Phase 2: Break into Batches
+At this point, nothing is packed. The batcher just knows it needs space for 1,000 quads (6,000 indices, 4,000 vertices).
 
-The `break()` method is where batching decisions happen:
+**Phase 2: Breaking into Batches**
+
+Now the batcher walks through all elements and decides where to break:
 
 ```typescript
-break(instructionSet: InstructionSet) {
-    const elements = this._elements;
-    const maxTextures = this.maxTextures;
+break() {
+    let batch = new Batch();
+    let textureCount = 0;
+    let currentBlendMode = elements[0].blendMode;
 
-    let batch = getBatchFromPool();
-    let textureBatch = batch.textures;
-    let blendMode = firstElement.blendMode;
-    let topology = firstElement.topology;
+    for (const element of elements) {
+        const needNewBatch =
+            textureCount >= maxTextures ||
+            element.blendMode !== currentBlendMode;
 
-    for (let i = this.elementStart; i < this.elementSize; i++) {
-        const element = elements[i];
-        const source = element.texture._source;
-        const adjustedBlendMode = getAdjustedBlendModeBlend(element.blendMode, source);
-
-        // Check if we need to break the batch
-        const breakRequired =
-            blendMode !== adjustedBlendMode ||
-            topology !== element.topology;
-
-        // Check if texture already in this batch
-        if (source._batchTick === BATCH_TICK && !breakRequired) {
-            // Texture already bound - just pack data
-            element._textureId = source._textureBindLocation;
-            this.packData(element);
-            continue;
+        if (needNewBatch) {
+            finishBatch(batch);        // Mark batch complete
+            batch = new Batch();        // Start fresh
+            textureCount = 0;
         }
 
-        // New texture - check if batch is full
-        if (textureBatch.count >= maxTextures || breakRequired) {
-            // BATCH BREAK - finish current batch
-            this._finishBatch(batch, ...);
-
-            // Start new batch
-            batch = getBatchFromPool();
-            textureBatch = batch.textures;
-            blendMode = adjustedBlendMode;
-            topology = element.topology;
-            BATCH_TICK++;
+        // Add texture if not already in this batch
+        if (!batch.hasTexture(element.texture)) {
+            batch.addTexture(element.texture);
+            textureCount++;
         }
 
-        // Add texture to batch
-        element._textureId = textureBatch.count;
-        source._textureBindLocation = textureBatch.count;
-        textureBatch.textures[textureBatch.count++] = source;
-        element._batch = batch;
-
-        this.packData(element);
-    }
-
-    // Finish final batch
-    if (textureBatch.count > 0) {
-        this._finishBatch(batch, ...);
+        // Pack vertex/index data
+        packQuad(element, batch);
     }
 }
 ```
 
-### Batch Break Conditions
+With 4 textures fitting in one batch (assuming maxTextures >= 4), all 1,000 sprites end up in a single batch. One draw call for the entire scene.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      BATCH BREAK TRIGGERS                            │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  1. Texture count exceeds maxTextures                               │
-│     └─► textureBatch.count >= maxTextures                           │
-│                                                                      │
-│  2. Blend mode changes                                              │
-│     └─► blendMode !== adjustedBlendMode                             │
-│                                                                      │
-│  3. Topology changes                                                │
-│     └─► topology !== element.topology                               │
-│                                                                      │
-│  4. Non-batchable element (filters, masks, custom shaders)          │
-│     └─► Handled at pipe level, forces batch break                   │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+**Phase 3: Execution**
 
----
+When the batch executes, it:
 
-## WebGPU Batch Execution
+1. Sets up geometry (one big vertex buffer, one big index buffer)
+2. Binds all 4 textures into a single bind group
+3. Issues one `drawIndexed(6000, 1, 0)` call
 
-The `GpuBatchAdaptor` executes batches:
+The shader selects the correct texture based on a per-vertex texture ID:
 
-```typescript
-// GpuBatchAdaptor.ts
-class GpuBatchAdaptor implements BatcherAdaptor {
-
-    start(batchPipe: BatcherPipe, geometry: Geometry, shader: Shader) {
-        const renderer = batchPipe.renderer;
-        const encoder = renderer.encoder;
-
-        // Set geometry (vertex + index buffers)
-        encoder.setGeometry(geometry, shader.gpuProgram);
-
-        // Set global uniforms at bind group 0
-        encoder.setBindGroup(0, renderer.globalUniforms.bindGroup, program);
-
-        // Reset bind group 1 (texture batch)
-        encoder.resetBindGroup(1);
-    }
-
-    execute(batchPipe: BatcherPipe, batch: Batch) {
-        const renderer = batchPipe.renderer;
-        const encoder = renderer.encoder;
-
-        // Create/get texture bind group
-        if (!batch.bindGroup) {
-            batch.bindGroup = getTextureBatchBindGroup(
-                batch.textures.textures,
-                batch.textures.count,
-                renderer.limits.maxBatchableTextures
-            );
-        }
-
-        // Get cached GPU bind group
-        const gpuBindGroup = renderer.bindGroup.getBindGroup(
-            batch.bindGroup, program, 1
-        );
-
-        // Get/create pipeline for current state
-        const pipeline = renderer.pipeline.getPipeline(
-            this._geometry,
-            program,
-            { blendMode: batch.blendMode },
-            batch.topology
-        );
-
-        // Execute draw call
-        encoder.setPipeline(pipeline);
-        encoder.renderPassEncoder.setBindGroup(1, gpuBindGroup);
-        encoder.renderPassEncoder.drawIndexed(batch.size, 1, batch.start);
+```wgsl
+fn sample_batch(texture_id: u32, uv: vec2<f32>) -> vec4<f32> {
+    switch texture_id {
+        case 0u: { return textureSample(tex0, sam0, uv); }
+        case 1u: { return textureSample(tex1, sam1, uv); }
+        case 2u: { return textureSample(tex2, sam2, uv); }
+        case 3u: { return textureSample(tex3, sam3, uv); }
+        default: { return textureSample(tex0, sam0, uv); }
     }
 }
 ```
@@ -246,111 +143,106 @@ class GpuBatchAdaptor implements BatcherAdaptor {
 
 ## Texture Batch Bind Groups
 
-PixiJS groups multiple textures into a single bind group using FNV-1a hashing:
+Here's a clever optimization: bind groups for texture batches are cached using FNV-1a hashing.
+
+The problem: bind group creation is expensive. Every unique combination of textures could require a new GPU bind group. But many frames use the exact same texture combinations.
+
+The solution: hash the texture UIDs to create a cache key:
 
 ```typescript
-// getTextureBatchBindGroup.ts
-const cachedGroups: Record<number, BindGroup> = {};
-
-function getTextureBatchBindGroup(textures: TextureSource[], size: number, maxTextures: number) {
-    // FNV-1a hash of texture UIDs
-    let uid = 2166136261;  // FNV offset basis
-    for (let i = 0; i < size; i++) {
-        uid ^= textures[i].uid;
-        uid = Math.imul(uid, 16777619);  // FNV prime
-        uid >>>= 0;  // Convert to unsigned
+function getTextureBatchBindGroup(textures: TextureSource[]) {
+    // FNV-1a hash
+    let hash = 2166136261;  // Magic offset basis
+    for (const tex of textures) {
+        hash ^= tex.uid;
+        hash = Math.imul(hash, 16777619);  // Magic prime
     }
 
-    return cachedGroups[uid] || generateTextureBatchBindGroup(textures, size, uid, maxTextures);
-}
-
-function generateTextureBatchBindGroup(textures, size, key, maxTextures) {
-    const bindGroupResources = {};
-    let bindIndex = 0;
-
-    for (let i = 0; i < maxTextures; i++) {
-        // Pad with empty textures if needed
-        const texture = i < size ? textures[i] : Texture.EMPTY.source;
-
-        bindGroupResources[bindIndex++] = texture.source;  // Texture
-        bindGroupResources[bindIndex++] = texture.style;   // Sampler
-    }
-
-    const bindGroup = new BindGroup(bindGroupResources);
-    cachedGroups[key] = bindGroup;
-    return bindGroup;
+    return cache[hash] || createAndCache(textures, hash);
 }
 ```
 
-### Bind Group Layout
+FNV-1a is chosen because it's fast (just XOR and multiply), produces good distribution for small inputs, and deterministic. The hash becomes the cache key, so identical texture combinations immediately hit the cache.
+
+The bind group layout interleaves textures and samplers:
 
 ```
 Bind Group 1 (Texture Batch):
-├── Binding 0: Texture 0
-├── Binding 1: Sampler 0
-├── Binding 2: Texture 1
-├── Binding 3: Sampler 1
-├── ...
-├── Binding 2n:   Texture n
-└── Binding 2n+1: Sampler n
+    Binding 0: Texture 0
+    Binding 1: Sampler 0
+    Binding 2: Texture 1
+    Binding 3: Sampler 1
+    ...
+    Binding 2n:   Texture n
+    Binding 2n+1: Sampler n
 ```
+
+When a batch has fewer textures than the maximum, empty slots are filled with a placeholder texture. This maintains a consistent layout so the same bind group can be reused regardless of actual texture count.
 
 ---
 
-## Vertex Format
+## The Vertex Format
 
-Each vertex in the batch has this layout:
+Each batched vertex packs position, UV, color, and texture selection into 24 bytes:
 
 ```typescript
-// 24 bytes per vertex (6 × 4 bytes)
-struct Vertex {
-    aPosition: vec2<f32>,        // x, y (8 bytes)
-    aUV: vec2<f32>,              // u, v (8 bytes)
-    aColor: vec4<u8> normalized, // RGBA (4 bytes)
-    aTextureIdAndRound: u16x2,   // texture index, round flag (4 bytes)
+struct BatchedVertex {
+    position: vec2<f32>,           // 8 bytes: screen position
+    uv: vec2<f32>,                 // 8 bytes: texture coordinates
+    color: vec4<u8> normalized,    // 4 bytes: tint color (RGBA)
+    textureIdAndFlags: u32,        // 4 bytes: texture index + options
 }
 ```
 
-### Packing Quads
+The `textureIdAndFlags` field is bit-packed: the high 16 bits store the texture index (which texture in the batch to sample), and the low bits store flags like "round to pixel" for crisp sprite rendering.
 
-```typescript
-packQuadAttributes(element, float32View, uint32View, index, textureId) {
-    const { minX, minY, maxX, maxY } = element.bounds;
-    const uvs = element.uvs;
-    const color = element.color;
-    const textureIdAndRound = (textureId << 16) | (element.roundPixels ? 1 : 0);
+This tight packing matters. With 4,000 vertices per batch, the difference between 24 bytes and 32 bytes per vertex is 32KB of memory bandwidth saved per batch.
 
-    // Vertex 0 (top-left)
-    float32View[index + 0] = minX;
-    float32View[index + 1] = minY;
-    float32View[index + 2] = uvs.x0;
-    float32View[index + 3] = uvs.y0;
-    uint32View[index + 4] = color;
-    uint32View[index + 5] = textureIdAndRound;
+---
 
-    // Vertex 1, 2, 3...
-    // Similar pattern for other corners
-}
-```
+## Performance Characteristics
+
+So how does this play out in practice?
+
+**Best case**: All sprites use compatible textures, same blend mode, same topology.
+
+Result: Thousands of sprites in a single draw call.
+
+**Worst case**: Every sprite has a unique texture, different blend mode, or different topology.
+
+Result: One draw call per sprite. No batching benefit.
+
+**Typical case (well-optimized game)**:
+- Background layer: 1 batch (texture atlas)
+- Characters: 1-2 batches (sprite sheets)
+- Particles: 1 batch (particle texture)
+- UI: 1-2 batches
+
+Result: 5-10 draw calls for scenes with thousands of sprites.
+
+The key optimization insight: **use texture atlases**. Combining sprites into shared textures is the single most impactful thing you can do for batching performance.
 
 ---
 
 ## wgpu Implementation
 
-### Rust Equivalent
+Here's how the same pattern translates to Rust and wgpu:
 
 ```rust
 struct Batcher {
     elements: Vec<BatchableElement>,
-    attribute_buffer: Vec<u8>,
-    index_buffer: Vec<u16>,
     batches: Vec<Batch>,
+
+    // Shared geometry buffers
+    vertices: Vec<BatchedVertex>,
+    indices: Vec<u16>,
+
     max_textures: usize,
 }
 
 struct Batch {
-    start: u32,
-    size: u32,
+    start: u32,           // Index offset
+    size: u32,            // Index count
     textures: Vec<TextureId>,
     blend_mode: BlendMode,
     topology: wgpu::PrimitiveTopology,
@@ -359,136 +251,86 @@ struct Batch {
 
 impl Batcher {
     fn break_batches(&mut self, device: &wgpu::Device) {
-        let mut current_batch = Batch::new();
-        let mut batch_tick = 0u32;
+        let mut current = Batch::new();
 
         for element in &self.elements {
             let needs_break =
-                current_batch.blend_mode != element.blend_mode ||
-                current_batch.topology != element.topology ||
-                current_batch.textures.len() >= self.max_textures;
+                current.blend_mode != element.blend_mode ||
+                current.topology != element.topology ||
+                current.textures.len() >= self.max_textures;
 
-            if needs_break && !current_batch.is_empty() {
-                self.finalize_batch(&mut current_batch, device);
-                self.batches.push(current_batch);
-                current_batch = Batch::new();
-                batch_tick += 1;
+            if needs_break && !current.is_empty() {
+                self.finalize_batch(&mut current, device);
+                self.batches.push(current);
+                current = Batch::new();
             }
 
-            // Add element to current batch
-            let texture_id = current_batch.add_texture(element.texture);
+            let texture_id = current.add_texture(element.texture);
             self.pack_element(element, texture_id);
-            current_batch.size += element.index_count;
+            current.size += element.index_count;
         }
 
-        // Finalize last batch
-        if !current_batch.is_empty() {
-            self.finalize_batch(&mut current_batch, device);
-            self.batches.push(current_batch);
+        // Don't forget the last batch
+        if !current.is_empty() {
+            self.finalize_batch(&mut current, device);
+            self.batches.push(current);
         }
     }
 }
 ```
 
-### Texture Bind Group Caching
+For texture batch bind group caching with FNV-1a:
 
 ```rust
-use std::collections::HashMap;
-
 struct BindGroupCache {
     cache: HashMap<u32, wgpu::BindGroup>,
 }
 
 impl BindGroupCache {
-    fn get_or_create(
+    fn get_texture_batch(
         &mut self,
-        textures: &[&wgpu::TextureView],
-        samplers: &[&wgpu::Sampler],
         device: &wgpu::Device,
         layout: &wgpu::BindGroupLayout,
+        textures: &[&wgpu::TextureView],
+        samplers: &[&wgpu::Sampler],
     ) -> &wgpu::BindGroup {
-        // FNV-1a hash
-        let mut hash = 2166136261u32;
-        for tex in textures {
-            // Use texture view id or similar
-            hash ^= tex.global_id().inner() as u32;
-            hash = hash.wrapping_mul(16777619);
-        }
+        let hash = Self::fnv1a_hash(textures);
 
         self.cache.entry(hash).or_insert_with(|| {
-            let entries: Vec<_> = textures.iter().zip(samplers.iter())
-                .enumerate()
-                .flat_map(|(i, (tex, sampler))| {
-                    vec![
-                        wgpu::BindGroupEntry {
-                            binding: (i * 2) as u32,
-                            resource: wgpu::BindingResource::TextureView(tex),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: (i * 2 + 1) as u32,
-                            resource: wgpu::BindingResource::Sampler(sampler),
-                        },
-                    ]
-                })
-                .collect();
-
-            device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("texture_batch"),
-                layout,
-                entries: &entries,
-            })
+            Self::create_texture_batch(device, layout, textures, samplers)
         })
+    }
+
+    fn fnv1a_hash(textures: &[&wgpu::TextureView]) -> u32 {
+        // Note: texture identity extraction varies by wgpu version.
+        // You may need to use a custom identifier or hash the texture
+        // view's debug name depending on your setup.
+        let mut hash = 2166136261u32;
+        for tex in textures {
+            let id = tex.global_id().inner() as u32;
+            hash ^= id;
+            hash = hash.wrapping_mul(16777619);
+        }
+        hash
     }
 }
 ```
 
 ---
 
-## Performance Characteristics
-
-### Best Case
-
-All elements use:
-- Same texture (or textures fit in one batch)
-- Same blend mode
-- Same topology
-
-**Result:** 1 draw call for entire scene
-
-### Worst Case
-
-Every element has:
-- Different texture
-- Different blend mode
-- Different topology
-
-**Result:** N draw calls for N elements (no batching benefit)
-
-### Typical Case
-
-Sprites grouped by texture atlas + blend mode:
-- Background sprites: 1 batch
-- Character sprites: 1 batch
-- UI elements: 1-2 batches
-- Particles: 1 batch
-
-**Result:** 5-10 draw calls for thousands of sprites
-
----
-
 ## Key Takeaways
 
-1. **Texture batching via bind groups** - Multiple textures per draw call using array indexing in shader
+1. **Batching is about compatibility** - Elements batch together when they share textures (up to a limit), blend mode, and topology. Design your assets with this in mind.
 
-2. **FNV-1a hashing** - Fast cache key generation for bind group reuse
+2. **Texture arrays enable multi-texture batches** - The shader selects textures by index, allowing many textures per draw call. This is why PixiJS can batch sprites with different textures.
 
-3. **Lazy bind group creation** - Only create when batch is executed, not when elements are added
+3. **FNV-1a hashing for bind group caching** - Integer hashing is faster than string comparison for frequently-accessed texture batches. The hash of texture UIDs becomes the cache key.
 
-4. **Quad optimization** - Special fast path for 4-vertex rectangles
+4. **Lazy bind group creation** - Bind groups are created when batches execute, not when elements are added. This avoids creating bind groups for batches that get merged or discarded.
 
-5. **State-based batching** - Blend mode and topology changes break batches
+5. **Quad optimization matters** - Sprites are always quads (4 vertices, 6 indices). The batcher has a fast path for this common case, avoiding per-element size calculations.
 
-6. **Pool pattern** - Batch objects are pooled to avoid allocation
+6. **Pool pattern reduces allocation pressure** - Batch objects are pooled and reused frame-to-frame, avoiding allocation churn in the hot render path.
 
 ---
 
@@ -500,4 +342,4 @@ Sprites grouped by texture atlas + blend mode:
 
 ---
 
-*Next: [Pipeline Caching](pipeline-caching.md)*
+*See also: [Bind Groups](bind-groups.md) for how texture batches are bound to shaders, [Pipeline Caching](pipeline-caching.md) for how blend mode and topology affect pipeline selection*

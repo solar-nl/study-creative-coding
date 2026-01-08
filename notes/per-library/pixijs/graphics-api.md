@@ -1,438 +1,320 @@
 # PixiJS Graphics API
 
-> Canvas-like drawing API with instruction-based rendering
+> A Canvas-like drawing API that records your artistic intent before translating it into GPU-renderable geometry
 
 ---
 
-## Overview
+## The Problem: Drawing Shapes on a GPU
 
-PixiJS provides a familiar Canvas 2D-style API for vector graphics that compiles to GPU-renderable geometry. The system has three layers:
+Imagine you want to draw a simple red circle. On a 2D canvas, this is trivial: call `arc()`, call `fill()`, done. The CPU draws pixels directly to a bitmap. But GPUs do not understand circles. They understand triangles.
 
-1. **Graphics** - Scene object, wraps a GraphicsContext
-2. **GraphicsContext** - Stores drawing instructions, shareable between Graphics objects
-3. **GraphicsPipe + Adaptor** - Converts instructions to GPU commands
+This creates a fundamental mismatch. Artists think in shapes, curves, and strokes. GPUs think in vertices, triangles, and textures. Something has to bridge the gap.
+
+The naive solution would be to tessellate (convert curves to triangles) every single time you call a drawing method. Draw a circle? Immediately generate 50 triangles. Draw another circle? Generate 50 more. This is wasteful. If the circle has not changed, why regenerate the geometry?
+
+PixiJS solves this with a two-phase approach: **record first, tessellate later**. Think of it like an architect creating drawings. The architect sketches circles, rectangles, and curves on paper. These drawings do not become a building directly. Instead, they get converted into construction blueprints when it is time to build. If the architect makes ten copies of the same house, they do not redraw the blueprints ten times.
 
 ---
 
-## Graphics vs GraphicsContext
+## The Mental Model: Drawings Become Blueprints
 
-The split allows context sharing for efficiency:
+The Graphics API works like a recipe that gets "compiled" into cooking steps:
 
-```typescript
-// GraphicsContext stores the drawing instructions
-const sharedContext = new GraphicsContext()
-    .circle(100, 100, 50)
-    .fill({ color: 0xff0000 });
+1. **You write the recipe** (drawing commands): "Draw a circle at position 100,100 with radius 50, fill it red"
+2. **The recipe is stored** as instructions, not executed immediately
+3. **When you cook** (render), the instructions are tessellated into triangles
+4. **The triangles are cached** so the next time you serve the dish, you skip the prep work
 
-// Multiple Graphics objects can share the same context
-// Tessellation happens once, GPU data is reused
-const graphics1 = new Graphics({ context: sharedContext });
-const graphics2 = new Graphics({ context: sharedContext });
+This deferred execution model has three layers:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Graphics                                                        │
+│  The scene object - position, rotation, scale                   │
+│  Think: "A canvas element on your page"                         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ references
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  GraphicsContext                                                 │
+│  The drawing instructions - what shapes, what colors            │
+│  Think: "The actual drawing, independent of where it appears"   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ tessellates to
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  GraphicsPipe + Adaptor                                          │
+│  GPU geometry and rendering commands                            │
+│  Think: "The construction blueprints the GPU can execute"       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Why Separate?
+---
 
-- **GraphicsContext**: Expensive to create (tessellation, GPU upload)
-- **Graphics**: Cheap to create (just a transform + reference)
+## Why Separate Graphics from GraphicsContext?
 
-This mirrors the Texture/Sprite relationship—one piece of content, many instances.
+Here is where it gets interesting. PixiJS deliberately separates the "scene object" (Graphics) from the "drawing content" (GraphicsContext). Why the split?
+
+Consider a particle system with 1000 identical stars. Each star is at a different position, but they all look the same. Without sharing, you would tessellate the star shape 1000 times, upload 1000 copies of identical vertex data to the GPU, and waste megabytes of memory.
+
+With context sharing, you tessellate once and reference that data 1000 times:
+
+```typescript
+// The drawing instructions - expensive to create
+const starContext = new GraphicsContext()
+    .star(0, 0, 5, 40, 20)  // 5-pointed star at origin
+    .fill({ color: 0xffff00 });
+
+// The scene objects - cheap to create
+for (let i = 0; i < 1000; i++) {
+    const star = new Graphics({ context: starContext });
+    star.x = Math.random() * 800;
+    star.y = Math.random() * 600;
+    container.addChild(star);
+}
+```
+
+This mirrors the Texture/Sprite relationship you might know from sprite-based games. One image, many instances. One set of drawing instructions, many transforms.
+
+The key insight: **GraphicsContext is expensive (tessellation, GPU upload). Graphics is cheap (just a transform and a reference).**
 
 ---
 
-## Drawing API
+## Recording Instructions: The Fluent API
 
-GraphicsContext provides a fluent, chainable API matching Canvas 2D:
+The drawing API feels like Canvas 2D, but remember: nothing renders immediately. You are writing a recipe.
 
 ```typescript
 const graphics = new Graphics();
 
 graphics
-    // Path building
+    // Build a path
     .moveTo(50, 50)
     .lineTo(100, 50)
     .bezierCurveTo(150, 50, 150, 100, 100, 100)
-    .quadraticCurveTo(50, 100, 50, 50)
     .closePath()
     .fill({ color: 0xff0000 })
 
-    // Primitive shapes
+    // Or use shorthand primitives
     .rect(200, 50, 100, 80)
     .circle(350, 90, 40)
     .ellipse(450, 90, 50, 40)
-    .roundRect(500, 50, 100, 80, 15)
     .fill({ color: 0x00ff00 })
 
-    // Advanced shapes
-    .regularPoly(650, 90, 40, 6)       // Hexagon
-    .star(750, 90, 5, 40, 20)          // 5-pointed star
-    .roundPoly(850, 90, 40, 5, 8)      // Pentagon with rounded corners
-    .fill({ color: 0x0000ff })
-
-    // Strokes
-    .circle(100, 250, 50)
-    .stroke({ width: 4, color: 0x000000 });
+    // Even complex shapes
+    .regularPoly(650, 90, 40, 6)    // Hexagon
+    .star(750, 90, 5, 40, 20)       // 5-pointed star
+    .fill({ color: 0x0000ff });
 ```
 
----
-
-## Instruction Types
-
-Drawing commands compile to three instruction types:
+Each call records an instruction. When you call `.fill()`, the system packages up the current path with the fill style:
 
 ```typescript
-type GraphicsInstructions = FillInstruction | StrokeInstruction | TextureInstruction;
-
 interface FillInstruction {
-    action: 'fill' | 'cut';
+    action: 'fill';
     data: {
-        style: ConvertedFillStyle;
-        path: GraphicsPath;
-        hole?: GraphicsPath;  // For cutouts
-    };
-}
-
-interface StrokeInstruction {
-    action: 'stroke';
-    data: {
-        style: ConvertedStrokeStyle;
-        path: GraphicsPath;
-    };
-}
-
-interface TextureInstruction {
-    action: 'texture';
-    data: {
-        image: Texture;
-        dx: number; dy: number;
-        dw: number; dh: number;
-        transform: Matrix;
-        alpha: number;
-        style: number;  // Tint color
+        style: ConvertedFillStyle;  // Color, texture, gradient
+        path: GraphicsPath;          // The shape to fill
+        hole?: GraphicsPath;         // Optional cutout
     };
 }
 ```
 
-### Fill Style
-
-```typescript
-interface ConvertedFillStyle {
-    color: number;           // 0xRRGGBB
-    alpha: number;           // 0-1
-    texture: Texture;        // For textured fills
-    matrix: Matrix | null;   // UV transform
-    fill: FillPattern | FillGradient | null;
-    textureSpace: 'local' | 'global';
-}
-```
-
-### Stroke Style
-
-```typescript
-interface ConvertedStrokeStyle extends ConvertedFillStyle {
-    width: number;           // Line width
-    alignment: number;       // 0=inner, 0.5=center, 1=outer
-    miterLimit: number;      // Miter join limit
-    cap: 'butt' | 'round' | 'square';
-    join: 'miter' | 'round' | 'bevel';
-    pixelLine: boolean;      // 1px line optimization
-}
-```
+There are three instruction types:
+- **Fill**: Solid shapes (circles, rectangles, complex paths)
+- **Stroke**: Outlines with width, caps, and joins
+- **Texture**: Embedded images with transforms
 
 ---
 
-## Transform Stack
+## The Transform Stack: Context Switching
 
-GraphicsContext maintains a transform stack similar to Canvas:
+Like Canvas 2D, GraphicsContext maintains a transform stack. This lets you compose complex drawings without manually calculating coordinates:
 
 ```typescript
-class GraphicsContext {
-    private _transform: Matrix = new Matrix();
-    private _stateStack: { transform, fillStyle, strokeStyle }[] = [];
-
-    // Push current state
-    save(): this {
-        this._stateStack.push({
-            transform: this._transform.clone(),
-            fillStyle: { ...this._fillStyle },
-            strokeStyle: { ...this._strokeStyle },
-        });
-        return this;
-    }
-
-    // Pop and restore
-    restore(): this {
-        const state = this._stateStack.pop();
-        if (state) {
-            this._transform = state.transform;
-            this._fillStyle = state.fillStyle;
-            this._strokeStyle = state.strokeStyle;
-        }
-        return this;
-    }
-
-    // Transform operations
-    translate(x, y): this { this._transform.translate(x, y); return this; }
-    rotate(angle): this { this._transform.rotate(angle); return this; }
-    scale(x, y): this { this._transform.scale(x, y); return this; }
-}
+graphics
+    .save()                    // Push current state
+    .translate(100, 100)       // Move origin
+    .rotate(Math.PI / 4)       // Rotate 45 degrees
+    .circle(0, 0, 50)          // Draw at "local" origin
+    .fill({ color: 0xff0000 })
+    .restore();                // Pop back to original state
 ```
 
-All path coordinates are transformed before being stored:
+The key detail: **coordinates are transformed before being stored**. When you call `lineTo(x, y)`, the context applies its current transform matrix and records the transformed point:
 
 ```typescript
 lineTo(x: number, y: number): this {
     const t = this._transform;
 
+    // Store transformed coordinates, not originals
     this._activePath.lineTo(
-        (t.a * x) + (t.c * y) + t.tx,  // Transform x
-        (t.b * x) + (t.d * y) + t.ty   // Transform y
+        (t.a * x) + (t.c * y) + t.tx,
+        (t.b * x) + (t.d * y) + t.ty
     );
 
     return this;
 }
 ```
 
+This means the stored path is already in final coordinates. No transform matrices need to be applied during tessellation.
+
 ---
 
-## Cutouts (Holes)
+## Creating Holes: The Cut Operation
 
-The `cut()` method creates holes in shapes:
+You might wonder: how do you draw a donut shape? A circle with a smaller circle removed from the center?
+
+The `cut()` method solves this. It takes whatever path you just defined and punches it out of the previous fill:
 
 ```typescript
 graphics
     .circle(100, 100, 50)   // Outer circle
     .fill({ color: 0xff0000 })
     .circle(100, 100, 25)   // Inner circle
-    .cut();                  // Subtract from previous fill
+    .cut();                  // Subtract from the fill above
 ```
 
-Implementation adds the hole path to the previous instruction:
+The implementation is elegant: `cut()` does not create a new instruction. It modifies the previous fill instruction by attaching a hole path:
 
 ```typescript
 cut(): this {
     const lastInstruction = this.instructions[this.instructions.length - 1];
     const holePath = this._activePath.clone();
 
-    if (lastInstruction?.action === 'fill' || lastInstruction?.action === 'stroke') {
-        if (lastInstruction.data.hole) {
-            lastInstruction.data.hole.addPath(holePath);  // Multiple holes
-        } else {
-            lastInstruction.data.hole = holePath;
-        }
+    if (lastInstruction?.action === 'fill') {
+        lastInstruction.data.hole = holePath;  // Attach hole to fill
     }
 
     return this;
 }
 ```
 
+The tessellator knows how to handle fills with holes - it generates triangles for the outer shape that exclude the inner region.
+
 ---
 
-## Rendering Pipeline
+## From Instructions to Triangles: The Rendering Pipeline
 
-### GraphicsPipe
+Let's trace what happens when the renderer encounters a Graphics object. The journey from `graphics.circle()` to actual pixels follows these steps:
 
-The pipe decides whether graphics can be batched or need direct rendering:
+1. **Recording**: Your drawing commands become instruction objects stored in an array
+2. **Tessellation**: The GraphicsContextSystem converts each instruction into triangles (circles become triangle fans, curves become polylines)
+3. **Batching**: The system decides whether to merge with sprite batches or render directly
+4. **Draw call**: GPU geometry buffers are bound and the draw command is issued
+
+Here is the flow visualized:
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│  1. Recording Phase (your code)                               │
+│                                                               │
+│     graphics.circle(100, 100, 50);                           │
+│     graphics.fill({ color: 0xff0000 });                      │
+│                                                               │
+│     Result: Instructions array with FillInstruction          │
+└───────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────┐
+│  2. Tessellation (first render or after changes)             │
+│                                                               │
+│     GraphicsContextSystem processes instructions:            │
+│     - Circles become triangle fans                           │
+│     - Rectangles become two triangles                        │
+│     - Bezier curves become many small triangles              │
+│                                                               │
+│     Result: Vertex buffer, index buffer, texture batches     │
+└───────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────┐
+│  3. Batching Decision                                         │
+│                                                               │
+│     Simple graphics (few verts, solid color)?                │
+│       → Batch with sprites (see batching.md)                 │
+│                                                               │
+│     Complex graphics (many verts, custom shaders)?           │
+│       → Render directly via GpuGraphicsAdaptor               │
+└───────────────────────────────────────────────────────────────┘
+```
+
+The batching decision matters for performance. Simple graphics can be merged with sprite batches, reducing draw calls (see [Batching](./batching.md) for details). Complex graphics get their own draw calls but still benefit from internal batching by texture.
+
+---
+
+## Dirty Flag Optimization
+
+A subtle but important pattern: changes do not trigger immediate tessellation. They just set a dirty flag:
 
 ```typescript
-class GraphicsPipe implements RenderPipe<Graphics> {
-    addRenderable(graphics: Graphics, instructionSet: InstructionSet) {
-        const gpuContext = this.renderer.graphicsContext.updateGpuContext(graphics.context);
+onUpdate(): void {
+    this._boundsDirty = true;
 
-        if (graphics.didViewUpdate) {
-            this._rebuild(graphics);  // Re-tessellate if changed
-        }
-
-        if (gpuContext.isBatchable) {
-            // Simple graphics → add to sprite batcher
-            this._addToBatcher(graphics, instructionSet);
-        } else {
-            // Complex graphics → render directly
-            this.renderer.renderPipes.batch.break(instructionSet);
-            instructionSet.add(graphics);
-        }
-    }
+    if (this.dirty) return;  // Already marked, skip redundant work
+    this.emit('update', this);
+    this.dirty = true;
 }
 ```
 
-### Batching Decision
-
-Graphics are batchable when:
-- Few vertices (under threshold)
-- Simple fills (solid color or single texture)
-- No custom shader
-
-When batchable, graphics get converted to `BatchableGraphics` elements that go through the standard sprite batcher.
-
-### Direct Rendering (GpuGraphicsAdaptor)
-
-Non-batchable graphics render directly:
-
-```typescript
-class GpuGraphicsAdaptor implements GraphicsAdaptor {
-    execute(graphicsPipe: GraphicsPipe, renderable: Graphics): void {
-        const context = renderable.context;
-        const renderer = graphicsPipe.renderer as WebGPURenderer;
-        const encoder = renderer.encoder;
-
-        const { batcher, instructions } = renderer.graphicsContext.getContextRenderData(context);
-
-        // Set geometry (tessellated paths)
-        encoder.setGeometry(batcher.geometry, shader.gpuProgram);
-
-        // Bind groups
-        encoder.setBindGroup(0, globalUniformsBindGroup, shader.gpuProgram);
-        encoder.setBindGroup(2, localBindGroup, shader.gpuProgram);
-
-        // Execute each batch within the graphics
-        const batches = instructions.instructions as Batch[];
-
-        for (let i = 0; i < instructions.instructionSize; i++) {
-            const batch = batches[i];
-
-            // Set pipeline if topology changed
-            if (batch.topology !== currentTopology) {
-                encoder.setPipelineFromGeometryProgramAndState(
-                    batcher.geometry,
-                    shader.gpuProgram,
-                    graphicsPipe.state,
-                    batch.topology
-                );
-            }
-
-            // Get/create texture bind group
-            if (!batch.gpuBindGroup) {
-                batch.bindGroup = getTextureBatchBindGroup(
-                    batch.textures.textures,
-                    batch.textures.count,
-                    this._maxTextures
-                );
-                batch.gpuBindGroup = renderer.bindGroup.getBindGroup(batch.bindGroup, shader.gpuProgram, 1);
-            }
-
-            encoder.setBindGroup(1, batch.bindGroup, shader.gpuProgram);
-            encoder.renderPassEncoder.drawIndexed(batch.size, 1, batch.start);
-        }
-    }
-}
-```
+Why does this matter? Consider animation. If you modify a graphics context 60 times per second, you do not want 60 tessellations. You want one tessellation per frame, right before rendering. The dirty flag ensures that even if you call `graphics.clear().circle(...).fill(...)` multiple times in a frame, tessellation happens only once.
 
 ---
 
-## Path to GPU Flow
+## Event-Driven Updates
 
-```
-                        ┌───────────────────────────────────────┐
-                        │          GraphicsContext               │
-                        │                                        │
-graphics.circle()  ──►  │  instructions: [                      │
-graphics.fill()         │    { action: 'fill',                  │
-                        │      data: { path, style } }          │
-                        │  ]                                     │
-                        └───────────────────────────────────────┘
-                                        │
-                                        ▼
-                        ┌───────────────────────────────────────┐
-                        │       GraphicsContextSystem            │
-                        │                                        │
-                        │  1. Tessellate paths → triangles      │
-                        │  2. Build vertex/index buffers        │
-                        │  3. Create batches by texture         │
-                        │  4. Upload to GPU                     │
-                        └───────────────────────────────────────┘
-                                        │
-                                        ▼
-                        ┌───────────────────────────────────────┐
-                        │           GpuGraphicsContext           │
-                        │                                        │
-                        │  geometry: Geometry (vertex+index)    │
-                        │  batches: Batch[]                     │
-                        │  isBatchable: boolean                 │
-                        └───────────────────────────────────────┘
-                                        │
-                        ┌───────────────┴───────────────┐
-                        │                               │
-                        ▼                               ▼
-                Batchable Path                  Non-Batchable Path
-                        │                               │
-                        ▼                               ▼
-                Add to Batcher               Execute via Adaptor
-                (merged with sprites)        (direct draw calls)
-```
-
----
-
-## Context Sharing Pattern
-
-GraphicsContext can be shared to avoid redundant tessellation:
-
-```typescript
-// Create context once
-const circleContext = new GraphicsContext()
-    .circle(0, 0, 50)
-    .fill({ color: 0xff0000 });
-
-// Use many times with different transforms
-for (let i = 0; i < 100; i++) {
-    const g = new Graphics({ context: circleContext });
-    g.x = Math.random() * 800;
-    g.y = Math.random() * 600;
-    container.addChild(g);
-}
-```
-
-Benefits:
-- **Tessellation**: Done once, shared across all instances
-- **GPU buffers**: Uploaded once, referenced many times
-- **Memory**: One set of vertex data instead of 100
-
-This is similar to instancing but works for arbitrary shapes.
-
----
-
-## Event System
-
-GraphicsContext emits events for change tracking:
+GraphicsContext is an event emitter. When content changes, it notifies listeners:
 
 ```typescript
 class GraphicsContext extends EventEmitter<{
     update: GraphicsContext;   // Content changed
     destroy: GraphicsContext;  // Being destroyed
     unload: GraphicsContext;   // GPU data unloaded
-}> {
-    // Called after any drawing operation
-    protected onUpdate(): void {
-        this._boundsDirty = true;
-
-        if (this.dirty) return;  // Already marked
-        this.emit('update', this, 0x10);
-        this.dirty = true;
-    }
-}
+}>
 ```
 
-Graphics listens to its context:
+Graphics objects listen to their context:
 
 ```typescript
 set context(context: GraphicsContext) {
+    // Unsubscribe from old context
     if (this._context) {
         this._context.off('update', this.onViewUpdate, this);
-        this._context.off('unload', this.unload, this);
     }
 
+    // Subscribe to new context
     this._context = context;
     this._context.on('update', this.onViewUpdate, this);
-    this._context.on('unload', this.unload, this);
-
-    this.onViewUpdate();  // Trigger re-render
 }
 ```
+
+This enables the sharing pattern. When a shared context updates, all Graphics objects referencing it receive the notification and know to re-render.
+
+---
+
+## Direct Rendering: The Adaptor
+
+When graphics cannot be batched, the `GpuGraphicsAdaptor` handles direct rendering. Here is the conceptual flow:
+
+1. **Set geometry**: The tessellated vertex and index buffers
+2. **Bind global uniforms**: Camera, time, etc. (see [Bind Groups](./bind-groups.md))
+3. **For each internal batch** (grouped by texture):
+   - Update pipeline if topology changed (see [Pipeline Caching](./pipeline-caching.md))
+   - Bind texture group
+   - Issue draw call
+
+The internal batching is important. A single Graphics object might have shapes with different textures. Rather than one draw call per shape, the system groups by texture and uses indexed drawing to render multiple shapes per call.
 
 ---
 
 ## wgpu Equivalent Sketch
 
+For those building a similar system in Rust with wgpu:
+
 ```rust
-// Drawing context with instruction recording
+// The instruction recording structure
 struct GraphicsContext {
     instructions: Vec<GraphicsInstruction>,
     active_path: Path,
@@ -449,6 +331,7 @@ enum GraphicsInstruction {
 }
 
 impl GraphicsContext {
+    // Fluent API with transform application
     fn circle(&mut self, x: f32, y: f32, radius: f32) -> &mut Self {
         let transformed = self.transform.transform_point(Vec2::new(x, y));
         self.active_path.circle(transformed.x, transformed.y, radius);
@@ -492,14 +375,14 @@ impl GraphicsContext {
     }
 }
 
-// Tessellated GPU data
+// The tessellated GPU data
 struct GpuGraphicsContext {
     geometry: Geometry,
     batches: Vec<GraphicsBatch>,
     is_batchable: bool,
 }
 
-// Scene object that references a context
+// The scene object that references a context
 struct Graphics {
     context: Arc<GraphicsContext>,
     transform: Transform2D,
@@ -507,43 +390,38 @@ struct Graphics {
 }
 ```
 
+The key difference from PixiJS: Rust's `Arc` provides explicit shared ownership, making the context-sharing pattern type-safe. You do not need event systems for memory management since the borrow checker handles lifetimes.
+
+For tessellation, the Rust ecosystem offers the [lyon](https://github.com/nical/lyon) crate - a battle-tested library for path tessellation that handles fills, strokes, and curves. Rather than implementing your own triangle fan generation, lyon provides configurable tolerance settings and handles edge cases like self-intersecting paths. It outputs vertex and index buffers directly compatible with wgpu.
+
 ---
 
-## Key Patterns
+## Key Takeaways
 
-### 1. Instruction Recording, Deferred Tessellation
+### 1. Record First, Tessellate Later
 
-Drawing calls record instructions. Tessellation happens lazily when rendering:
+Drawing calls capture your intent. Tessellation happens lazily when rendering. This enables optimization and caching.
 
-```typescript
-// These just record instructions
-graphics.circle(100, 100, 50);
-graphics.fill({ color: 0xff0000 });
+### 2. Separate Content from Instance
 
-// Tessellation happens here (on first render)
-renderer.render(graphics);
-```
+GraphicsContext holds the expensive data (instructions, tessellated geometry). Graphics holds the cheap data (transform, reference). Share contexts when shapes repeat.
 
-### 2. Context Sharing for Instancing
+### 3. Dirty Flags Prevent Redundant Work
 
-Share context between Graphics objects to avoid redundant tessellation.
+Multiple changes in a frame result in one tessellation, not many. The dirty flag coalesces updates.
 
-### 3. Dirty Flag Optimization
+### 4. Batching When Possible
 
-Changes only trigger re-tessellation on render, not immediately:
+Simple graphics merge with sprite batches for fewer draw calls. Complex graphics render directly but with internal texture batching.
 
-```typescript
-onUpdate(): void {
-    this._boundsDirty = true;
-    if (this.dirty) return;  // Already dirty
-    this.emit('update', this);
-    this.dirty = true;
-}
-```
+---
 
-### 4. Batching Decision
+## Where to Go From Here
 
-Simple graphics batch with sprites. Complex graphics render directly but with internal batching by texture.
+- **[Batching](./batching.md)** - How simple graphics get merged with sprite batches
+- **[Pipeline Caching](./pipeline-caching.md)** - How render pipelines are reused across draw calls
+- **[Encoder System](./encoder-system.md)** - How draw commands get recorded for the GPU
+- **[Bind Groups](./bind-groups.md)** - How textures and uniforms are bound for rendering
 
 ---
 

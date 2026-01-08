@@ -1,95 +1,219 @@
-# PixiJS Bind Group Management
+# Bind Groups: Packing Resources for the GPU
 
-> Resource binding with key-based caching and FNV-1a hashing
-
----
-
-## Overview
-
-PixiJS has two layers of bind group management:
-
-1. **BindGroup class** - Wraps resources, generates cache keys from resource IDs
-2. **BindGroupSystem** - Creates and caches actual `GPUBindGroup` objects
-3. **Texture batch optimization** - FNV-1a hash for fast texture batch lookups
+> Every shader needs resources - textures, buffers, samplers. Bind groups are how you bundle them for delivery.
 
 ---
 
-## The BindGroup Class
+## The Problem: Shaders Need Supplies
 
-`BindGroup` is a container for shader resources that generates cache keys:
+Picture a shader as a specialist craftsperson. To do their job, they need tools and materials: a texture to sample from, uniforms that describe the current transform, a sampler that controls filtering. But here's the catch - you can't just hand resources to a shader one by one. The GPU works in parallel, processing thousands of fragments simultaneously. Each one needs instant access to the same set of resources.
+
+This is where bind groups come in. Think of them like a chef's mise en place - that French culinary term meaning "everything in its place." Before service begins, a chef arranges all ingredients and tools within arm's reach. No hunting through the pantry mid-dish. Bind groups work the same way: you bundle all the resources a shader needs into a single package, then hand over the entire package at once.
+
+The challenge isn't just bundling - it's efficiency. Creating a `GPUBindGroup` involves GPU driver calls. If you create a new bind group every frame, or worse, every draw call, you're paying that cost repeatedly. PixiJS solves this with smart caching: create each unique combination once, then reuse it forever.
+
+---
+
+## The Mental Model: A Toolbox for Every Job
+
+Here's a useful analogy. Imagine you're a contractor managing multiple job sites. Each job needs a specific set of tools - maybe a drill, a hammer, and a level for one site; a saw, clamps, and sandpaper for another.
+
+The naive approach: pack a fresh toolbox for every job, every day. That's wasteful - you're constantly gathering the same tools.
+
+The smart approach: pre-pack toolboxes for each job type. "Kitchen renovation" gets toolbox A. "Deck repair" gets toolbox B. When a job comes in, grab the matching toolbox off the shelf.
+
+PixiJS implements exactly this pattern. Each unique combination of resources gets its own pre-packed bind group. The first time you need textures 3, 7, and 12 together, PixiJS creates that bind group. Every subsequent frame that needs the same combination? Cache hit. Instant reuse.
+
+The key insight: bind groups are identified by their contents, not their usage. Two completely different sprites using the same texture get the same bind group.
+
+---
+
+## Two Layers of Management
+
+PixiJS separates bind group handling into two distinct concerns:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Layer 1: BindGroup Class                                           │
+│  "What resources do I contain? What's my identity?"                 │
+│                                                                     │
+│  - Holds references to resources (textures, buffers, samplers)      │
+│  - Generates a cache key from resource IDs                          │
+│  - Listens for resource changes (dirty tracking)                    │
+└─────────────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Layer 2: BindGroupSystem                                           │
+│  "Has this combination been created before?"                        │
+│                                                                     │
+│  - Maps PixiJS resources to WebGPU resources                        │
+│  - Creates GPUBindGroup objects on demand                           │
+│  - Caches by the BindGroup's key                                    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+This separation matters. The `BindGroup` class is a lightweight descriptor - it knows what resources it contains but doesn't touch the GPU. The `BindGroupSystem` is the heavy lifter that actually creates GPU objects. This lets PixiJS defer expensive GPU calls until absolutely necessary.
+
+---
+
+## How Cache Keys Work
+
+Here's where PixiJS gets clever. Every resource in the system has a unique ID. A bind group's identity is simply its resources' IDs joined together:
+
+```
+Cache key: "42|15|7|89"
+            │   │  │  │
+            │   │  │  └─ Sampler resource ID
+            │   │  └──── Texture resource ID
+            │   └─────── Uniform buffer ID
+            └────────── Another buffer ID
+```
+
+This key generation is lazy - it only regenerates when resources change. The `BindGroup` class uses a dirty flag pattern:
 
 ```typescript
-class BindGroup {
-    // Resources indexed by binding number
-    resources: Record<string, BindResource> = {};
+setResource(resource, index) {
+    this._dirty = true;  // Mark for regeneration
+}
 
-    // Cache key generated from resource IDs
-    _key: string;
-    private _dirty = true;
+_updateKey() {
+    if (!this._dirty) return;  // Skip if unchanged
+    this._dirty = false;
+    this._key = /* regenerate from resource IDs */;
+}
+```
 
-    constructor(resources?: Record<string, BindResource>) {
-        let index = 0;
-        for (const i in resources) {
-            this.setResource(resources[i], index++);
-        }
-        this._updateKey();
+The string key approach works well for general bind groups, but PixiJS has a faster path for its most performance-critical case: texture batches.
+
+---
+
+## The Texture Batch Problem
+
+PixiJS's batching system can render thousands of sprites in a single draw call by putting multiple textures in one bind group. The shader then selects the right texture based on a texture ID packed into each vertex. (See [Batching](batching.md) for the full batching strategy.)
+
+But here's a performance wrinkle. Texture batches change constantly as sprites with different textures get grouped together. A batch might contain textures 3, 7, and 12 one frame, then 3, 8, and 15 the next. String key generation and comparison becomes a bottleneck when you're doing it hundreds of times per frame.
+
+PixiJS's solution: FNV-1a hashing.
+
+### What is FNV-1a?
+
+FNV-1a (Fowler-Noll-Vo) is a non-cryptographic hash function designed for speed. It's embarrassingly simple:
+
+```
+hash = 2166136261          // Start with "offset basis"
+
+for each value:
+    hash = hash XOR value  // Mix in the value
+    hash = hash * 16777619 // Scramble with "FNV prime"
+```
+
+That's it. Two operations per input. The magic numbers aren't arbitrary - they're carefully chosen to produce good distribution across the output space.
+
+For texture batches, PixiJS hashes the texture UIDs:
+
+```typescript
+function getTextureBatchBindGroup(textures, size, maxTextures) {
+    // FNV-1a hash of texture UIDs
+    let uid = 2166136261;  // FNV offset basis
+
+    for (let i = 0; i < size; i++) {
+        uid ^= textures[i].uid;
+        uid = Math.imul(uid, 16777619);  // FNV prime
+        uid >>>= 0;  // Keep as unsigned 32-bit
     }
 
-    _updateKey(): void {
-        if (!this._dirty) return;
-        this._dirty = false;
+    return cachedGroups[uid] || generateTextureBatchBindGroup(...);
+}
+```
 
-        const keyParts = [];
-        let index = 0;
+Why is this faster than string keys? Integer comparison is a single CPU instruction. The hash computation is a tight loop of XOR and multiply - operations that modern CPUs execute in single cycles. No string allocation, no garbage collection pressure.
 
-        for (const i in this.resources) {
-            keyParts[index++] = this.resources[i]._resourceId;
-        }
+### Why Not Just Use Array Index?
 
-        this._key = keyParts.join('|');
+You might wonder: why hash at all? Why not just use the first texture's ID as the key?
+
+The problem is combinatorics. Texture batches are defined by the combination of all their textures. [Texture 3, 7, 12] is different from [Texture 3, 7, 15]. Using just the first ID would cause cache collisions - different combinations would map to the same key, returning the wrong bind group.
+
+The hash captures the entire combination in a single integer.
+
+---
+
+## Inside a Texture Batch Bind Group
+
+When PixiJS creates a texture batch bind group, it follows a specific layout:
+
+```
+Bind Group 1 (Texture Batch):
+├── Binding 0: Texture 0  ─┐
+├── Binding 1: Sampler 0   │ Pair 0
+├── Binding 2: Texture 1  ─┐
+├── Binding 3: Sampler 1   │ Pair 1
+├── Binding 4: Texture 2  ─┐
+├── Binding 5: Sampler 2   │ Pair 2
+└── ...
+```
+
+Textures and samplers are interleaved in pairs. This matches the shader's expectations - it can calculate the binding indices from the texture ID:
+
+```wgsl
+// In the shader
+fn sample_batch(texture_id: u32, uv: vec2<f32>) -> vec4<f32> {
+    switch texture_id {
+        case 0u: { return textureSample(tex0, sam0, uv); }
+        case 1u: { return textureSample(tex1, sam1, uv); }
+        case 2u: { return textureSample(tex2, sam2, uv); }
+        // ...
     }
 }
 ```
 
-### Key Generation
+### The Padding Requirement
 
-The key is built from resource IDs joined by `|`:
+WebGPU requires bind groups to match their layout exactly. If the layout declares 16 texture slots, you must fill all 16 - even if this batch only uses 3 textures.
 
-```
-Example key: "42|15|7|89"
-             │   │  │  │
-             │   │  │  └─ Sampler resource ID
-             │   │  └──── Texture resource ID
-             │   └─────── Uniform buffer ID
-             └────────── Another buffer ID
-```
-
-### Resource Change Detection
-
-BindGroup listens for changes on its resources:
+PixiJS solves this by padding with empty textures:
 
 ```typescript
-setResource(resource: BindResource, index: number): void {
+for (let i = 0; i < maxTextures; i++) {
+    // Use real texture or pad with empty
+    const texture = i < size ? textures[i] : Texture.EMPTY.source;
+
+    bindGroupResources[bindIndex++] = texture.source;  // Texture
+    bindGroupResources[bindIndex++] = texture.style;   // Sampler
+}
+```
+
+This is why texture batches have a fixed `maxTextures` limit (typically 16). The layout is fixed, so all bind groups are interchangeable regardless of how many textures they actually use.
+
+---
+
+## Resource Change Detection
+
+Resources can change. A texture might get replaced with a higher-resolution version. A uniform buffer might be updated with new transform data. When resources change, bind groups need to invalidate their cached keys.
+
+PixiJS uses an event-based approach:
+
+```typescript
+setResource(resource, index) {
     const currentResource = this.resources[index];
     if (resource === currentResource) return;
 
-    // Remove old listener
-    if (currentResource) {
-        resource.off?.('change', this.onResourceChange, this);
-    }
+    // Unsubscribe from old resource
+    currentResource?.off?.('change', this.onResourceChange, this);
 
-    // Add new listener
+    // Subscribe to new resource
     resource.on?.('change', this.onResourceChange, this);
 
     this.resources[index] = resource;
-    this._dirty = true;  // Mark for key regeneration
+    this._dirty = true;  // Invalidate key
 }
 
-onResourceChange(resource: BindResource) {
+onResourceChange(resource) {
     this._dirty = true;
 
     if (resource.destroyed) {
-        // Remove destroyed resources
+        // Clean up destroyed resources
         for (const i in this.resources) {
             if (this.resources[i] === resource) {
                 this.resources[i] = null;
@@ -101,83 +225,40 @@ onResourceChange(resource: BindResource) {
 }
 ```
 
+This ensures the cache key always reflects current resource identities. When a resource changes its internal ID (perhaps because it was re-uploaded to the GPU), the bind group's key updates accordingly, and the next lookup will create a fresh `GPUBindGroup`.
+
 ---
 
-## BindGroupSystem
+## The Full Lookup Flow
 
-The system creates and caches `GPUBindGroup` objects:
+Let's trace what happens when PixiJS needs a bind group for a draw call:
 
-```typescript
-class BindGroupSystem {
-    private _hash: Record<string, GPUBindGroup> = {};
-
-    getBindGroup(bindGroup: BindGroup, program: GpuProgram, groupIndex: number): GPUBindGroup {
-        bindGroup._updateKey();  // Ensure key is current
-
-        return this._hash[bindGroup._key] || this._createBindGroup(bindGroup, program, groupIndex);
-    }
-
-    private _createBindGroup(group: BindGroup, program: GpuProgram, groupIndex: number): GPUBindGroup {
-        const device = this._gpu.device;
-        const groupLayout = program.layout[groupIndex];
-        const entries: GPUBindGroupEntry[] = [];
-
-        for (const j in groupLayout) {
-            const resource = group.resources[j] ?? group.resources[groupLayout[j]];
-            let gpuResource: GPUSampler | GPUTextureView | GPUBufferBinding;
-
-            // Convert PixiJS resources to WebGPU resources
-            if (resource._resourceType === 'uniformGroup') {
-                const uniformGroup = resource as UniformGroup;
-                this._renderer.ubo.updateUniformGroup(uniformGroup);
-                const buffer = uniformGroup.buffer;
-
-                gpuResource = {
-                    buffer: this._renderer.buffer.getGPUBuffer(buffer),
-                    offset: 0,
-                    size: buffer.descriptor.size,
-                };
-            }
-            else if (resource._resourceType === 'buffer') {
-                const buffer = resource as Buffer;
-                gpuResource = {
-                    buffer: this._renderer.buffer.getGPUBuffer(buffer),
-                    offset: 0,
-                    size: buffer.descriptor.size,
-                };
-            }
-            else if (resource._resourceType === 'bufferResource') {
-                const bufferResource = resource as BufferResource;
-                gpuResource = {
-                    buffer: this._renderer.buffer.getGPUBuffer(bufferResource.buffer),
-                    offset: bufferResource.offset,
-                    size: bufferResource.size,
-                };
-            }
-            else if (resource._resourceType === 'textureSampler') {
-                gpuResource = this._renderer.texture.getGpuSampler(resource as TextureStyle);
-            }
-            else if (resource._resourceType === 'textureSource') {
-                gpuResource = this._renderer.texture.getGpuSource(resource as TextureSource).createView();
-            }
-
-            entries.push({
-                binding: groupLayout[j],
-                resource: gpuResource,
-            });
-        }
-
-        const layout = this._renderer.shader.getProgramData(program).bindGroups[groupIndex];
-
-        const gpuBindGroup = device.createBindGroup({ layout, entries });
-        this._hash[group._key] = gpuBindGroup;
-
-        return gpuBindGroup;
-    }
-}
+```
+1. Renderer asks: "Give me a bind group for these resources"
+                            │
+                            ▼
+2. BindGroup._updateKey()
+   - Check dirty flag
+   - If dirty: regenerate key from resource IDs
+   - Result: "42|15|7|89"
+                            │
+                            ▼
+3. BindGroupSystem.getBindGroup(bindGroup, program, groupIndex)
+   - Look up bindGroup._key in cache
+                            │
+            ┌───────────────┴───────────────┐
+            │                               │
+       Cache Hit                       Cache Miss
+            │                               │
+            ▼                               ▼
+    Return cached                   Create GPUBindGroup:
+    GPUBindGroup                    - Map PixiJS resources to WebGPU
+                                    - device.createBindGroup()
+                                    - Store in cache
+                                    - Return new bind group
 ```
 
-### Resource Type Mapping
+The expensive path (cache miss) involves converting PixiJS resource types to their WebGPU equivalents:
 
 | PixiJS Type | WebGPU Resource |
 |-------------|-----------------|
@@ -189,170 +270,91 @@ class BindGroupSystem {
 
 ---
 
-## Texture Batch Bind Groups
-
-For batched sprite rendering, PixiJS uses a specialized approach with FNV-1a hashing:
-
-```typescript
-const cachedGroups: Record<number, BindGroup> = {};
-
-function getTextureBatchBindGroup(
-    textures: TextureSource[],
-    size: number,
-    maxTextures: number
-): BindGroup {
-    // FNV-1a hash of texture UIDs
-    let uid = 2166136261;  // FNV offset basis
-
-    for (let i = 0; i < size; i++) {
-        uid ^= textures[i].uid;
-        uid = Math.imul(uid, 16777619);  // FNV prime
-        uid >>>= 0;  // Convert to unsigned 32-bit
-    }
-
-    return cachedGroups[uid] || generateTextureBatchBindGroup(textures, size, uid, maxTextures);
-}
-
-function generateTextureBatchBindGroup(
-    textures: TextureSource[],
-    size: number,
-    key: number,
-    maxTextures: number
-): BindGroup {
-    const bindGroupResources: Record<string, any> = {};
-    let bindIndex = 0;
-
-    for (let i = 0; i < maxTextures; i++) {
-        // Pad with empty textures if needed
-        const texture = i < size ? textures[i] : Texture.EMPTY.source;
-
-        bindGroupResources[bindIndex++] = texture.source;  // Texture
-        bindGroupResources[bindIndex++] = texture.style;   // Sampler
-    }
-
-    const bindGroup = new BindGroup(bindGroupResources);
-    cachedGroups[key] = bindGroup;
-
-    return bindGroup;
-}
-```
-
-### FNV-1a Algorithm
-
-FNV-1a (Fowler–Noll–Vo) is a fast, non-cryptographic hash:
-
-```
-hash = FNV_offset_basis (2166136261 for 32-bit)
-
-for each byte:
-    hash = hash XOR byte
-    hash = hash × FNV_prime (16777619 for 32-bit)
-```
-
-Properties:
-- **Fast**: Simple XOR and multiply operations
-- **Low collision**: Good distribution for small inputs
-- **Deterministic**: Same inputs always produce same hash
-
-### Bind Group Layout
-
-Texture batches interleave textures and samplers:
-
-```
-Bind Group 1 (Texture Batch):
-├── Binding 0: Texture 0    ─┐
-├── Binding 1: Sampler 0     │ Pair 0
-├── Binding 2: Texture 1    ─┐
-├── Binding 3: Sampler 1     │ Pair 1
-├── ...
-├── Binding 2n:   Texture n ─┐
-└── Binding 2n+1: Sampler n  │ Pair n
-```
-
-This allows the shader to select textures by ID:
-
-```wgsl
-@group(1) @binding(0) var tex0: texture_2d<f32>;
-@group(1) @binding(1) var sam0: sampler;
-@group(1) @binding(2) var tex1: texture_2d<f32>;
-@group(1) @binding(3) var sam1: sampler;
-// ...
-
-fn sample_batch(texture_id: u32, uv: vec2<f32>) -> vec4<f32> {
-    switch texture_id {
-        case 0u: { return textureSample(tex0, sam0, uv); }
-        case 1u: { return textureSample(tex1, sam1, uv); }
-        // ...
-    }
-}
-```
-
----
-
 ## Garbage Collection Integration
 
-BindGroups are tracked for GC via the `_touch` method:
+Resources need to stay alive while they're being used, but should be collectible when no longer needed. PixiJS integrates bind groups with its garbage collection system through a "touch" mechanism:
 
 ```typescript
-class BindGroup {
-    _touch(now: number, tick: number): void {
-        const resources = this.resources;
-
-        for (const i in resources) {
-            (resources[i] as BindResource & GCable)._gcLastUsed = now;
-            resources[i]._touched = tick;
-        }
-    }
-}
-
 // Called when bind group is used
-setBindGroup(index: number, bindGroup: BindGroup, program: GpuProgram) {
-    // ... cache check ...
+setBindGroup(index, bindGroup, program) {
+    // ... cache lookup ...
 
+    // Mark all resources as recently used
     bindGroup._touch(this._renderer.gc.now, this._renderer.tick);
 
     // ... set bind group ...
 }
 ```
 
-This keeps resources alive while they're being used, allowing unused resources to be collected.
+The `_touch` method updates timestamps on all contained resources:
+
+```typescript
+_touch(now, tick) {
+    for (const i in this.resources) {
+        this.resources[i]._gcLastUsed = now;
+        this.resources[i]._touched = tick;
+    }
+}
+```
+
+This keeps resources alive while they're actively used, allowing the garbage collector to reclaim resources that haven't been touched for several frames.
 
 ---
 
-## wgpu Implementation
+## Common Gotchas
+
+A few pitfalls that catch developers working with bind groups:
+
+### Forgetting to Update After Resource Changes
+
+When you swap a texture or buffer, the bind group's cached key becomes stale. PixiJS handles this automatically through event subscriptions, but if you're implementing your own system, remember: changing a resource's contents is different from changing which resource is bound. The former might not need a new bind group; the latter always does.
+
+### Layout Mismatches
+
+WebGPU is strict about bind group layouts matching pipeline layouts exactly. A bind group created for one pipeline won't work with another pipeline that expects different bindings - even if the actual resources would work fine. This manifests as cryptic validation errors. Always create bind groups against the same layout they'll be used with.
+
+### Cache Miss Storms
+
+The first frame of a new scene can be slow because every bind group is a cache miss. If you're loading a level with hundreds of unique texture combinations, consider warming the cache during a loading screen rather than taking the hit during gameplay.
+
+### Hash Collisions in Texture Batches
+
+FNV-1a is fast but not collision-free. Two different texture combinations can theoretically hash to the same value. In practice, this is rare enough that PixiJS doesn't check for it. If you're seeing mysterious texture glitches, collision is a possible (if unlikely) culprit.
+
+---
+
+## wgpu Equivalent
+
+Here's how this pattern translates to Rust with wgpu. The core concepts remain identical - the main difference is Rust's ownership model requires more explicit lifetime management:
 
 ```rust
 use std::collections::HashMap;
 
+// Note: DEFAULT_TEXTURE and DEFAULT_SAMPLER must be defined elsewhere,
+// typically as lazily-initialized static resources created at startup.
+// They serve as padding for bind group slots that aren't actively used.
+
 struct BindGroupCache {
+    // General bind groups keyed by resource ID string
     cache: HashMap<String, wgpu::BindGroup>,
+    // Texture batches keyed by FNV-1a hash
     texture_batch_cache: HashMap<u32, wgpu::BindGroup>,
 }
 
 impl BindGroupCache {
-    /// Get or create a bind group from resources
-    fn get_bind_group(
-        &mut self,
-        device: &wgpu::Device,
-        layout: &wgpu::BindGroupLayout,
-        resources: &[BindResource],
-    ) -> &wgpu::BindGroup {
-        let key = Self::compute_key(resources);
+    /// FNV-1a hash for texture batch lookup
+    fn fnv1a_hash(texture_ids: &[u32]) -> u32 {
+        let mut hash = 2166136261u32;  // FNV offset basis
 
-        self.cache.entry(key).or_insert_with(|| {
-            Self::create_bind_group(device, layout, resources)
-        })
+        for &id in texture_ids {
+            hash ^= id;
+            hash = hash.wrapping_mul(16777619);  // FNV prime
+        }
+
+        hash
     }
 
-    /// Compute cache key from resource IDs
-    fn compute_key(resources: &[BindResource]) -> String {
-        resources.iter()
-            .map(|r| r.id().to_string())
-            .collect::<Vec<_>>()
-            .join("|")
-    }
-
-    /// Get or create texture batch bind group using FNV-1a
+    /// Get or create texture batch bind group
     fn get_texture_batch(
         &mut self,
         device: &wgpu::Device,
@@ -361,25 +363,15 @@ impl BindGroupCache {
         samplers: &[&wgpu::Sampler],
         max_textures: usize,
     ) -> &wgpu::BindGroup {
-        let hash = Self::fnv1a_hash(textures);
+        // Compute hash from texture global IDs
+        let ids: Vec<u32> = textures.iter()
+            .map(|t| t.global_id().inner() as u32)
+            .collect();
+        let hash = Self::fnv1a_hash(&ids);
 
         self.texture_batch_cache.entry(hash).or_insert_with(|| {
             Self::create_texture_batch(device, layout, textures, samplers, max_textures)
         })
-    }
-
-    /// FNV-1a hash of texture IDs
-    fn fnv1a_hash(textures: &[&wgpu::TextureView]) -> u32 {
-        let mut hash = 2166136261u32;  // FNV offset basis
-
-        for tex in textures {
-            // Use global_id or similar identifier
-            let id = tex.global_id().inner() as u32;
-            hash ^= id;
-            hash = hash.wrapping_mul(16777619);  // FNV prime
-        }
-
-        hash
     }
 
     fn create_texture_batch(
@@ -392,10 +384,11 @@ impl BindGroupCache {
         let mut entries = Vec::with_capacity(max_textures * 2);
 
         for i in 0..max_textures {
-            // Pad with default texture/sampler if needed
+            // Pad with default if fewer textures than slots
             let tex = textures.get(i).copied().unwrap_or(&DEFAULT_TEXTURE);
             let sam = samplers.get(i).copied().unwrap_or(&DEFAULT_SAMPLER);
 
+            // Interleaved: texture at 2i, sampler at 2i+1
             entries.push(wgpu::BindGroupEntry {
                 binding: (i * 2) as u32,
                 resource: wgpu::BindingResource::TextureView(tex),
@@ -412,110 +405,34 @@ impl BindGroupCache {
             entries: &entries,
         })
     }
-
-    fn create_bind_group(
-        device: &wgpu::Device,
-        layout: &wgpu::BindGroupLayout,
-        resources: &[BindResource],
-    ) -> wgpu::BindGroup {
-        let entries: Vec<_> = resources.iter().enumerate()
-            .map(|(i, resource)| wgpu::BindGroupEntry {
-                binding: i as u32,
-                resource: resource.as_wgpu_resource(),
-            })
-            .collect();
-
-        device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: None,
-            layout,
-            entries: &entries,
-        })
-    }
-}
-
-/// Resource types that can be bound
-enum BindResource {
-    UniformBuffer { buffer: wgpu::Buffer, size: u64 },
-    StorageBuffer { buffer: wgpu::Buffer, size: u64 },
-    Texture(wgpu::TextureView),
-    Sampler(wgpu::Sampler),
-}
-
-impl BindResource {
-    fn id(&self) -> u64 {
-        match self {
-            BindResource::UniformBuffer { buffer, .. } => buffer.global_id().inner(),
-            BindResource::StorageBuffer { buffer, .. } => buffer.global_id().inner(),
-            BindResource::Texture(view) => view.global_id().inner(),
-            BindResource::Sampler(sampler) => sampler.global_id().inner(),
-        }
-    }
-
-    fn as_wgpu_resource(&self) -> wgpu::BindingResource {
-        match self {
-            BindResource::UniformBuffer { buffer, size } => {
-                wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer,
-                    offset: 0,
-                    size: std::num::NonZeroU64::new(*size),
-                })
-            }
-            BindResource::StorageBuffer { buffer, size } => {
-                wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer,
-                    offset: 0,
-                    size: std::num::NonZeroU64::new(*size),
-                })
-            }
-            BindResource::Texture(view) => {
-                wgpu::BindingResource::TextureView(view)
-            }
-            BindResource::Sampler(sampler) => {
-                wgpu::BindingResource::Sampler(sampler)
-            }
-        }
-    }
 }
 ```
+
+The wgpu version is more explicit about resource lifetimes, but the caching strategy is identical: compute a key, check the cache, create on miss.
 
 ---
 
-## Key Patterns
+## Key Patterns Summary
 
-### 1. Two-Level Caching
+### 1. Two-Level Architecture
 
-```
-BindGroup._key (string)  →  BindGroupSystem cache  →  GPUBindGroup
-     ↑
-     │
-Resource IDs joined by '|'
-```
+Separate the "what" (BindGroup descriptor) from the "how" (BindGroupSystem creation). This enables lazy GPU object creation and cleaner resource management.
 
-### 2. Dirty Flag for Lazy Updates
+### 2. Identity-Based Caching
 
-```typescript
-setResource(resource, index) {
-    this._dirty = true;  // Mark for key regeneration
-}
+Resources have stable IDs. Bind groups derive their identity from their contents, not their usage context. This maximizes cache hits across unrelated draw calls.
 
-_updateKey() {
-    if (!this._dirty) return;  // Skip if unchanged
-    this._dirty = false;
-    // ... regenerate key ...
-}
-```
+### 3. FNV-1a for Hot Paths
 
-### 3. FNV-1a for Texture Batches
+String operations are expensive. For frequently-accessed caches (texture batches), integer hashing provides significant speedup.
 
-Integer hashing is faster than string comparison for frequently-accessed texture batches.
+### 4. Fixed Layout with Padding
 
-### 4. Padding for Fixed Layouts
+Bind group layouts must match exactly. Pad unused slots with dummy resources to maintain layout compatibility across different actual resource counts.
 
-Texture batches pad with empty textures to maintain consistent bind group layouts:
+### 5. Event-Driven Invalidation
 
-```typescript
-const texture = i < size ? textures[i] : Texture.EMPTY.source;
-```
+Resources emit change events. Bind groups subscribe to their resources and invalidate their cached keys when contents change.
 
 ---
 
@@ -523,12 +440,12 @@ const texture = i < size ? textures[i] : Texture.EMPTY.source;
 
 | Operation | Cost |
 |-----------|------|
-| Key lookup (cache hit) | O(1) string hash |
-| FNV-1a lookup (texture batch) | O(n) texture count |
-| Bind group creation | Expensive (GPU call) |
+| Cache hit (string key) | O(1) hash + string comparison |
+| Cache hit (FNV-1a) | O(n) texture count, integer comparison |
+| Cache miss | Expensive: GPU driver call |
 | Key regeneration | O(n) resource count |
 
-The caching strategy ensures expensive GPU bind group creation only happens once per unique resource combination.
+The caching strategy ensures expensive GPU bind group creation happens once per unique resource combination. Typical scenes see near-100% cache hit rates after the first few frames.
 
 ---
 
@@ -540,4 +457,4 @@ The caching strategy ensures expensive GPU bind group creation only happens once
 
 ---
 
-*Next: [Graphics API](graphics-api.md)*
+*Next: [Graphics API](graphics-api.md) - Canvas-like drawing with GPU acceleration*
