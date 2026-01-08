@@ -2,7 +2,7 @@
 
 > *Track documentation status for all Editor subsystems*
 
-Last updated: 2026-01-01
+Last updated: 2026-01-08
 
 ---
 
@@ -12,9 +12,9 @@ Last updated: 2026-01-01
 |--------|-------|
 | Total subsystems | 10 |
 | Completed | 2 |
-| In progress | 0 |
-| Not started | 8 |
-| **Progress** | **20%** |
+| In progress | 3 |
+| Not started | 5 |
+| **Progress** | **35%** |
 
 ---
 
@@ -24,17 +24,17 @@ Last updated: 2026-01-01
 
 | # | Subsystem | LOC | Chapters | Status | Location |
 |---|-----------|-----|----------|--------|----------|
-| 1 | **MagGraph** | ~11K | 20 + 3 appendices | ✅ Complete | [docs/maggraph/](../maggraph/) |
-| 2 | **Timeline/Dopesheet** | ~6K | 0/8 | ⬚ Not started | *docs/timeline/* |
-| 3 | **Graph (legacy)** | ~10K | 0/6 | ⬚ Not started | *docs/graph/* |
+| 1 | **MagGraph** | ~11K | 20 + 3 appendices | ✅ Complete | [maggraph/](maggraph/) |
+| 2 | **Timeline/Dopesheet** | ~6K | 0/8 | ⬚ Not started | *timeline/* |
+| 3 | **Graph (legacy)** | ~10K | 2/6 | 🔄 In progress | [graph/](graph/) |
 
 ### Priority 2: Infrastructure
 
 | # | Subsystem | LOC | Chapters | Status | Location |
 |---|-----------|-----|----------|--------|----------|
-| 4 | **UiModel/Commands** | ~4K | 0/5 | ⬚ Not started | *docs/commands/* |
-| 5 | **Interaction System** | ~13K | 0/8 | ⬚ Not started | *docs/interaction/* |
-| 6 | **Window System** | ~14K | 0/4 | ⬚ Not started | *docs/windows/* |
+| 4 | **UiModel/Commands** | ~4K | 1/5 | 🔄 In progress | [commands/](commands/) |
+| 5 | **Interaction System** | ~13K | 0/8 | ⬚ Not started | *interaction/* |
+| 6 | **Window System** | ~14K | 2/4 | 🔄 In progress | [windows/](windows/) |
 
 ### Priority 3: Specialized
 
@@ -71,18 +71,27 @@ Last updated: 2026-01-01
 
 | Chapter | Title | Status |
 |---------|-------|--------|
-| 01 | Architecture Overview | ⬚ |
-| 02 | GraphView & Canvas | ⬚ |
-| 03 | GraphNode Rendering | ⬚ |
-| 04 | Connection System | ⬚ |
-| 05 | Interaction Handling | ⬚ |
+| 01 | **Symbol Browser Popup** | ✅ [graph/01-symbol-browser.md](graph/01-symbol-browser.md) |
+| 02 | **Search & Relevance Scoring** | ✅ [graph/02-search-relevance.md](graph/02-search-relevance.md) |
+| 03 | GraphView & Canvas | ⬚ |
+| 04 | GraphNode Rendering | ⬚ |
+| 05 | Connection System | ⬚ |
 | 06 | Graph Dialogs | ⬚ |
 
-### UiModel/Commands (Priority 4)
+### Window System (Priority 4)
 
 | Chapter | Title | Status |
 |---------|-------|--------|
-| 01 | Command Pattern Overview | ⬚ |
+| 01 | **Symbol Library Window** | ✅ [windows/01-symbol-library.md](windows/01-symbol-library.md) |
+| 02 | **Namespace Tree & Filtering** | ✅ [windows/02-namespace-tree.md](windows/02-namespace-tree.md) |
+| 03 | Parameter Window | ⬚ |
+| 04 | Output Window | ⬚ |
+
+### UiModel/Commands (Priority 5)
+
+| Chapter | Title | Status |
+|---------|-------|--------|
+| 01 | **Symbol Instance Commands** | ✅ [commands/01-symbol-commands.md](commands/01-symbol-commands.md) |
 | 02 | UndoRedoStack | ⬚ |
 | 03 | Graph Commands | ⬚ |
 | 04 | Animation Commands | ⬚ |
