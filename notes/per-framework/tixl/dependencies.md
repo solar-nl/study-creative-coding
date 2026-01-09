@@ -122,6 +122,6 @@ For true cross-platform, would need:
 
 ## Key Files
 
-- Core dependencies: `frameworks/tixl/Core/Core.csproj`
-- Editor dependencies: `frameworks/tixl/Editor/Editor.csproj`
-- ImGui integration: `frameworks/tixl/ImguiWindows/ImguiWindows.csproj`
+- Core dependencies: `visual-programming/tixl/Core/Core.csproj`
+- Editor dependencies: `visual-programming/tixl/Editor/Editor.csproj`
+- ImGui integration: `visual-programming/tixl/ImguiWindows/ImguiWindows.csproj`

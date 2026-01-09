@@ -108,5 +108,5 @@ import type { GPUDevice, GPUTexture } from '@webgpu/types';
 
 ## Key Files
 
-- Package config: `frameworks/cables/package.json`
-- Webpack config: `frameworks/cables/webpack.config.js`
+- Package config: `visual-programming/cables/package.json`
+- Webpack config: `visual-programming/cables/webpack.config.js`

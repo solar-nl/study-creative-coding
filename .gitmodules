@@ -17,7 +17,7 @@
 	path = frameworks/cinder
 	url = https://github.com/cinder/Cinder.git
 [submodule "frameworks/cables"]
-	path = frameworks/cables
+	path = visual-programming/cables
 	url = https://github.com/cables-gl/cables.git
 [submodule "frameworks/openrndr"]
 	path = frameworks/openrndr
@@ -26,7 +26,7 @@
 	path = libraries/orx
 	url = https://github.com/openrndr/orx.git
 [submodule "frameworks/tixl"]
-	path = frameworks/tixl
+	path = visual-programming/tixl
 	url = https://github.com/tixl3d/tixl.git
 [submodule "frameworks/webgpu-samples"]
 	path = examples/webgpu-samples
@@ -43,3 +43,6 @@
 [submodule "libraries/pixijs"]
 	path = libraries/pixijs
 	url = https://github.com/pixijs/pixijs
+[submodule "visual-programming/cables_ui"]
+	path = visual-programming/cables_ui
+	url = https://github.com/cables-gl/cables_ui.git

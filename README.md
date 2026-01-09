@@ -24,17 +24,18 @@ This repository collects major creative coding frameworks as git submodules alon
 |-----------|----------|-------|
 | [OpenFrameworks](frameworks/openframeworks) | C++ | Native, addon ecosystem |
 | [Cinder](frameworks/cinder) | C++ | High-performance, excellent API |
-| [cables.gl](frameworks/cables) | JavaScript | Node-based visual programming |
 
 ### openrndr Ecosystem
 | Framework | Language | Focus |
 |-----------|----------|-------|
 | [openrndr](frameworks/openrndr) | Kotlin | Modern JVM, DSL patterns |
 
-### Modern/Experimental
-| Framework | Language | Focus |
-|-----------|----------|-------|
-| [tixl](frameworks/tixl) | C#/.NET | Node-based 3D creative coding |
+### Visual Programming Environments
+| Environment | Language | Focus |
+|-------------|----------|-------|
+| [cables.gl](visual-programming/cables) | JavaScript | Web-based node editor, WebGL |
+| [cables_ui](visual-programming/cables_ui) | JavaScript | cables.gl editor interface |
+| [tixl](visual-programming/tixl) | C#/.NET | Node-based 3D creative coding |
 
 ### Rust-Native References
 | Framework | Language | Focus |
