@@ -93,10 +93,16 @@ Both engines offer valuable patterns. Babylon's more structured approach may be 
 
 ---
 
-## Documents to Create
+## Document Set
 
-- [ ] `architecture.md` — Package structure and module organization
-- [ ] `rendering-pipeline.md` — Frame execution and render loop
-- [ ] `webgpu-engine.md` — WebGPU-specific implementation details
-- [ ] `node-materials.md` — Visual shader graph system
-- [ ] `api-design.md` — API patterns and TypeScript ergonomics
+This documentation traces Babylon.js from high-level concepts to GPU command generation:
+
+**[Architecture](architecture.md)** — How Babylon.js organizes 2+ million lines of TypeScript. Package structure, engine hierarchy, and the layered architecture that enables scale. Start here for the big picture.
+
+**[Rendering Pipeline](rendering-pipeline.md)** — From `scene.render()` to GPU draw calls. Covers mesh collection, frustum culling, rendering groups, and the five-stage render loop. Essential for understanding frame flow.
+
+**[WebGPU Engine](webgpu-engine.md)** — How Babylon wraps WebGPU's explicit API. Command encoding, render pass management, pipeline caching, and bind group caching. Deep dive into GPU abstraction.
+
+**[Node Materials](node-materials.md)** — Visual shader programming. How node graphs become GLSL/WGSL, the 124 block types, and the compilation pipeline. Valuable for shader graph system design.
+
+**[API Design](api-design.md)** — TypeScript patterns that make complexity manageable. Factory methods, method chaining, observables, lazy initialization, and more. Transferable patterns for any creative coding API.
