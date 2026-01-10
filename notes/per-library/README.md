@@ -1,17 +1,48 @@
 # Per-Library Notes
 
-Documentation for reusable libraries that complement creative coding frameworks.
+Documentation for reusable libraries that complement creative coding frameworks, organized by ecosystem.
 
-## Libraries
+## Web Libraries
 
-| Library | Language | Status | Description |
-|---------|----------|--------|-------------|
-| [mixbox](./mixbox/) | Multi | Complete | Pigment-based color mixing (Kubelka-Munk) |
-| [threejs](./threejs/) | JavaScript | Complete | WebGL 3D graphics library |
-| [pixijs](./pixijs/) | JavaScript | Complete | 2D WebGL renderer |
-| [orx](./orx/) | Kotlin | Planned | Extensions for OPENRNDR |
-| [toxiclibs](./toxiclibs/) | Java | Planned | Computational geometry, physics, color |
-| [wgpu](./wgpu/) | Rust | Planned | WebGPU implementation |
+JavaScript libraries for browser-based graphics.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [threejs](./web/threejs/) | Complete | WebGL/WebGPU 3D scene graph |
+| [pixijs](./web/pixijs/) | Complete | High-performance 2D WebGL renderer |
+| [babylonjs](./web/babylonjs/) | Planned | Full-featured 3D game engine |
+
+## Universal Libraries
+
+Cross-platform libraries available in multiple languages.
+
+| Library | Languages | Status | Description |
+|---------|-----------|--------|-------------|
+| [mixbox](./universal/mixbox/) | C++, JS, Rust, GLSL, Python | Complete | Pigment-based color mixing (Kubelka-Munk) |
+
+## OPENRNDR Ecosystem
+
+Kotlin libraries for the OPENRNDR framework.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [orx](./openrndr-ecosystem/orx/) | Planned | Official extension collection |
+
+## Processing Ecosystem
+
+Java libraries for the Processing environment.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [toxiclibs](./processing-ecosystem/toxiclibs/) | Planned | Computational geometry, physics, color |
+
+## Rust Libraries
+
+Native Rust graphics libraries.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [wgpu](./rust/wgpu/) | Planned | Cross-platform WebGPU implementation |
 
 ## Status Legend
 
@@ -25,5 +56,6 @@ New to this documentation? See [READING_GUIDE.md](../READING_GUIDE.md) for tips 
 
 ## See Also
 
+- [libraries/](../../libraries/) — Source code submodules
 - [per-framework/](../per-framework/) — Framework-specific documentation
 - [themes/](../themes/) — Cross-cutting analysis by topic

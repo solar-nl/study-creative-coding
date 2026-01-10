@@ -5,10 +5,10 @@
 	path = frameworks/processing
 	url = https://github.com/processing/processing4.git
 [submodule "frameworks/toxiclibs"]
-	path = libraries/toxiclibs
+	path = libraries/processing-ecosystem/toxiclibs
 	url = https://github.com/postspectacular/toxiclibs.git
 [submodule "frameworks/threejs"]
-	path = libraries/threejs
+	path = libraries/web/threejs
 	url = https://github.com/mrdoob/three.js.git
 [submodule "frameworks/openframeworks"]
 	path = frameworks/openframeworks
@@ -23,7 +23,7 @@
 	path = frameworks/openrndr
 	url = https://github.com/openrndr/openrndr.git
 [submodule "frameworks/orx"]
-	path = libraries/orx
+	path = libraries/openrndr-ecosystem/orx
 	url = https://github.com/openrndr/orx.git
 [submodule "frameworks/tixl"]
 	path = visual-programming/tixl
@@ -35,17 +35,17 @@
 	path = frameworks/nannou
 	url = https://github.com/nannou-org/nannou.git
 [submodule "frameworks/wgpu"]
-	path = libraries/wgpu
+	path = libraries/rust/wgpu
 	url = https://github.com/gfx-rs/wgpu.git
 [submodule "frameworks/mixbox"]
-	path = libraries/mixbox
+	path = libraries/universal/mixbox
 	url = https://github.com/scrtwpns/mixbox.git
 [submodule "libraries/pixijs"]
-	path = libraries/pixijs
+	path = libraries/web/pixijs
 	url = https://github.com/pixijs/pixijs
 [submodule "visual-programming/cables_ui"]
 	path = visual-programming/cables_ui
 	url = https://github.com/cables-gl/cables_ui.git
 [submodule "libraries/babylonjs"]
-	path = libraries/babylonjs
+	path = libraries/web/babylonjs
 	url = https://github.com/BabylonJS/Babylon.js.git

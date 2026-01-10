@@ -44,13 +44,32 @@ This repository collects major creative coding frameworks as git submodules alon
 
 ## Libraries Under Study
 
+### Web Libraries
 | Library | Language | Focus |
 |---------|----------|-------|
-| [toxiclibs](libraries/toxiclibs) | Java | Computational geometry, physics, color theory |
-| [orx](libraries/orx) | Kotlin | Extensions for openrndr |
-| [mixbox](libraries/mixbox) | Multi | Pigment-based color mixing (Kubelka-Munk) |
-| [three.js](libraries/threejs) | JavaScript | WebGL 3D graphics library |
-| [wgpu](libraries/wgpu) | Rust | WebGPU implementation (nannou backend) |
+| [three.js](libraries/web/threejs) | JavaScript | WebGL/WebGPU 3D scene graph |
+| [PixiJS](libraries/web/pixijs) | JavaScript | High-performance 2D WebGL renderer |
+| [Babylon.js](libraries/web/babylonjs) | JavaScript | Full-featured 3D game engine |
+
+### Universal Libraries
+| Library | Languages | Focus |
+|---------|-----------|-------|
+| [mixbox](libraries/universal/mixbox) | C++, JS, Rust, GLSL, Python | Pigment-based color mixing (Kubelka-Munk) |
+
+### OPENRNDR Ecosystem
+| Library | Language | Focus |
+|---------|----------|-------|
+| [orx](libraries/openrndr-ecosystem/orx) | Kotlin | Extensions for OPENRNDR |
+
+### Processing Ecosystem
+| Library | Language | Focus |
+|---------|----------|-------|
+| [toxiclibs](libraries/processing-ecosystem/toxiclibs) | Java | Computational geometry, physics, color theory |
+
+### Rust Libraries
+| Library | Language | Focus |
+|---------|----------|-------|
+| [wgpu](libraries/rust/wgpu) | Rust | WebGPU implementation (nannou backend) |
 
 ## Examples & Samples
 
@@ -66,7 +85,7 @@ study-creative-coding/
 ├── FRAMEWORK_COMPARISON.md      # High-level comparison matrix
 │
 ├── frameworks/                  # Creative coding frameworks (8 submodules)
-├── libraries/                   # Reusable libraries (5 submodules)
+├── libraries/                   # Reusable libraries (7 submodules, organized by ecosystem)
 ├── examples/                    # Sample code & demos (1 submodule)
 │
 ├── notes/
@@ -129,7 +148,7 @@ Some frameworks were considered but not included as submodules:
 | Category | Complete | Partial | Planned |
 |----------|----------|---------|---------|
 | **Frameworks** | p5.js, cables | nannou, tixl | openrndr, cinder, openframeworks, processing |
-| **Libraries** | mixbox, threejs, pixijs | — | orx, toxiclibs, wgpu |
+| **Libraries** | mixbox, threejs, pixijs | — | babylonjs, orx, toxiclibs, wgpu |
 | **Examples** | — | — | webgpu-samples |
 | **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |
 
