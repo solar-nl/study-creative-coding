@@ -52,3 +52,6 @@
 [submodule "libraries/controlp5"]
 	path = libraries/controlp5
 	url = https://github.com/sojamo/controlp5.git
+[submodule "frameworks/drawbot"]
+	path = frameworks/drawbot
+	url = https://github.com/typemytype/drawbot.git
