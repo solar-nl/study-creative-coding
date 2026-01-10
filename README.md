@@ -42,6 +42,11 @@ This repository collects major creative coding frameworks as git submodules alon
 |-----------|----------|-------|
 | [nannou](frameworks/nannou) | Rust | Established Rust creative coding |
 
+### Typography-Focused
+| Framework | Language | Focus |
+|-----------|----------|-------|
+| [DrawBot](frameworks/drawbot) | Python | Print-quality output, variable fonts, macOS |
+
 ## Libraries Under Study
 
 ### Web Libraries
@@ -65,6 +70,7 @@ This repository collects major creative coding frameworks as git submodules alon
 | Library | Language | Focus |
 |---------|----------|-------|
 | [toxiclibs](libraries/processing-ecosystem/toxiclibs) | Java | Computational geometry, physics, color theory |
+| [ControlP5](libraries/controlp5) | Java | GUI library with 30+ widgets |
 
 ### Rust Libraries
 | Library | Language | Focus |
@@ -85,7 +91,8 @@ study-creative-coding/
 ├── FRAMEWORK_COMPARISON.md      # High-level comparison matrix
 │
 ├── frameworks/                  # Creative coding frameworks (8 submodules)
-├── libraries/                   # Reusable libraries (7 submodules, organized by ecosystem)
+├── visual-programming/          # Node-based environments (3 submodules)
+├── libraries/                   # Reusable libraries (8 submodules, organized by ecosystem)
 ├── examples/                    # Sample code & demos (1 submodule)
 │
 ├── notes/
@@ -147,8 +154,8 @@ Some frameworks were considered but not included as submodules:
 
 | Category | Complete | Partial | Planned |
 |----------|----------|---------|---------|
-| **Frameworks** | p5.js, cables | nannou, tixl | openrndr, cinder, openframeworks, processing |
-| **Libraries** | mixbox, threejs, pixijs | — | babylonjs, orx, toxiclibs, wgpu |
+| **Frameworks** | p5.js, cables | nannou, tixl, drawbot | openrndr, cinder, openframeworks, processing |
+| **Libraries** | mixbox, threejs, pixijs, babylonjs | controlp5 | orx, toxiclibs, wgpu |
 | **Examples** | — | — | webgpu-samples |
 | **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |
 
