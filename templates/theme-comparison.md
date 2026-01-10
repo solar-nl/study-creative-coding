@@ -2,9 +2,21 @@
 
 > Cross-cutting analysis of how different frameworks handle {theme}.
 
+<!--
+COGNITIVE LOAD GUIDANCE (delete this block when writing):
+- Start with WHY this theme matters (activate prior knowledge)
+- Use Comparison Matrix early for quick scanning
+- Each framework section: 1 key insight, then details
+- End with actionable recommendations
+-->
+
 ## Concept Overview
 
 {What is this pattern/system? Why is it important for creative coding?}
+
+## Key Insight
+
+> **The core challenge:** {One sentence framing why this is hard or interesting. Flashcard-ready.}
 
 ## Framework Implementations
 

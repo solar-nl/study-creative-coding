@@ -2,6 +2,15 @@
 
 > One-line description of the framework's purpose and philosophy.
 
+<!--
+COGNITIVE LOAD GUIDANCE (delete this block when writing):
+- This README should be readable in ~5 minutes
+- Limit to 4-6 key concepts (STM capacity)
+- Use tables for scannable facts
+- Link deeper content, don't inline it
+- End with clear "where to go next"
+-->
+
 ## Quick Facts
 
 | Property | Value |
@@ -16,6 +25,10 @@
 ## Philosophy & Target Audience
 
 {Who is this framework for? What problems does it solve? What trade-offs does it make?}
+
+## Key Insight
+
+> **{Framework}'s core idea:** {One sentence that captures the essential mental model. This should be flashcard-ready.}
 
 ## Repository Structure
 

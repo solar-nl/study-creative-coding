@@ -14,6 +14,7 @@ Documentation and analysis for the creative coding frameworks study.
 ## Key Documents
 
 - [FRAMEWORK_COMPARISON.md](./FRAMEWORK_COMPARISON.md) — High-level comparison matrix across all frameworks
+- [READING_GUIDE.md](./READING_GUIDE.md) — How to effectively read this documentation (cognitive science-based)
 
 ## Documentation Structure
 
