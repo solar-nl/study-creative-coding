@@ -47,4 +47,5 @@ Target audience: Artists, designers, students, educators.
 - [OpenFrameworks](../openframeworks/) — C++ creative coding toolkit with similar philosophy
 - [Cinder](../cinder/) — Professional-quality C++ alternative
 - [openrndr](../openrndr/) — Modern Kotlin-based framework inspired by Processing
-- [toxiclibs](../../per-library/toxiclibs/) — Computational design library for Processing/Java
+- [toxiclibs](../../per-library/processing-ecosystem/toxiclibs/) — Computational design library for Processing/Java
+- [controlp5](../../per-library/processing-ecosystem/controlp5/) — GUI library with 30+ widgets

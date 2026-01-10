@@ -34,6 +34,7 @@ Java libraries for the Processing environment.
 
 | Library | Status | Description |
 |---------|--------|-------------|
+| [controlp5](./processing-ecosystem/controlp5/) | Partial | GUI library with 30+ widgets and method-chaining API |
 | [toxiclibs](./processing-ecosystem/toxiclibs/) | Planned | Computational geometry, physics, color |
 
 ## Rust Libraries
