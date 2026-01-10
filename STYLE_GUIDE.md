@@ -6,7 +6,7 @@
 
 ## Purpose
 
-This guide establishes standards for Tooll3 Editor documentation. Good documentation helps readers build **mental models** of systems, not just understand code syntax. Every chapter should answer: "Why does this exist, and how should I think about it?"
+This guide establishes standards for documentation. Good documentation helps readers build **mental models** of systems, not just understand code syntax. Every chapter should answer: "Why does this exist, and how should I think about it?"
 
 ---
 
@@ -449,4 +449,5 @@ Good documentation is about **teaching**, not just **describing**. Every section
 Ask yourself: "If I knew nothing about this system, would this chapter help me understand *how to think about it*?"
 
 For more on how to effectively read this documentation, see [notes/READING_GUIDE.md](notes/READING_GUIDE.md).
+
 
