@@ -119,6 +119,7 @@ drawBot.textBox("Hello", (100, 100, 200, 50), align="center")
 - [x] [`api-design.md`](api-design.md) — Function naming, context managers, Python idioms
 - [x] [`export-pipeline.md`](export-pipeline.md) — How different contexts produce different formats
 - [x] [`path-operations.md`](path-operations.md) — Boolean operations, bezier manipulation
+- [x] [`macos-dependencies.md`](macos-dependencies.md) — Platform dependencies (CoreText, Quartz, AppKit) and cross-platform alternatives
 
 ---
 
