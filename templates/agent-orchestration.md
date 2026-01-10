@@ -6,7 +6,17 @@
 
 ## Overview
 
-This documentation pipeline transforms code-heavy technical notes into narrative documentation following the style guide. It uses three specialized agents in a quality-controlled loop.
+This documentation pipeline transforms code-heavy technical notes into narrative documentation following the style guide. It uses specialized agents in a quality-controlled loop with a fast path for passing documents.
+
+### Standard Flow (for failing documents)
+```
+Writer → Reviewer → Editor (major revision) → Reviewer → ... → Final
+```
+
+### Fast Path (for passing documents)
+```
+Writer → Reviewer-Editor → Final
+```
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -22,9 +32,9 @@ This documentation pipeline transforms code-heavy technical notes into narrative
                                   │
                                   ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│  REVIEWER AGENT                                                       │
+│  REVIEWER-EDITOR AGENT (Fast Path)                                   │
 │  Input: Draft + style guide + original notes                         │
-│  Output: Scores + structured feedback                                 │
+│  Output: PASS → polished final | FAIL → structured feedback          │
 └──────────────────────────────────────────────────────────────────────┘
                                   │
                          ┌───────┴───────┐
@@ -34,14 +44,13 @@ This documentation pipeline transforms code-heavy technical notes into narrative
                     ┌────────────┴────────────┐
                     ▼                         ▼
         ┌───────────────────┐     ┌───────────────────────┐
-        │  EDITOR AGENT     │     │  EDITOR AGENT         │
-        │  (Major revision) │     │  (Polish only)        │
-        └─────────┬─────────┘     └───────────┬───────────┘
-                  │                           │
-                  ▼                           ▼
-           Loop back to              ┌─────────────────┐
-           REVIEWER                  │  FINAL DOCUMENT │
-                                     └─────────────────┘
+        │  EDITOR AGENT     │     │  DONE                 │
+        │  (Major revision) │     │  (Document finalized  │
+        └─────────┬─────────┘     │   by Reviewer-Editor) │
+                  │               └───────────────────────┘
+                  ▼
+           Loop back to
+           REVIEWER-EDITOR
 ```
 
 ---
@@ -51,13 +60,90 @@ This documentation pipeline transforms code-heavy technical notes into narrative
 Before starting, ensure you have:
 
 1. **Style guide**: `STYLE_GUIDE.md` in repository root
-2. **Agent prompts**: All three agent templates in `templates/`
+2. **Agent prompts**: All agent templates in `templates/`
 3. **Source material**: The raw technical notes to transform
 4. **Related documents**: Other docs in the set for cross-reference context
 
 ---
 
-## Step-by-Step Process
+## Context Digest (Include with Every Invocation)
+
+To avoid re-reading full documents, include this digest with agent invocations:
+
+```markdown
+### Style Guide Essentials (Non-Negotiables)
+
+1. First 3 paragraphs: ZERO code — problem and mental model first
+2. Every code block must have a preceding explanatory paragraph
+3. At least ONE strong analogy connecting unfamiliar to familiar
+4. Problem statement ("why does this exist?") in first 5 paragraphs
+5. No passive voice walls (3+ consecutive passive sentences)
+
+### Pass/Fail Threshold
+
+- **PASS**: Score ≥ 3.5 AND no category at 1
+- **FAIL**: Score < 3.5 OR any category at 1
+
+### Related Documents Context
+
+[For each related doc, one line summary:]
+- rendering-pipeline.md: Scene traversal, 5-phase render loop, RenderObject pattern
+- webgpu-backend.md: Command encoding, beginRender/finishRender, draw calls
+- pipeline-bindings.md: Pipeline caching, bind group management, cache keys
+- node-system.md: TSL shader graphs, WGSL compilation
+```
+
+Customize the "Related Documents" section for each documentation set.
+
+---
+
+## Batch Processing
+
+When transforming multiple documents, parallelize where possible:
+
+### Phase 1: Parallel Writing
+
+Invoke Writer Agent for up to 3 documents simultaneously:
+
+```
+┌─────────┐ ┌─────────┐ ┌─────────┐
+│ Writer  │ │ Writer  │ │ Writer  │
+│ Doc A   │ │ Doc B   │ │ Doc C   │
+└────┬────┘ └────┬────┘ └────┬────┘
+     │           │           │
+     ▼           ▼           ▼
+  Draft A     Draft B     Draft C
+```
+
+### Phase 2: Parallel Review
+
+Once all drafts complete, invoke Reviewer-Editor in parallel:
+
+```
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ Rev-Editor A │ │ Rev-Editor B │ │ Rev-Editor C │
+└──────┬───────┘ └──────┬───────┘ └──────┬───────┘
+       │                │                │
+       ▼                ▼                ▼
+    PASS/FAIL        PASS/FAIL        PASS/FAIL
+```
+
+### Phase 3: Group by Outcome
+
+- **PASS documents**: Done — Reviewer-Editor already output final versions
+- **FAIL documents**: Route to Editor Agent for major revision, then back to Reviewer-Editor
+
+### Throughput Gains
+
+| Approach | Agent Invocations (3 docs, all pass) |
+|----------|--------------------------------------|
+| Sequential standard | 9 (W→R→E × 3) |
+| Sequential fast path | 6 (W→RE × 3) |
+| Parallel fast path | 6, but ~3x faster wall time |
+
+---
+
+## Step-by-Step Process (Single Document)
 
 ### Step 1: Gather Context
 
@@ -92,41 +178,27 @@ Provide:
 
 **Expected output**: A narrative draft following the chapter structure.
 
-### Step 3: Invoke Reviewer Agent
+### Step 3: Invoke Reviewer-Editor Agent (Fast Path)
 
-Use the reviewer agent prompt from `templates/agent-reviewer.md`.
+Use the combined agent from `templates/agent-reviewer-editor.md`.
 
 Provide:
 - The writer's draft
-- Style guide for checklist reference
+- Style guide (or context digest)
 - Original notes for accuracy checking
 
-**Expected output**: Structured review with scores and feedback.
+**Expected output**:
+- If PASS: Polished final document (done!)
+- If FAIL: Structured review with scores and feedback
 
-### Step 4: Check Threshold
-
-Evaluate the review:
-
-| Condition | Action |
-|-----------|--------|
-| Average ≥ 3.5 AND no category at 1 | **PASS** — proceed to final edit |
-| Average < 3.5 OR any category at 1 | **FAIL** — major revision needed |
-
-### Step 5a: If PASS — Final Edit
-
-Invoke editor agent for polish:
-- Address minor issues
-- Light touch, preserve voice
-- Output is final document
-
-### Step 5b: If FAIL — Major Revision
+### Step 4: If FAIL — Major Revision
 
 Invoke editor agent for substantial revision:
-- Address all major issues
+- Address all major issues from the review
 - May require significant restructuring
-- Output goes back to reviewer (Step 3)
+- Output goes back to Reviewer-Editor (Step 3)
 
-### Step 6: Iteration Limit
+### Step 5: Iteration Limit
 
 To prevent infinite loops:
 
@@ -158,24 +230,25 @@ Reference: STYLE_GUIDE.md
 Please produce a narrative draft following the style guide principles.
 ```
 
-### Reviewer Invocation
+### Reviewer-Editor Invocation (Fast Path)
 
 ```
-I need you to act as the Reviewer Agent. Please read the agent prompt at:
-templates/agent-reviewer.md
+I need you to act as the Reviewer-Editor Agent. Please read the agent prompt at:
+templates/agent-reviewer-editor.md
 
-Then review this draft:
+Then review and (if passing) finalize this draft:
 
 ## Document to Review
 [paste the writer's draft]
 
-## Style Guide
-Reference: STYLE_GUIDE.md
+## Context Digest
+[paste the context digest from above]
 
 ## Original Notes
 [paste or reference original notes for accuracy checking]
 
-Please provide a structured review with scores and specific feedback.
+If the document scores ≥ 3.5 with no category at 1, apply minor fixes and output
+the final document. Otherwise, output structured feedback for major revision.
 ```
 
 ### Editor Invocation
@@ -304,7 +377,9 @@ Done! Document ready for publication.
 | File | Purpose |
 |------|---------|
 | `STYLE_GUIDE.md` | Quality standards and examples |
+| `.claude/settings.json` | Pre-approved tool permissions (reduces prompts) |
 | `templates/agent-writer.md` | Writer agent prompt |
-| `templates/agent-reviewer.md` | Reviewer agent prompt |
-| `templates/agent-editor.md` | Editor agent prompt |
+| `templates/agent-reviewer.md` | Reviewer agent prompt (standalone) |
+| `templates/agent-reviewer-editor.md` | Combined review + polish (fast path) |
+| `templates/agent-editor.md` | Editor agent prompt (major revisions) |
 | `templates/agent-orchestration.md` | This file — how to use them together |

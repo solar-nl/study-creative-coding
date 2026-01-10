@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Glob(notes/**)",
+      "Glob(templates/**)",
+      "Glob(libraries/**)",
+      "Glob(frameworks/**)",
+      "Grep(notes/**)",
+      "Grep(libraries/**)",
+      "Grep(frameworks/**)",
+      "Write(notes/**/*.md)",
+      "Edit(notes/**/*.md)",
+      "Edit(templates/**/*.md)",
+      "Write(templates/**/*.md)"
+    ]
+  }
+}
