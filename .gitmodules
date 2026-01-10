@@ -46,3 +46,6 @@
 [submodule "visual-programming/cables_ui"]
 	path = visual-programming/cables_ui
 	url = https://github.com/cables-gl/cables_ui.git
+[submodule "libraries/babylonjs"]
+	path = libraries/babylonjs
+	url = https://github.com/BabylonJS/Babylon.js.git
