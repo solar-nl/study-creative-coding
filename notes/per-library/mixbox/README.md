@@ -72,9 +72,29 @@ The library uses a **lookup table (LUT)** texture to encode pigment behavior, ma
 - [x] What problem does Mixbox solve? → RGB mixing produces muddy colors
 - [x] How does it work? → Kubelka-Munk theory via LUT texture
 - [x] What platforms are supported? → Rust, C/C++, shaders (GLSL/HLSL/Metal)
-- [ ] How does the latent space encoding work?
+- [x] How does the latent space encoding work? → See [architecture.md](architecture.md)
+- [x] Can we reverse engineer the model? → See [reverse_engineering.md](reverse_engineering.md)
 - [ ] What are the performance characteristics vs standard lerp?
 - [ ] How to integrate with existing color pipelines?
+
+## Deep Dive Documentation
+
+| Document | Contents |
+|----------|----------|
+| [architecture.md](architecture.md) | Full polynomial coefficients, latent space structure, why the LUT exists |
+| [reverse_engineering.md](reverse_engineering.md) | Our reverse engineering findings: complementary contamination, white as catalyst, three-way interactions |
+| [building_your_own_lut.md](building_your_own_lut.md) | **Complete recipe** for constructing your own LUT from the paper |
+| [error_reduction_strategies.md](error_reduction_strategies.md) | Attempts to match Mixbox without the LUT |
+| [compare_with_mixbox/](compare_with_mixbox/) | Experimental Rust code for all our investigations |
+
+## Paper Reference
+
+The [Mixbox paper](../../libraries/mixbox/paper/mixbox.pdf) (Sochorová & Jamriška, SIGGRAPH 2021) is included in the library folder. Key insights:
+
+- **LUT construction**: Simply `unmix(RGB)` for each color using Newton solver
+- **Surrogate pigments**: Real pigments exceed sRGB; optimized surrogates stay within gamut
+- **Spectral data**: Uses [Berns 2016 database](https://www.rit.edu/science/sites/rit.edu.science/files/2019-03/ArtistSpectralDatabase.pdf) for K(λ) and S(λ) curves
+- **Polynomial**: Fitted to approximate spectral K-M for fast runtime
 
 ## Comparison with Standard Mixing
 
