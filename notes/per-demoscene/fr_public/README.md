@@ -161,14 +161,33 @@ fr_public/
 
 ---
 
-## Documents to Create
+## Documentation Status
 
-- [x] `README.md` — Overview and study rationale (this file)
-- [ ] `architecture.md` — Altona/Wz4 module structure
-- [ ] `texture-generation.md` — OpenKTG and Werkkzeug texture ops
-- [ ] `audio-synthesis.md` — V2 synthesizer deep dive
-- [ ] `node-system.md` — Operator graph implementation
-- [ ] `code-traces/` — Annotated walkthroughs
+### Complete
+
+| Document | Description |
+|----------|-------------|
+| `README.md` | Overview and study rationale (this file) |
+| `architecture.md` | Altona/Wz4 module structure |
+| `werkkzeug4/operator-system.md` | .ops DSL and C++ code generation |
+| `werkkzeug4/graph-execution.md` | wOp → wCommand → GPU pipeline |
+| `werkkzeug4/type-system.md` | Type hierarchy and automatic conversions |
+| `patterns/node-graph-patterns.md` | Transferable patterns for Rust framework |
+| `code-traces/ops-to-cpp.md` | Line-by-line trace of .ops compilation |
+| `code-traces/graph-execution.md` | Trace of graph compilation and execution |
+| `code-traces/graphics-abstraction.md` | Trace of sGeometry to draw calls |
+
+### Planned
+
+| Document | Description |
+|----------|-------------|
+| `texture-generation.md` | OpenKTG and Werkkzeug texture ops |
+| `audio-synthesis.md` | V2 synthesizer deep dive |
+| `altona/graphics-abstraction.md` | DX9/DX11/OpenGL backend comparison |
+
+### Cross-References
+
+- **Theme**: [Node Graph Systems](../../themes/core/node-graph-systems.md) — Comparison with cables.gl and tixl
 
 ---
 

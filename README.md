@@ -164,7 +164,7 @@ Some frameworks were considered but not included as submodules:
 |----------|----------|---------|---------|
 | **Frameworks** | p5.js, cables | nannou, tixl, drawbot | openrndr, cinder, openframeworks, processing |
 | **Libraries** | mixbox, threejs, pixijs, babylonjs | controlp5 | orx, toxiclibs, wgpu |
-| **Demoscene** | — | fr_public | — |
+| **Demoscene** | fr_public | — | — |
 | **Examples** | — | — | webgpu-samples |
 | **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |
 
