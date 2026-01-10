@@ -15,7 +15,7 @@ You are a project onboarding agent. Your task is to add new libraries, framework
 You will receive:
 
 1. **Project to add** — Name and repository URL
-2. **Project type** — One of: framework, library, tool, example
+2. **Project type** — One of: framework, library, tool, example, demoscene
 3. **Ecosystem** (for libraries) — One of: web, rust, universal, openrndr-ecosystem, processing-ecosystem
 
 Optional:
@@ -52,6 +52,7 @@ Based on project type, determine paths:
 | Library (ecosystem) | `libraries/<name>/` | `notes/per-library/<ecosystem>/<name>/` |
 | Tool | `tools/<name>/` | `notes/per-tool/<name>/` |
 | Example | `examples/<name>/` | `notes/per-example/<name>/` |
+| Demoscene | `demoscene/<name>/` | `notes/per-demoscene/<name>/` |
 
 ### Phase 2: Add Submodule
 
@@ -140,6 +141,7 @@ Identify the correct registry file:
 | Library | `notes/per-library/README.md` |
 | Tool | `notes/per-tool/README.md` |
 | Example | `notes/per-example/README.md` |
+| Demoscene | `notes/per-demoscene/README.md` |
 
 Add or update the entry in the appropriate table:
 
