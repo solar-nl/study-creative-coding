@@ -2,29 +2,21 @@
   "permissions": {
     "allow": [
       "Read(*)",
-      "Glob(notes/**)",
-      "Glob(templates/**)",
-      "Glob(libraries/**)",
-      "Glob(frameworks/**)",
-      "Grep(notes/**)",
-      "Grep(libraries/**)",
-      "Grep(frameworks/**)",
+      "Glob(*)",
+      "Grep(*)",
       "Write(notes/**/*.md)",
+      "Write(templates/**/*.md)",
       "Edit(notes/**/*.md)",
       "Edit(templates/**/*.md)",
-      "Write(templates/**/*.md)",
-      "Bash(git submodule add *)",
-      "Bash(git submodule update *)",
+      "Edit(.claude/**)",
+      "Bash(cd *study-creative-coding* && git submodule add *)",
+      "Bash(cd *study-creative-coding* && git submodule update *)",
       "Bash(git status*)",
       "Bash(git log*)",
       "Bash(git diff*)",
-      "Bash(mkdir -p notes/**)",
-      "Bash(mkdir -p libraries/**)",
-      "Bash(mkdir -p frameworks/**)",
+      "Bash(mkdir *)",
       "Bash(ls *)",
-      "Bash(find notes *)",
-      "Bash(find libraries *)",
-      "Bash(find frameworks *)"
+      "Bash(find *)"
     ]
   }
 }
