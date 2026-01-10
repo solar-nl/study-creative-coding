@@ -82,10 +82,12 @@ study-creative-coding/
 │   ├── per-example/             # Example-specific notes
 │   │
 │   └── themes/                  # Cross-cutting analysis
-│       ├── architecture-patterns.md
-│       ├── rendering-backends.md
-│       ├── api-ergonomics.md
-│       └── ...
+│       ├── README.md            # Theme index
+│       ├── typography/          # Text rendering, fonts
+│       ├── vector-graphics/     # Paths, tessellation
+│       ├── rendering/           # Pipelines, shaders
+│       ├── core/                # Architecture, color, API design
+│       └── systems/             # Events, animation, assets
 │
 ├── templates/                   # Reusable note templates
 ├── diagrams/                    # Architecture diagrams (Mermaid)
@@ -106,20 +108,15 @@ git submodule update --init --recursive
 
 ## Study Themes
 
-Cross-cutting analysis documents compare how frameworks handle:
+Cross-cutting analysis organized by category. See [themes/README.md](notes/themes/README.md) for full index.
 
-- **Architecture Patterns** — Module organization, dependency injection, plugins
-- **Rendering Backends** — Canvas, WebGL, OpenGL, Vulkan, WebGPU
-- **API Ergonomics** — Method chaining, DSLs, error handling
-- **Color Systems** — Color spaces, blending, gradients
-- **Transform Stacks** — push/pop, matrix management
-- **Event Systems** — Input handling, callbacks, reactive patterns
-- **Shader Abstractions** — GLSL management, material systems
-- **Geometry Primitives** — Shape representations, tesselation
-- **Animation & Timing** — Frame loops, easing, delta time
-- **Asset Loading** — Images, fonts, models, async patterns
-- **Cross-Platform** — Desktop/mobile/web targeting
-- **Extension Systems** — Plugins, addons, middleware
+| Category | Topics |
+|----------|--------|
+| **[Typography](notes/themes/typography/)** | Font rendering, fallback chains, variable fonts, text shaping |
+| **[Vector Graphics](notes/themes/vector-graphics/)** | Tessellation, boolean ops, SVG interop, stroke styles |
+| **[Rendering](notes/themes/rendering/)** | Immediate/retained modes, instancing, backends, shaders |
+| **[Core](notes/themes/core/)** | Architecture, color systems, API ergonomics, transforms |
+| **[Systems](notes/themes/systems/)** | Events, animation, asset loading, cross-platform, extensions |
 
 ## Not Included
 
@@ -134,7 +131,7 @@ Some frameworks were considered but not included as submodules:
 | **Frameworks** | p5.js, cables | nannou, tixl | openrndr, cinder, openframeworks, processing |
 | **Libraries** | mixbox, threejs, pixijs | — | orx, toxiclibs, wgpu |
 | **Examples** | — | — | webgpu-samples |
-| **Themes** | color-systems, typography, state-management, + 12 more | rendering-backends, api-ergonomics | animation-timing, asset-loading, + 6 more |
+| **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |
 
 **Legend:**
 - **Complete**: Deep analysis with architecture traces, code walkthroughs, and conceptual explanations
