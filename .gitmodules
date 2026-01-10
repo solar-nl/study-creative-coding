@@ -49,3 +49,6 @@
 [submodule "libraries/babylonjs"]
 	path = libraries/web/babylonjs
 	url = https://github.com/BabylonJS/Babylon.js.git
+[submodule "libraries/controlp5"]
+	path = libraries/controlp5
+	url = https://github.com/sojamo/controlp5.git

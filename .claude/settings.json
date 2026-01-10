@@ -12,7 +12,19 @@
       "Write(notes/**/*.md)",
       "Edit(notes/**/*.md)",
       "Edit(templates/**/*.md)",
-      "Write(templates/**/*.md)"
+      "Write(templates/**/*.md)",
+      "Bash(git submodule add *)",
+      "Bash(git submodule update *)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(mkdir -p notes/**)",
+      "Bash(mkdir -p libraries/**)",
+      "Bash(mkdir -p frameworks/**)",
+      "Bash(ls *)",
+      "Bash(find notes *)",
+      "Bash(find libraries *)",
+      "Bash(find frameworks *)"
     ]
   }
 }
