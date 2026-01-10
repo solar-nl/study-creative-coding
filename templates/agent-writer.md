@@ -224,6 +224,45 @@ keys waste memory on duplicate pipelines).
 
 ---
 
+## Tool Usage
+
+The writer agent primarily transforms content but may need to explore source code.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Source material is ambiguous or contradictory
+- Technical accuracy can't be verified from available sources
+- Multiple valid interpretations exist for a concept
+- Missing context that affects the narrative (what came before this doc?)
+
+**DON'T ASK** (make judgment calls):
+- Style choices within guidelines
+- Which code examples to include/exclude
+- Analogy selection
+
+### Read — Verify Against Source Code
+
+When the notes reference specific code, verify accuracy:
+```
+Read: frameworks/<name>/src/path/to/file.ext
+```
+
+Don't guess at implementation details — check the source.
+
+### Grep — Find Code Examples
+
+If the notes lack good examples, search for them:
+```
+Grep: "function.*draw" in frameworks/<name>/src/
+```
+
+### Write — Output the Document
+
+Use Write to create the transformed document in the notes directory.
+
+---
+
 ## Invocation
 
 When invoking this agent, provide:

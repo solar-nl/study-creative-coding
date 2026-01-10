@@ -255,6 +255,54 @@ Provide:
 
 ---
 
+## Tool Usage
+
+The editor agent applies targeted changes based on reviewer feedback.
+
+### TodoWrite — Track Feedback Items
+
+Convert reviewer feedback into a todo list:
+```
+1. Fix code-first issue in Section 3 (in_progress)
+2. Add analogy for pipeline caching (pending)
+3. Convert passive voice in Section 4 (pending)
+4. Verify technical claim about bind groups (pending)
+```
+
+Mark items complete as you address them.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Feedback is contradictory
+- Suggested fix would change technical meaning
+- You disagree with the reviewer's assessment
+- Fix requires information not in the source material
+
+**DON'T ASK** (exercise editorial judgment):
+- How to rephrase sentences
+- Where exactly to add transitions
+- Minor wording choices
+
+### Read — Check Source for Accuracy
+
+When fixing technical content, verify against source:
+```
+Read: <source-file>  # Ensure your fix is accurate
+```
+
+### Edit — Apply Changes
+
+Use Edit tool for surgical changes to the document.
+Prefer minimal, targeted edits over rewrites.
+
+### Write — Major Restructuring
+
+Only use Write (full file replacement) when the document requires substantial restructuring.
+Prefer Edit for most changes.
+
+---
+
 ## Invocation
 
 When invoking this agent, provide:

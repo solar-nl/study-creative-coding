@@ -227,6 +227,67 @@ Use the structure from `templates/code-trace.md`:
 
 ---
 
+## Tool Usage
+
+This agent follows a call chain through code. Use tools strategically:
+
+### TodoWrite — Track Call Stack Steps
+
+As you trace, build a todo list of discovered steps:
+```
+1. Find entry point (in_progress)
+2. Trace step 1: ShapeBuilder.circle() (pending)
+3. Trace step 2: Renderer.submit() (pending)
+4. Trace step 3: ? (discover as you go)
+...
+N. Build data flow diagram (pending)
+N+1. Extract observations (pending)
+```
+
+Add new steps as you discover them. Mark completed as you document each.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Multiple code paths exist (sync vs async, 2D vs 3D backend)
+- Entry point is ambiguous (multiple overloads or wrappers)
+- Trace reaches external library (should we go deeper?)
+- Dead end found (implementation seems incomplete — is this expected?)
+
+**DON'T ASK** (make a choice and note it):
+- Which overload to trace (pick the most common/interesting)
+- Minor branches (follow the main path, note alternatives)
+
+### Parallel Grep — Finding Implementations
+
+When searching for function definitions:
+```
+# Run simultaneously:
+Grep: "function draw" in frameworks/<name>/src/
+Grep: "class.*Circle" in frameworks/<name>/src/
+Grep: "_draw\|.draw\(" in frameworks/<name>/src/
+```
+
+### LSP Tool — Go To Definition
+
+When available, use LSP for precise navigation:
+```
+LSP goToDefinition: file.ts:42:15  # Jump to implementation
+LSP findReferences: file.ts:42:15  # Find all call sites
+```
+
+This is faster and more accurate than Grep for type-safe languages.
+
+### Read — Following the Chain
+
+Read files in sequence as you trace. When a step calls another function:
+1. Note the call site (file:line)
+2. Search for the definition
+3. Read that file
+4. Continue the chain
+
+---
+
 ## Quality Checklist
 
 Before submitting, verify:

@@ -269,6 +269,68 @@ Quick reference for common creative coding dependencies:
 
 ---
 
+## Tool Usage
+
+This agent analyzes dependency files. Use tools efficiently:
+
+### TodoWrite — Track Analysis Progress
+
+Create a todo list for the analysis:
+```
+1. Locate dependency files (in_progress)
+2. Extract dependencies (pending)
+3. Categorize dependencies (pending)
+4. Analyze key dependencies (pending)
+5. Identify Rust equivalents (pending)
+6. Document gaps (pending)
+```
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Multiple dependency files exist (monorepo — which packages to analyze?)
+- Categorization is unclear (is `lodash` a core dep or utility?)
+- Depth preference not specified (should we analyze transitive deps?)
+- Unknown dependency (can't determine purpose — should we research or skip?)
+
+**DON'T ASK** (proceed with analysis):
+- Standard categorizations (math, graphics, build tools)
+- Obvious Rust equivalents
+
+### Parallel Glob — Find All Dependency Files
+
+Search for all dependency declarations at once:
+```
+# Run simultaneously:
+Glob: **/package.json
+Glob: **/Cargo.toml
+Glob: **/build.gradle*
+Glob: **/*.csproj
+Glob: **/requirements.txt
+```
+
+### Read — Analyze Dependency Files
+
+Read multiple dependency files in parallel:
+```
+# Run simultaneously:
+Read: package.json
+Read: package-lock.json (for resolved versions)
+Read: tsconfig.json (for TypeScript deps)
+```
+
+### WebSearch — Research Unknown Dependencies
+
+For unfamiliar dependencies, use WebSearch to understand their purpose:
+```
+WebSearch: "<dependency-name> npm purpose"
+WebSearch: "<dependency-name> vs alternatives"
+```
+
+This helps with accurate categorization and finding Rust equivalents.
+
+---
+
 ## Quality Checklist
 
 Before submitting, verify:

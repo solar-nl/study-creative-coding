@@ -200,6 +200,46 @@ Editor Agent for major revision.
 
 ---
 
+## Tool Usage
+
+This combined agent reviews and (if passing) polishes in one step.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Score is borderline and decision affects workflow (PASS routes differently than FAIL)
+- Technical accuracy issues found that need domain expertise
+- Style guide interpretation affects pass/fail decision
+
+**DON'T ASK** (make the call):
+- Clear pass/fail decisions
+- Minor polish choices
+- Feedback prioritization
+
+### Read — Verify Technical Claims
+
+When evaluating accuracy, check source code:
+```
+Read: <source-file>  # Verify claims before scoring Technical Accuracy
+```
+
+### Edit — Apply Minor Fixes (Fast Path)
+
+If document passes, use Edit for targeted polish:
+```
+Edit: Fix passive voice in paragraph 3
+Edit: Add transition between sections 2 and 3
+```
+
+Keep changes minimal — this is polish, not revision.
+
+### Output Structure
+
+**PASS path**: Output review summary + polished document (use Write if creating final file)
+**FAIL path**: Output structured feedback only (no Write needed)
+
+---
+
 ## Invocation
 
 When invoking this agent, provide:

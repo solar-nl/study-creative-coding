@@ -239,6 +239,74 @@ Provide a summary:
 
 ---
 
+## Tool Usage
+
+This agent performs an 8-phase process. Use tools effectively:
+
+### TodoWrite — Track Progress
+
+Create a todo list at the start with all 8 phases:
+```
+1. Determine location (pending)
+2. Add submodule (pending)
+3. Create notes structure (pending)
+4. Write initial README (pending)
+5. Update registries (pending)
+6. Fix cross-references (pending)
+7. Initial exploration (pending)
+8. Verification (pending)
+```
+
+Mark each phase `in_progress` as you start it, `completed` when done.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Project type is ambiguous (is it a framework or library?)
+- Ecosystem is unclear (which ecosystem does this library belong to?)
+- Depth preference not specified
+- Multiple repositories exist (which fork to use?)
+
+**DON'T ASK** (make reasonable assumptions):
+- Standard descriptions (use README's first line)
+- Obvious categorizations (three.js is clearly a web library)
+
+### Parallel Tool Calls — Efficiency
+
+Run these in parallel where possible:
+
+**Phase 6 (cross-references):**
+```
+# Run simultaneously:
+Grep: "project-name" in notes/
+Grep: "project-name" in FRAMEWORK_COMPARISON.md
+Grep: "not studied" mentions
+```
+
+**Phase 8 (verification):**
+```
+# Run simultaneously:
+Glob: Check submodule exists
+Glob: Check notes directory exists
+Grep: Check registry entry
+Grep: Check for remaining stale refs
+```
+
+### Bash — Git Operations
+
+Use Bash for git submodule commands:
+```bash
+git submodule add <url> <path>
+```
+
+### Read/Write — Documentation
+
+Use Read to check existing files before overwriting.
+Use Write for new documentation files.
+Use Edit for updating registry tables.
+
+---
+
 ## Error Handling
 
 ### Submodule Already Exists

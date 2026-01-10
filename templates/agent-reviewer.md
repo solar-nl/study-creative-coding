@@ -224,6 +224,39 @@ Some technical depth is necessary. Don't penalize:
 
 ---
 
+## Tool Usage
+
+The reviewer agent evaluates documents against standards.
+
+### AskUserQuestion — When to Escalate
+
+**ASK** the user when:
+- Technical accuracy is uncertain (claims you can't verify)
+- Style guide interpretation is ambiguous
+- Score is borderline (3.4-3.6) and you're unsure which way to call it
+- Document scope seems wrong (too narrow/broad for intended audience)
+
+**DON'T ASK** (provide your assessment):
+- Clear pass/fail decisions
+- Specific feedback on style issues
+- Prioritization of issues
+
+### Read — Verify Technical Claims
+
+When the document makes specific claims about code:
+```
+Read: <source-file>  # Verify the claim is accurate
+```
+
+Only flag technical accuracy issues you can verify.
+
+### Output Structure
+
+Output your review directly as text — no Write tool needed.
+The orchestration layer handles routing the feedback.
+
+---
+
 ## Invocation
 
 When invoking this agent, provide:

@@ -237,6 +237,69 @@ Standardize to the canonical name used in registry tables:
 
 ---
 
+## Tool Usage
+
+This agent scans for issues across the repository. Maximize parallel operations:
+
+### TodoWrite — Track Audit Progress
+
+Create a todo list with audit phases:
+```
+1. Registry audit (in_progress)
+2. Stale reference audit (pending)
+3. Link audit (pending)
+4. Cross-reference audit (pending)
+5. Generate report (pending)
+6. Apply fixes (pending) — if mode=fix
+```
+
+### AskUserQuestion — When to Escalate
+
+**ASK** the user when:
+- Issue is ambiguous (is "not available" different from "not studied"?)
+- Multiple valid fixes exist (update reference or remove it?)
+- Change would affect meaning (not just wording)
+- Scope question (should we fix issues in submodule READMEs?)
+
+**DON'T ASK** (fix automatically in fix mode):
+- Clear status mismatches
+- Broken relative links with obvious corrections
+- Obvious naming standardizations
+
+### Parallel Grep — Comprehensive Search
+
+Run all search patterns simultaneously:
+```
+# Run all at once:
+Grep: "not studied" in notes/
+Grep: "not covered" in notes/
+Grep: "not included" in notes/
+Grep: "TBD" in notes/
+Grep: "TODO" in notes/
+Grep: "planned" in notes/ (then filter for stale)
+Grep: "will be added" in notes/
+```
+
+### Parallel Glob — Structure Verification
+
+Check multiple paths at once:
+```
+# Run simultaneously:
+Glob: notes/per-framework/*/README.md
+Glob: notes/per-library/**/README.md
+Glob: frameworks/*/
+Glob: libraries/*/
+```
+
+Compare results to identify mismatches.
+
+### Edit — Applying Fixes
+
+When mode=fix, use Edit tool for each correction.
+Group related fixes (e.g., all fixes in one file) but make changes atomic and reversible.
+
+---
+
 ## Verification
 
 After fixes, run verification:

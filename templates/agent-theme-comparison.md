@@ -195,6 +195,67 @@ Not all frameworks need to be included — focus on those with relevant implemen
 
 ---
 
+## Tool Usage
+
+This agent explores multiple codebases. Use tools strategically:
+
+### TodoWrite — Track Per-Framework Progress
+
+Create a todo list with each framework to analyze:
+```
+1. Understand theme (in_progress)
+2. Explore p5.js (pending)
+3. Explore Processing (pending)
+4. Explore openrndr (pending)
+5. Explore nannou (pending)
+6. Build comparison matrix (pending)
+7. Synthesize recommendations (pending)
+```
+
+Update as you complete each framework's analysis.
+
+### AskUserQuestion — When to Clarify
+
+**ASK** the user when:
+- Theme scope is ambiguous (e.g., "colors" — do they mean color spaces, blending, or palettes?)
+- Framework list unclear (should we include visual programming frameworks?)
+- Comparison dimensions need prioritization (which aspects matter most?)
+- Conflicting patterns found (frameworks solve it differently — which is preferred?)
+
+**DON'T ASK** (proceed with research):
+- Which files to explore (search broadly first)
+- Minor scope decisions (include reasonable scope, note what's excluded)
+
+### Task Tool — Parallel Framework Exploration
+
+For comprehensive analysis, spawn parallel explore agents:
+```
+# Run simultaneously:
+Task (Explore): "Find color mixing implementation in frameworks/p5.js"
+Task (Explore): "Find color mixing implementation in frameworks/openrndr"
+Task (Explore): "Find color mixing implementation in frameworks/nannou"
+```
+
+This dramatically speeds up multi-framework analysis.
+
+### Parallel Grep — Efficient Search
+
+When searching for a pattern across frameworks:
+```
+# Run simultaneously:
+Grep: "ColorSpace" in frameworks/p5.js/
+Grep: "ColorSpace" in frameworks/openrndr/
+Grep: "ColorSpace" in frameworks/nannou/
+Grep: "ColorSpace" in libraries/threejs/
+```
+
+### Read — Code Analysis
+
+After locating relevant files via Grep, use Read to examine implementations.
+Read multiple files in parallel when analyzing different frameworks.
+
+---
+
 ## Quality Checklist
 
 Before submitting, verify:
