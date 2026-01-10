@@ -10,6 +10,8 @@ This architecture emerged from the practical realities of real-time audio. Moder
 
 Understanding V2's three-tier architecture explains not just how the synthesizer works, but why software synthesizers are structured this way universally. The patterns you learn here apply to any real-time audio system, from simple tone generators to commercial DAW plugins.
 
+For detailed walkthroughs of specific operations, see the [code traces](code-traces/) directory, particularly [note-to-sound.md](code-traces/note-to-sound.md) which follows a MIDI note through the entire pipeline.
+
 ## Why Three Tiers?
 
 Real-time audio software faces a fundamental tension. Users want rich interfaces with immediate feedback. But audio generation cannot wait for UI redraws or disk access. These two worlds operate on incompatible timescales: human perception works in hundreds of milliseconds while audio demands sub-millisecond precision.
@@ -53,7 +55,7 @@ struct V2Synth
 };
 ```
 
-The V2Instance nested structure holds frame-sized working buffers. These buffers get reused every frame, which keeps the total memory footprint bounded regardless of how long the synth runs. The frame size defaults to 128 samples at 44.1kHz, providing about 2.9 milliseconds of audio per processing cycle.
+The V2Instance nested structure holds frame-sized working buffers. These buffers get reused every frame, keeping the total memory footprint bounded regardless of how long the synth runs. The frame size defaults to 128 samples at 44.1kHz, providing about 2.9 milliseconds of audio per processing cycle. The structure below shows these working buffers:
 
 ```cpp
 struct V2Instance
@@ -75,7 +77,7 @@ struct V2Instance
 };
 ```
 
-The tracking room's musicians are the voices. Each voice represents a single sounding note, containing three oscillators, two filters, two envelopes, two LFOs, distortion, and DC filtering. V2 supports 64 simultaneous voices, though patches can limit polyphony to reduce CPU load.
+The tracking room's musicians are the voices. Each voice represents a single sounding note, containing three oscillators, two filters, two envelopes, two LFOs, distortion, and DC filtering. V2 supports 64 simultaneous voices, though patches can limit polyphony to reduce CPU load. For a detailed trace of voice processing, see [modulation-update.md](code-traces/modulation-update.md).
 
 ## Tier 2: The Control Room (C API)
 
@@ -179,7 +181,7 @@ The audio thread runs synthRender, which generates samples on demand. The host's
 
 Parameter changes from MIDI or host automation arrive between render calls. The processMIDI function updates internal state, but these updates happen atomically from the audio thread's perspective. MIDI bytes go into a buffer that processMIDI consumes; there is no lock contention.
 
-The libv2.h header documents the threading contract for DirectSound output. The dsLock and dsUnlock functions protect parameter modifications from non-audio threads.
+The libv2.h header documents the threading contract for DirectSound output. These lock functions protect parameter modifications from non-audio threads:
 
 ```cpp
 // From libv2.h:
@@ -253,3 +255,10 @@ Frame-based processing balances efficiency with responsiveness. Control-rate upd
 Static allocation and careful threading ensure reliable real-time performance. The audio thread never blocks, never allocates, and never waits. Parameter updates from MIDI or automation occur atomically between render calls.
 
 This architecture has proven itself across thousands of demoscene productions and commercial plugin deployments. Its patterns remain relevant for any real-time audio system, whether implemented in C++, Rust, or any other language with deterministic performance characteristics.
+
+---
+
+**See also:**
+- [V2 Overview](README.md) - Introduction and key insights
+- [Note to Sound Trace](code-traces/note-to-sound.md) - Complete walkthrough from MIDI to audio output
+- [Modulation Update Trace](code-traces/modulation-update.md) - Deep dive into the modulation matrix
