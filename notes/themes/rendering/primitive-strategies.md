@@ -2,6 +2,10 @@
 
 > Which 2D primitives can be instanced, and which need other approaches?
 
+## Key Insight
+
+> **Primitive strategy's core idea:** Instance when variation fits in fixed-size data (circles, rects); bucket by topology when it doesn't (varying polygon sides); accumulate geometry for arbitrary shapes (beziers, paths).
+
 ---
 
 ## The Core Principle

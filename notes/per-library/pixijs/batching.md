@@ -2,6 +2,10 @@
 
 > The postal sorting office principle applied to GPU rendering
 
+## Key Insight
+
+> **Batching's core idea:** Group sprites by compatible state (textures, blend mode, topology) and render them in one draw call, using per-vertex texture IDs so multiple textures can coexist in a single batch.
+
 ---
 
 ## The Problem: Death by a Thousand Draw Calls

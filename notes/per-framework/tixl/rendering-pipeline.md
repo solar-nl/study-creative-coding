@@ -1,5 +1,9 @@
 # tixl - Rendering Pipeline
 
+## Key Insight
+
+> **Command pattern rendering's core idea:** Graph evaluation produces Command objects that encapsulate GPU state changes and draw calls, enabling deferred execution, render-to-texture workflows, and composable rendering hierarchies.
+
 ## Overview
 
 tixl uses **DirectX 11** via SharpDX for GPU rendering, with a focus on real-time performance for motion graphics and VJ applications.

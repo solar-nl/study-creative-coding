@@ -2,6 +2,10 @@
 
 > One font file, infinite weights—how does that work?
 
+## Key Insight
+
+> **The core challenge:** Variable fonts enable smooth weight/width animation that is impossible with traditional fonts, yet none of the six studied creative coding frameworks expose this capability despite their underlying libraries supporting it.
+
 ---
 
 ## The Problem: Font Proliferation

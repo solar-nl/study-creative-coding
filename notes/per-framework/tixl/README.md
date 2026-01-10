@@ -2,6 +2,10 @@
 
 > An open-source, real-time motion graphics and creative coding framework.
 
+## Key Insight
+
+> **tixl's core idea:** A visual node graph where operators (Symbols) are instantiated at runtime (Instances) and communicate through typed data slots with dirty-flag tracking for efficient lazy evaluation.
+
 ## Quick Facts
 
 | Property | Value |

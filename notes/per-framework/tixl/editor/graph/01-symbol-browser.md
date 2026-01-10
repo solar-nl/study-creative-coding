@@ -2,6 +2,10 @@
 
 > *Press Tab anywhere on the canvas, and within milliseconds you're searching thousands of operators—filtered by type, ranked by relevance, ready to wire.*
 
+## Key Insight
+
+> **Symbol browser's core idea:** A context-aware command palette that filters operators by type compatibility (if dragging from an output, only show operators with matching inputs), then automatically wires the connection when you select one.
+
 **Previous:** [Index](00-index.md) | **Next:** [Search & Relevance Scoring](02-search-relevance.md)
 
 ---

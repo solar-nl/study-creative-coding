@@ -1,6 +1,12 @@
 # Building Your Own Mixbox-Style LUT
 
-Based on the paper "Practical Pigment Mixing for Digital Painting" (Sochorová & Jamriška, 2021), here's the complete recipe for constructing your own pigment mixing LUT.
+> "The magic is in the spectral data - once you have K(lambda) and S(lambda), the rest is straightforward physics."
+
+## Key Insight
+
+> **LUT construction's core idea:** For each RGB color, solve "which pigment concentrations produce this?" via Newton optimization, then store those concentrations in a 3D lookup table.
+
+Based on the paper "Practical Pigment Mixing for Digital Painting" (Sochorova & Jamriska, 2021), here's the complete recipe for constructing your own pigment mixing LUT.
 
 ---
 

@@ -1,5 +1,11 @@
 # nannou API Design
 
+> Exploring nannou's Rust-idiomatic public interface.
+
+## Key Insight
+
+> **API Design's core idea:** nannou achieves fluent, creative-coding-friendly syntax through builder patterns that return Self for chaining, abbreviated method names (x_y, w_h), and a prelude module for convenient imports.
+
 ## Public API Surface
 
 nannou exposes a Rust-idiomatic API using builders, traits, and method chaining.

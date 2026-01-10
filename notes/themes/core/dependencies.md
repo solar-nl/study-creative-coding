@@ -1,5 +1,11 @@
 # Dependencies - Cross-Framework Comparison
 
+> What libraries power creative coding frameworks under the hood?
+
+## Key Insight
+
+> **Dependency selection's core idea:** In Rust, the ecosystem has converged: wgpu for graphics, winit for windowing, glam for math, cpal for audio, image for textures - embrace these standards rather than reinventing.
+
 ## Overview
 
 This document analyzes the dependency ecosystems across creative coding frameworks, identifying patterns and commonalities that inform decisions for a new Rust-based framework.

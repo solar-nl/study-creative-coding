@@ -2,6 +2,10 @@
 
 > *Staying smooth at 60fps with 500 operators*
 
+## Key Insight
+
+> **MagGraph performance's core idea:** Lazy layout (only recompute on structural changes), visibility culling (skip off-screen elements), cycle counters (detect stale items without list operations), and aggressive inlining on hot paths.
+
 ---
 
 ## The Problem: Node Editors Get Slow

@@ -2,6 +2,10 @@
 
 > How do you build a visual programming environment on top of raw GPU APIs?
 
+## Key Insight
+
+> **Cables' core idea:** A three-layer architecture separates the visual graph (patches/operators) from GPU abstraction (CgContext) from platform specifics (WebGL/WebGPU), letting artists think in connections while the framework handles state management.
+
 ---
 
 ## The Problem: Bridging Artists and GPU Pipelines

@@ -2,6 +2,10 @@
 
 > Should you use the browser's text engine, or bring your own?
 
+## Key Insight
+
+> **The core challenge:** Browser text APIs are free and handle complex scripts, but they are a black box—you cannot access glyph positions or paths, making creative typography impossible without bundling your own shaper (adding 100KB+ gzipped).
+
 ---
 
 ## The Dilemma: Two Paths to Text in the Browser

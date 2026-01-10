@@ -1,6 +1,10 @@
 # p5.js Architecture
 
-How do you build a framework that beginners can use in five minutes but experts can extend indefinitely?
+> How do you build a framework that beginners can use in five minutes but experts can extend indefinitely?
+
+## Key Insight
+
+> **p5.js's core idea:** A hidden `p5` instance holds all state and methods, then projects them onto `window` for global mode—beginners get magic globals, experts get the full object when they need it.
 
 ---
 

@@ -2,6 +2,10 @@
 
 > *Where to put your code when you want to add something new*
 
+## Key Insight
+
+> **Extending MagGraph's core idea:** New states go in GraphStates.cs with Enter/Update/Exit hooks; new item variants need Layout and Rendering handlers; all structure modifications need ICommand wrappers for undo and FlagStructureAsChanged calls.
+
 ---
 
 ## The Question: "I Want to Add X - Where Do I Start?"

@@ -2,6 +2,10 @@
 
 > *Why "am I dragging or connecting?" should never be a question*
 
+## Key Insight
+
+> **State machine's core idea:** At any moment the editor is in exactly one state (Default, DragItems, Placeholder, etc.)—each state has Enter/Update/Exit hooks, and transitions are explicit method calls, eliminating nested boolean flag nightmares.
+
 ---
 
 ## The Problem: Implicit State is a Nightmare

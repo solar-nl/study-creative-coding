@@ -2,6 +2,10 @@
 
 > Why is drawing text so much harder than drawing shapes?
 
+## Key Insight
+
+> **The core challenge:** Text rendering spans three distinct problems—font parsing, text shaping, and glyph rendering—each complex enough to be its own library, and creative coders want to manipulate text at all three levels.
+
 ---
 
 ## The Problem: Text Is Deceptively Complex

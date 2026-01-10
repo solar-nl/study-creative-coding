@@ -2,6 +2,10 @@
 
 > Comprehensive analysis of color representation, manipulation, and theory across creative coding frameworks.
 
+## Key Insight
+
+> **Color systems' core idea:** RGB is for displays, HSV for picking, LAB/OkLab for perceptual uniformity, and Kubelka-Munk (Mixbox) for paint-like mixing - choose the space that matches your operation.
+
 ## Overview
 
 Color is fundamental to creative coding. Frameworks differ significantly in:

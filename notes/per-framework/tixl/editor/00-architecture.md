@@ -2,6 +2,10 @@
 
 > *Master reference for the Tooll3 Editor codebase*
 
+## Key Insight
+
+> **Editor architecture's core idea:** An ImGui-based UI where all state modifications flow through Command objects for undo/redo, with specialized subsystems (MagGraph, Timeline, Parameters) sharing a common Window base class and ScalableCanvas infrastructure.
+
 ---
 
 ## Overview

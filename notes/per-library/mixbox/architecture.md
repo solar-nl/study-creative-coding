@@ -1,5 +1,13 @@
 # Mixbox - Architecture (Demystified)
 
+> How do you make digital colors mix like real paint?
+
+## Key Insight
+
+> **Mixbox's core idea:** RGB can't represent pigment mixing, so colors are lifted into a 7-channel latent space (4 pigment concentrations + 3 residuals) where linear interpolation behaves like real paint, then projected back to RGB.
+
+---
+
 ## Overview
 
 Mixbox is a **color mixing library** that simulates pigment-based color blending using Kubelka-Munk theory. This document explains exactly how it works, including the polynomial coefficients, the LUT structure, and why certain design choices were made.

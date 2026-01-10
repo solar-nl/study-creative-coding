@@ -2,6 +2,10 @@
 
 > What if shader code could write itself?
 
+## Key Insight
+
+> **TSL's core idea:** Represent shaders as composable node graphs instead of strings, so effects can be combined like functions and compiled to any backend automatically.
+
 ---
 
 ## The Problem: Why Not Just Write WGSL Directly?

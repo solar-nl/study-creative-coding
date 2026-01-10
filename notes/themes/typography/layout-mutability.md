@@ -2,6 +2,10 @@
 
 > Should text layouts be mutable for animation, or rebuilt every frame?
 
+## Key Insight
+
+> **The core challenge:** Text shaping is expensive but reading glyph positions is free—so the optimal pattern is immutable layouts with transforms applied at draw time, which also happens to align perfectly with Rust's ownership model.
+
 ---
 
 ## The Question

@@ -1,5 +1,11 @@
 # nannou Architecture
 
+> Understanding nannou's internal structure and module organization.
+
+## Key Insight
+
+> **Architecture's core idea:** nannou separates concerns into focused crates (core, wgpu, mesh, audio) that compose together, with App as the central orchestrator managing windows, events, and the model-update-view lifecycle.
+
 ## Crate Dependency Graph
 
 ```

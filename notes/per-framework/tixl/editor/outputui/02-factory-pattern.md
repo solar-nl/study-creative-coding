@@ -2,6 +2,10 @@
 
 > *How the system decides which renderer to use for each type*
 
+## Key Insight
+
+> **Factory pattern's core idea:** Separate "which type maps to which renderer" (registration at startup) from "give me a renderer for this type" (lookup at runtime), with a generic fallback for unknown types.
+
 ---
 
 ## The Problem: Matching Types to Renderers

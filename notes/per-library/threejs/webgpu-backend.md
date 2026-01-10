@@ -2,6 +2,10 @@
 
 > The translator that speaks GPU fluently so you don't have to
 
+## Key Insight
+
+> **WebGPU Backend's core idea:** Translate high-level renderer intentions ("draw this mesh") into precise GPU commands (encoders, passes, bind groups) while hiding all the low-level machinery.
+
 ---
 
 ## The Problem: Two Languages That Don't Understand Each Other

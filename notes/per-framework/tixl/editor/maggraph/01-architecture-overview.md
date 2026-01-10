@@ -2,6 +2,10 @@
 
 > *Why building a node editor the "obvious" way leads to problems - and how MagGraph solves them*
 
+## Key Insight
+
+> **MagGraph's core idea:** A four-layer architecture (Model, State Machine, Interaction, Rendering) where cached layout avoids per-frame recomputation, an explicit state machine eliminates ambiguous input handling, and MacroCommand grouping ensures one user action equals one undo step.
+
 ---
 
 ## The Problem: Why Rewrite the Graph Editor?

@@ -2,6 +2,10 @@
 
 > How do you design an API for people who have never programmed before?
 
+## Key Insight
+
+> **p5.js API's core idea:** Global functions with implicit state let beginners write `circle(100, 100, 50)` instead of managing objects, contexts, and method chains.
+
 ---
 
 ## The Problem: Programming is Hostile to Beginners

@@ -2,6 +2,10 @@
 
 > What happens between clicking 'play' and seeing pixels?
 
+## Key Insight
+
+> **Cables rendering's core idea:** Each frame follows a theater pattern - stage setup (push initial state), performance (ops push/pop their changes in nested order), curtain call (safety cleanup) - ensuring state never leaks between frames.
+
 ---
 
 ## The Problem: Coordinating a Dance of State Changes

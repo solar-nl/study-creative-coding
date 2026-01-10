@@ -2,6 +2,10 @@
 
 > How do creative coding frameworks turn your drawing commands into efficient GPU operations?
 
+## Key Insight
+
+> **Batching's core idea:** The GPU can render millions of triangles fast, but each draw call costs microseconds of CPU-GPU sync - batch geometry to minimize calls, not triangles.
+
 ---
 
 ## The Problem: Draw Calls Are Expensive

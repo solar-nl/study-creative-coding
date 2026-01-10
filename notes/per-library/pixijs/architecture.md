@@ -2,6 +2,10 @@
 
 > How 12+ specialized systems collaborate to turn a scene graph into GPU commands
 
+## Key Insight
+
+> **Architecture's core idea:** A renderer is a composition of autonomous systems (encoder, pipeline, buffer, texture) that each own one responsibility, communicating through a shared renderer instance rather than being one monolithic class.
+
 ---
 
 ## The Problem: A Renderer Is Not One Thing

@@ -2,6 +2,10 @@
 
 > How do you turn a Bezier curve into triangles?
 
+## Key Insight
+
+> **The core challenge:** Tessellation is expensive enough that you must cache results, yet dynamic enough that the cache strategy defines your framework's performance ceiling.
+
 ---
 
 ## The Problem: GPUs Only Understand Triangles

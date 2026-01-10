@@ -2,6 +2,10 @@
 
 > How do frameworks import and export vector graphics?
 
+## Key Insight
+
+> **The core challenge:** SVG's arc command (7 parameters specifying an elliptical arc) has no direct equivalent in most graphics APIs, requiring complex endpoint-to-center conversion and Bezier approximation that few frameworks implement correctly.
+
 ---
 
 ## The Problem: Asset Exchange

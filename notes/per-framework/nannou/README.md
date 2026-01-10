@@ -2,6 +2,10 @@
 
 > A Rust framework for creative coding.
 
+## Key Insight
+
+> **nannou's core idea:** A modular workspace of focused crates that brings creative coding to Rust through idiomatic builder patterns, callback-based lifecycles, and wgpu-powered graphics.
+
 ## Quick Facts
 
 | Property | Value |

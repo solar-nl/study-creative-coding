@@ -2,6 +2,10 @@
 
 > How do you combine two shapes into one?
 
+## Key Insight
+
+> **The core challenge:** Finding all intersection points between two curved paths, then correctly tracing boundaries through tangent intersections and self-intersecting edges, is so numerically fragile that only one of six studied frameworks (openrndr) even attempts it.
+
 ---
 
 ## The Problem: Combining Shapes

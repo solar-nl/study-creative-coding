@@ -2,6 +2,10 @@
 
 > Why render the same pipeline twice when you could compile it once and remember?
 
+## Key Insight
+
+> **Pipeline Caching's core idea:** Generate a cache key from all render state (shaders, blending, depth settings), then reuse the same GPU pipeline for every draw call with matching state.
+
 ---
 
 ## The Problem: GPU Resource Creation Is Expensive

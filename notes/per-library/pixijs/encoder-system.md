@@ -2,6 +2,10 @@
 
 > The meticulous secretary who remembers everything so you don't have to
 
+## Key Insight
+
+> **Encoder system's core idea:** Track what GPU state is already bound (pipeline, buffers, bind groups) and skip redundant calls, turning 1000 identical state-sets into one.
+
 ---
 
 ## The Problem: Recording GPU Commands Without Repetition

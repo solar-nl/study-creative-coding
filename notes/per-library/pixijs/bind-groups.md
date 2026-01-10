@@ -2,6 +2,10 @@
 
 > Every shader needs resources - textures, buffers, samplers. Bind groups are how you bundle them for delivery.
 
+## Key Insight
+
+> **Bind groups' core idea:** Bundle all resources a shader needs into a single cached package keyed by resource IDs, so identical texture/buffer combinations across different sprites reuse the same GPU bind group.
+
 ---
 
 ## The Problem: Shaders Need Supplies

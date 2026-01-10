@@ -1,5 +1,11 @@
 # nannou Rendering Pipeline
 
+> How drawing commands become pixels on screen.
+
+## Key Insight
+
+> **Rendering Pipeline's core idea:** nannou provides an immediate-mode drawing API (queue commands each frame) that internally batches primitives and submits them to wgpu's retained-mode GPU backend for efficient rendering.
+
 ## Overview
 
 nannou uses an **immediate-mode drawing API** backed by wgpu (retained-mode GPU).

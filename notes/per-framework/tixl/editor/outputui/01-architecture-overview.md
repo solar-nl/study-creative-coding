@@ -2,6 +2,10 @@
 
 > *Understanding how the OutputUi system thinks about visualization*
 
+## Key Insight
+
+> **OutputUi's core idea:** A factory-driven type dispatch system where each output type (float, texture, command) gets a specialized renderer, with per-view state automatically managed via ConditionalWeakTable for memory-safe multi-view support.
+
 ---
 
 ## The Problem We're Solving

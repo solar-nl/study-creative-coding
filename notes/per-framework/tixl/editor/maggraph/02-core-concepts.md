@@ -2,6 +2,10 @@
 
 > *Building a mental model of how MagGraph represents and manipulates node graphs*
 
+## Key Insight
+
+> **MagGraph's core idea:** A node graph is modeled as Items (unified type for operators, inputs, outputs), Connections (snapped or flowing), and Layout (cached visual state)—with damped positions creating the "magnetic" feel.
+
 ---
 
 ## Before We Dive In: What Problem Are We Solving?

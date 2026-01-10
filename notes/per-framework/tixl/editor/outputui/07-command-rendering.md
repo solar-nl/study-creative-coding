@@ -2,6 +2,10 @@
 
 > *Full GPU rendering pipeline for Command outputs*
 
+## Key Insight
+
+> **Command rendering's core idea:** Commands are recipes, not values—CommandOutputUi creates its own render targets, saves GPU state, runs the operator into those targets, then displays the resulting texture like any other image.
+
 ---
 
 ## The Problem: Rendering is Different

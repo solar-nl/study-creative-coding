@@ -1,5 +1,11 @@
 # Mixbox - API Design
 
+> "The best API is one you don't have to think about." - Mixbox achieves this with a single function.
+
+## Key Insight
+
+> **Mixbox API's core idea:** Replace `lerp(color1, color2, t)` with `mixbox_lerp(color1, color2, t)` - same signature, physically accurate pigment mixing.
+
 ## Overview
 
 Mixbox has an extremely simple API: **one function** that replaces standard color lerp.

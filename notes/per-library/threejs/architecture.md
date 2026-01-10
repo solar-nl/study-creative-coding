@@ -2,6 +2,10 @@
 
 > Why everything in 3D graphics eventually becomes a tree
 
+## Key Insight
+
+> **Scene Graph's core idea:** Store transforms relative to parents so moving a parent automatically moves all its children—the tree structure makes complex hierarchies manageable.
+
 ---
 
 ## The Problem: Organizing a Universe of Objects

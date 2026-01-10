@@ -1,5 +1,9 @@
 # tixl - Architecture
 
+## Key Insight
+
+> **Symbol-Instance-Slot's core idea:** Separate what an operator *is* (Symbol) from its runtime state (Instance), connecting them through typed Slots that propagate dirty flags for pull-based lazy evaluation.
+
 ## Overview
 
 tixl is built on a **Symbol-Instance-Slot** graph system - a three-layer architecture that separates operator definitions from their runtime instances, connected via typed data flow slots.

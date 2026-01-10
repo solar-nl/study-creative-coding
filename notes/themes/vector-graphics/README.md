@@ -2,6 +2,10 @@
 
 > How do you turn a mathematical curve into pixels on screen?
 
+## Key Insight
+
+> **The core challenge:** GPUs only understand triangles, so every curve, circle, and complex polygon must be tessellated into triangles before rendering—a computationally expensive step that most frameworks hide from you.
+
 ---
 
 ## The Problem: Shapes Aren't Pixels

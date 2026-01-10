@@ -2,6 +2,10 @@
 
 > A Canvas-like drawing API that records your artistic intent before translating it into GPU-renderable geometry
 
+## Key Insight
+
+> **Graphics API's core idea:** Separate drawing instructions (GraphicsContext) from scene instances (Graphics), so one tessellation can be shared by thousands of identical shapes at different positions.
+
 ---
 
 ## The Problem: Drawing Shapes on a GPU

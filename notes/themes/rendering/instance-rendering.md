@@ -2,6 +2,10 @@
 
 > How do you efficiently render 1000 ellipses that change every frame?
 
+## Key Insight
+
+> **Instance rendering's core idea:** Tessellate geometry once, upload only what changes per shape (position, scale, color) as instance attributes - let the GPU's vertex shader do the transforms in parallel.
+
 ---
 
 ## The Scenario

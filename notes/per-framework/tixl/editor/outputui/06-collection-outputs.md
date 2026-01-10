@@ -2,6 +2,10 @@
 
 > *Lists, dictionaries, and structured data*
 
+## Key Insight
+
+> **Collection output's core idea:** The same data can be viewed multiple ways (grid, plot, list)—users pick the view that matches their current question, with per-view state remembering each panel's settings.
+
 ---
 
 ## The Problem: A Single Value vs. Many Values

@@ -2,6 +2,10 @@
 
 > What happens when a font doesn't have the character you need?
 
+## Key Insight
+
+> **The core challenge:** Fallback happens per-character (not per-block), and you must re-shape with the fallback font (not just swap glyphs), because complex scripts depend on surrounding context to render correctly.
+
 ---
 
 ## The Problem: Fonts Have Holes

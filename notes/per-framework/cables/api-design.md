@@ -2,6 +2,10 @@
 
 > How do you make GPU programming accessible to visual artists?
 
+## Key Insight
+
+> **Cables API's core idea:** Operators are self-contained units with typed ports (Value/Trigger/Object) that connect like LEGO bricks, hiding GPU complexity while preserving full capability through the push/pop state pattern.
+
 ---
 
 ## The Problem: GPU Programming Is Hard

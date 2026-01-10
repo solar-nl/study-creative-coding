@@ -2,6 +2,10 @@
 
 > Every frame, p5.js executes your drawing commands and immediately forgets them. Understanding this "stateless" approach is key to understanding both its simplicity and its limitations.
 
+## Key Insight
+
+> **p5.js rendering's core idea:** Draw commands paint pixels immediately and are forgotten; there is no scene graph, only an accumulating canvas that you redraw each frame.
+
 ---
 
 ## The Problem: How Do You Make Drawing Code Simple?

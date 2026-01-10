@@ -2,6 +2,10 @@
 
 > *A thousand operators, organized in milliseconds—the tree builds itself by parsing namespaces and respecting a deliberate ordering.*
 
+## Key Insight
+
+> **Namespace tree's core idea:** Flat namespace strings like "Lib.Image.Filter" are parsed into a recursive tree structure at startup, with priority ordering (Lib first, then Types, then user code) and predicate filtering for building sparse trees matching quality criteria.
+
 **Previous:** [Symbol Library Window](01-symbol-library.md) | **Next:** [Search & Relevance](../graph/02-search-relevance.md)
 
 ---

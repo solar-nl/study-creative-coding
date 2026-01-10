@@ -2,6 +2,10 @@
 
 > How do you turn a 1D path into visible geometry?
 
+## Key Insight
+
+> **The core challenge:** A "line" with thickness is actually a filled shape requiring tessellation—and the offset curve of a Bezier is not itself a Bezier, forcing approximation at every step.
+
 ---
 
 ## The Problem: Lines Have No Thickness

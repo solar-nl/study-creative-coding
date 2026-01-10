@@ -1,5 +1,9 @@
 # tixl - API Design
 
+## Key Insight
+
+> **Attribute-based API's core idea:** Operators are plain C# classes decorated with `[Guid]`, `[Input]`, and `[Output]` attributes, letting reflection build the graph structure while typed `Slot<T>` fields enforce compile-time type safety.
+
 ## Overview
 
 tixl uses an **attribute-based declarative API** for defining operators. Operators are C# classes with special attributes that define their inputs, outputs, and metadata.

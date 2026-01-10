@@ -2,6 +2,10 @@
 
 > *Turning coordinates into pixels at any zoom level*
 
+## Key Insight
+
+> **Canvas rendering's core idea:** ScalableCanvas transforms between canvas space (where nodes live) and screen space (where pixels appear) via Scale/Scroll/WindowPos—every drawing call uses TransformPosition, every input uses InverseTransformPosition.
+
 ---
 
 ## The Fundamental Challenge: Two Coordinate Systems

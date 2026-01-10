@@ -2,6 +2,10 @@
 
 > What if you could turn billions of possible cache keys into a handful of fast lookups?
 
+## Key Insight
+
+> **Pipeline caching's core idea:** Use a two-tier cache where rarely-changing global state (render target, stencil) selects which per-draw-call cache to search, making lookups fast and preventing cross-context pollution.
+
 ---
 
 ## The Problem: Pipeline Creation Is Expensive

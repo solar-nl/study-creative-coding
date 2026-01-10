@@ -2,6 +2,10 @@
 
 > How a million-polygon scene becomes 60 draw calls per second
 
+## Key Insight
+
+> **Rendering Pipeline's core idea:** Separate what exists (scene graph), what to draw (sorted render lists), and how to draw it (cached RenderObjects)—so each layer can be optimized independently.
+
 ---
 
 ## The Problem: From Scene Graph to GPU Commands

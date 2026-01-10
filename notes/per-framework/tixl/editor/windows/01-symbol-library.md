@@ -2,6 +2,10 @@
 
 > *A tree with thousands of leaves, yet finding any operator takes seconds—and reorganizing the hierarchy is just a drag away.*
 
+## Key Insight
+
+> **Symbol library's core idea:** A persistent docked window combining hierarchical tree browsing (for exploration) with flat search (for speed), plus drag-and-drop namespace reorganization and quality filters for finding operators needing attention.
+
 **Previous:** [Index](00-index.md) | **Next:** [Namespace Tree & Filtering](02-namespace-tree.md)
 
 ---

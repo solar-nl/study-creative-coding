@@ -2,6 +2,10 @@
 
 > *Making nodes "want" to connect to each other*
 
+## Key Insight
+
+> **Item movement's core idea:** Snapping works by testing all overlapping items for type-compatible anchors within a threshold distance, then creating/deleting connections automatically—with shake gestures to disconnect and insertion to splice into existing wires.
+
 ---
 
 ## The Magic: Nodes That Snap Together
