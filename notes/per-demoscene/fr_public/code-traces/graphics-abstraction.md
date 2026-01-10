@@ -603,7 +603,7 @@ sGeoBufferPart VertexPart[sVF_STREAMMAX];  // DX9/OGL
    Cargo features map cleanly to Altona's `sCONFIG_RENDER_*` approach.
 
 2. **Pre-compiled pipeline states**
-   wgpu already requires this - render pipelines must be created ahead of time, not at draw time.
+   [wgpu](https://github.com/gfx-rs/wgpu) already requires this - render pipelines must be created ahead of time, not at draw time.
 
 3. **Buffer duration hints**
    ```rust
@@ -739,9 +739,9 @@ impl<'a> DrawGeometry<'a> for RenderPass<'a> {
 
 ---
 
-## Comparison with wgpu
+## Comparison with [wgpu](https://github.com/gfx-rs/wgpu)
 
-| Aspect | Altona | wgpu |
+| Aspect | Altona | [wgpu](https://github.com/gfx-rs/wgpu) |
 |--------|--------|------|
 | Backend Selection | Compile-time (`#if`) | Runtime (adapter selection) |
 | Pipeline State | Pre-compiled per material | Pre-compiled `RenderPipeline` |
@@ -752,7 +752,7 @@ impl<'a> DrawGeometry<'a> for RenderPass<'a> {
 | Resource Binding | Implicit via Material | Explicit `BindGroup` |
 | Multi-Threading | Thread-local context (GTC) | Command encoders |
 
-Altona's abstraction is thinner than wgpu's - it maps more directly to the underlying APIs. wgpu adds an additional abstraction layer that unifies Vulkan, Metal, DX12, and WebGPU behind a single API that can switch at runtime.
+Altona's abstraction is thinner than [wgpu](https://github.com/gfx-rs/wgpu)'s - it maps more directly to the underlying APIs. wgpu adds an additional abstraction layer that unifies Vulkan, Metal, DX12, and WebGPU behind a single API that can switch at runtime.
 
 ---
 

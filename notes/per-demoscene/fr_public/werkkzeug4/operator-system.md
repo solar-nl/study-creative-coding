@@ -6,9 +6,9 @@
 
 ## The Problem: Death by a Thousand Parameters
 
-Visual programming tools live or die by their operators. A node-based system for creating 3D meshes, textures, and animations might have hundreds of operators, each needing the same infrastructure: parameter definitions, GUI widgets, serialization, default values, and the actual logic. The naive approach is to write all of this by hand for every operator.
+Visual programming tools live or die by their operators. A node-based system for creating 3D meshes, textures, and animations might have hundreds of operators, each needing the same infrastructure: parameter definitions, GUI widgets, serialization, default values, and the actual logic. The naive approach writes all of this by hand for every operator.
 
-Consider what a simple "Torus" mesh generator actually requires. You need a struct to hold the six parameters (slices, segments, radii, phase, arc). You need GUI code that creates the right widget for each parameter type, with correct ranges and step sizes. You need initialization code that sets sensible defaults. You need the execution function that calls the mesh generation. You need registration code so the editor knows this operator exists. And if you want animation support, you need bindings that let scripts access each parameter by name.
+Consider what a simple "Torus" mesh generator actually requires. You need a struct to hold six parameters: slices, segments, inner radius, outer radius, phase, and arc. You need GUI code that creates the right widget for each parameter type, with correct ranges and step sizes. You need initialization code that sets sensible defaults. You need the execution function that calls the mesh generation. You need registration code so the editor knows this operator exists. And if you want animation support, you need bindings that let scripts access each parameter by name.
 
 That is six separate concerns for one operator. Now multiply by the hundred-plus operators in Werkkzeug4. Any change to the GUI system requires touching every operator file. Any typo in a parameter name creates subtle bugs where the GUI shows "InnerRadius" but the code accesses "innerRadius". The maintenance burden becomes crushing.
 
@@ -16,28 +16,33 @@ Farbrausch solved this with a domain-specific language. Instead of writing hundr
 
 ---
 
-## The Mental Model: A Factory That Stamps Out Bureaucracy
+## The Mental Model: A Government Office That Never Makes Mistakes
 
-Think of `.ops` files as forms that you fill out once. The code generator is a tireless clerk who takes your form and produces all the paperwork that the C++ compiler actually needs. You specify "I want an integer parameter named Slices with range 3 to 4096 and default 12." The clerk produces the struct field, the GUI widget code, the default initialization, and the script binding, all perfectly consistent because they come from the same source.
+Think of the `.ops` file as a form you fill out once at a government office. You write down what you need: "I want an integer parameter named Slices with range 3 to 4096 and default 12." Then you hand this form to a tireless clerk named `wz4ops`.
 
-This is not code generation in the scary sense of outputting incomprehensible machine-generated code. The generated C++ is clean, readable, and debuggable. The DSL simply automates the repetitive parts while you write the interesting logic yourself.
+This clerk is remarkably diligent. From your single form, the clerk produces five different documents that various departments need:
 
-The flow looks like this:
+1. **The Parameter Registry** (a C++ struct) - The accounting department needs to know exactly how much memory your operator requires and what fields it contains.
 
-```
-.ops declaration  -->  wz4ops tool  -->  .hpp + .cpp files  -->  Compiled into editor
-```
+2. **The Execution Permit** (the Cmd function) - The operations department needs instructions for actually running your operator when the time comes.
 
-The `wz4ops` tool reads your declaration, parses it into an abstract syntax tree, then walks that tree to emit C++ code for each concern. The generated files are checked into source control and compiled normally.
+3. **The Public Interface Form** (the Gui function) - The front desk needs to know what widgets to display when a citizen wants to adjust your operator's parameters.
+
+4. **The Default Values Certificate** (the Def function) - New operators need to start with sensible values; this document specifies them.
+
+5. **The Business License** (registration code) - The central directory needs to know your operator exists, what shortcut key summons it, and which category it belongs to.
+
+Here is the beautiful part: all five documents use the exact same names, the exact same ranges, the exact same defaults. The clerk copies from your original form with perfect fidelity. Change the form once, and all five documents update automatically. No more hunting through three files to rename a parameter. No more subtle mismatches between what the GUI displays and what the code expects.
+
+The clerk's output is not mysterious machine-generated gibberish. It is clean, readable C++ that you could debug if needed. The DSL simply automates the repetitive copying while you write the interesting logic yourself.
 
 ---
 
-## What the DSL Looks Like
+## Filling Out the Form
 
-A Torus operator declaration fits in about 15 lines.
+A Torus operator declaration fills about 15 lines on the form. Let me walk through each section, because understanding the form is understanding the entire system.
 
 ```c
-// From wz4_mesh_ops.ops
 operator Wz4Mesh Torus()
 {
   column = 0;
@@ -60,20 +65,25 @@ operator Wz4Mesh Torus()
 }
 ```
 
-The declaration packs a lot of information: `Wz4Mesh` is the output type. `Torus` is the name. The parentheses after the name would list input types if this operator had any. The `parameter` block defines six parameters with their types, valid ranges, step sizes, and defaults. The `code` block contains the actual implementation, with `para` and `out` as magic variables that the code generator provides.
+The first line declares the operator's identity. `Wz4Mesh` tells the clerk what type of object this operator produces - in bureaucratic terms, which department handles the output. `Torus` is the operator's name, used for menus, registration, and generated function names. The empty parentheses after `Torus` indicate this operator has no inputs; it generates a mesh from nothing.
 
-This compact definition generates approximately 200 lines of C++ across four functions plus a struct. Let us trace what each piece becomes.
+The `column` and `shortcut` lines fill in metadata fields. When the editor builds its operator palette, `column = 0` places Torus in the first column of mesh generators. When the user presses 'o' with a mesh tab selected, Werkkzeug4 creates a Torus node.
+
+The `parameter` block is the heart of the form. Each line declares one parameter with its type, valid range, step size for UI drag operations, and default value. The clerk extracts all this information to generate the struct fields, GUI widgets, and initialization code. Notice `logstep` on the radius parameters - this tells the GUI to use logarithmic scaling for drag operations, making it easier to adjust both tiny (0.01) and large (100) values.
+
+The `code` block contains your actual implementation. Here you write C++ that does the real work. The clerk wraps this in boilerplate that provides `para` (a pointer to your parameter struct) and `out` (the output object to populate). You never write the casting or null-checking; the clerk handles that ceremony.
 
 ---
 
-## What Gets Generated
+## Let's Trace What Happens When the Clerk Processes This Form
 
-### The Parameter Struct
+When you run `wz4ops wz4_mesh_ops.ops`, the clerk reads your form and begins generating documents. Let me trace exactly what emerges for our Torus operator.
 
-Each operator gets a POD struct holding its parameters. The DSL types map to C types: `int` becomes `sInt`, `float` becomes `sF32`, and specialized types like `float31` (3D position) become `sVector31`. The code generator emits this struct definition.
+### Document 1: The Parameter Registry
+
+The accounting department needs to know the memory layout. The clerk produces a struct in the header file with one field per parameter. The struct name follows a predictable pattern: `{OutputType}Para{OperatorName}`.
 
 ```cpp
-// Generated in .hpp file
 struct Wz4MeshParaTorus
 {
   sInt Slices;
@@ -85,21 +95,22 @@ struct Wz4MeshParaTorus
 };
 ```
 
-The struct name follows a consistent pattern: `{OutputType}Para{OperatorName}`. This predictability matters because the execution code casts raw memory to this struct type.
+This struct is a plain-old-data type with no methods. The clerk maps DSL types to C types: `int` becomes `sInt`, `float` becomes `sF32`. For vector types like `float31` (a 3D position), the clerk would emit `sVector31`. The field names match your parameter names exactly - this matters because the `code` block accesses them through `para->Slices`.
 
-### The Command Execution Function
+Why does this predictability matter? Because at runtime, the executor casts raw memory to this struct type. The struct layout must match what the executor expects. By generating both the struct and the code that uses it from the same source, the clerk guarantees they stay synchronized.
 
-The `code` block gets wrapped in a function that handles all the ceremony: casting the parameter data, retrieving inputs, allocating output if needed.
+### Document 2: The Execution Permit
+
+The operations department receives a function that knows how to run your operator. The clerk wraps your `code` block in boilerplate that handles all the ceremony.
 
 ```cpp
-// Generated in .cpp file
 sBool Wz4MeshCmdTorus(wExecutive *exe, wCommand *cmd)
 {
   Wz4MeshParaTorus *para = (Wz4MeshParaTorus *)(cmd->Data);
   Wz4Mesh *out = (Wz4Mesh *) cmd->Output;
   if(!out) { out = new Wz4Mesh; cmd->Output = out; }
 
-  // User code from the 'code' block, inserted verbatim
+  // Your code block, inserted verbatim:
   out->MakeTorus(para->Slices, para->Segments,
                  para->OuterRadius, para->InnerRadius,
                  para->Phase, para->Arc, 0);
@@ -108,121 +119,39 @@ sBool Wz4MeshCmdTorus(wExecutive *exe, wCommand *cmd)
 }
 ```
 
-Notice how the user never writes the casting or null-checking. The DSL handles the plumbing. The user code accesses `para->Slices` naturally because the generated wrapper provides that variable.
+The first line casts `cmd->Data` to your parameter struct. Commands store parameter data as raw bytes; this cast interprets those bytes as your struct. The next lines handle output allocation - if no output exists, create one. Then your code runs, accessing `para` and `out` as if by magic. Finally, the function returns success.
 
-### The GUI Function
+If your operator had inputs (declared in the parentheses after the name), the clerk would generate additional lines to retrieve them: `Wz4Mesh *in0 = cmd->GetInput<Wz4Mesh *>(0);`. Optional inputs get null checks. The clerk knows all this from your form.
 
-Each parameter type maps to an appropriate widget. Integers and floats get sliders with the specified range. Flags get checkbox groups. Colors get color pickers. The generator emits the calls.
+### Documents 3, 4, and 5: The Supporting Cast
 
-```cpp
-// Generated in .cpp file
-void Wz4MeshGuiTorus(wGridFrameHelper &gh, wOp *op)
-{
-  Wz4MeshParaTorus *para = (Wz4MeshParaTorus *)op->EditData;
+The clerk generates three more functions following the same pattern. The Gui function creates a slider for each parameter, using the ranges and step sizes from your form. The Def function writes default values into a fresh operator's memory. The registration code creates a `wClass` object, wires up all four function pointers, and adds it to the document's class list.
 
-  gh.Label(L"Slices");
-  sIntControl *int_Slices = gh.Int(&para->Slices, 3, 4096, 1.0);
-  int_Slices->Default = 12;
-
-  gh.Label(L"Segments");
-  sIntControl *int_Segments = gh.Int(&para->Segments, 3, 4096, 1.0);
-  int_Segments->Default = 8;
-
-  gh.Label(L"InnerRadius");
-  sFloatControl *float_InnerRadius = gh.Float(&para->InnerRadius, 0.0, 1024.0, 0.01);
-  float_InnerRadius->Default = 0.25;
-
-  // ... remaining parameters
-}
-```
-
-The parameter names in the DSL become both the struct field names and the GUI labels. Change the name in one place, it changes everywhere.
-
-### The Registration Function
-
-At startup, each operator must register itself with the document system. The generator emits a function that creates class descriptors and wires up all the function pointers.
-
-```cpp
-// Generated in .cpp file
-void AddOps_wz4_mesh_ops(sBool secondary)
-{
-  sVERIFY(Doc);
-  wClass *cl = 0;
-
-  cl = new wClass;
-  cl->Name = L"Torus";
-  cl->Label = L"Torus";
-  cl->OutputType = Wz4MeshType;
-  cl->Command = Wz4MeshCmdTorus;
-  cl->MakeGui = Wz4MeshGuiTorus;
-  cl->SetDefaults = Wz4MeshDefTorus;
-  cl->BindPara = Wz4MeshBindTorus;
-  cl->Shortcut = 'o';
-  cl->Column = 0;
-  Doc->Classes.AddTail(cl);
-
-  // ... more operators
-}
-```
-
-The registration connects everything: the name for the menu, the shortcut key, and all the generated functions.
+I will spare you the full code for these - they follow the pattern you have already seen. The key insight is that all five documents derive from your single form. The clerk ensures perfect consistency across all of them.
 
 ---
 
-## The Generation Pipeline
+## The Clerk's Internal Process
 
-The `wz4ops` tool follows a classic compiler architecture: scan, parse, generate.
+How does the `wz4ops` tool actually work? It follows a classic compiler architecture: scan, parse, generate.
 
-**Step 1: Scanning.** The scanner tokenizes the `.ops` file, recognizing keywords like `operator`, `parameter`, `code`, `if`, and `else`. It handles the DSL's custom syntax like range specifications `(3..4096)` and type modifiers like `logstep`.
+**Scanning** tokenizes the `.ops` file. The scanner recognizes keywords like `operator`, `parameter`, `code`, and the DSL's special syntax like range specifications `(3..4096)` and modifiers like `logstep`. Every token carries position information so error messages can point to the right line.
 
-**Step 2: Parsing.** The parser builds an AST from tokens. Each `operator` block becomes an `Op` object containing arrays of `Parameter` objects, `Input` objects, and `CodeBlock` objects. The parser calculates memory offsets for parameters as it goes, ensuring the struct layout is deterministic.
+**Parsing** builds an abstract syntax tree from tokens. Each `operator` block becomes an `Op` object containing arrays of `Parameter` objects, `Input` objects, and `CodeBlock` objects. The parser calculates memory offsets for parameters as it goes - Slices at offset 0, Segments at offset 1, InnerRadius at offset 2, and so on. This ensures the struct layout is deterministic.
 
-**Step 3: Generation.** The generator walks the AST and emits C++ to string buffers. One buffer accumulates the header file (structs, function declarations), another accumulates the implementation file (function bodies, registration). Finally, the tool writes both files to disk.
+**Generation** walks the AST and emits C++ to string buffers. One buffer accumulates the header file (structs, function declarations), another accumulates the implementation file (function bodies, registration). The clerk visits each operator in turn, emitting all five documents for each. Finally, the tool writes both files to disk.
 
-The data flow diagram captures this:
-
-```
-                    .ops File Input
-                          |
-                          v
-    +-----------------------------------------+
-    |              Scanner                    |
-    |   Tokenizes keywords, symbols, braces   |
-    +-----------------------------------------+
-                          |
-                          v
-    +-----------------------------------------+
-    |               Parser                    |
-    |   _Global -> _Operator -> _Parameter    |
-    +-----------------------------------------+
-                          |
-                          v
-    +-----------------------------------------+
-    |            AST Structures               |
-    |   Document { Types[], Ops[], Codes[] }  |
-    |   Op { Parameters[], Inputs[], Code }   |
-    +-----------------------------------------+
-                          |
-                          v
-    +-----------------------------------------+
-    |           Code Generator                |
-    |   OutputTypes -> OutputOps ->           |
-    |   OutputAnim -> OutputMain              |
-    +-----------------------------------------+
-                     /        \
-                    v          v
-         +-----------+    +-----------+
-         | .hpp File |    | .cpp File |
-         +-----------+    +-----------+
-```
+The generated files are checked into source control and compiled normally. They are not hidden intermediates - you can read them, debug into them, and understand exactly what the clerk produced.
 
 ---
 
-## Advanced Features
+## Advanced Features: When Simple Forms Are Not Enough
 
-### Memory Layout Control
+The basic form handles most operators, but some need special handling. The clerk understands several extensions.
 
-Sometimes you need explicit control over the parameter struct layout, perhaps for binary compatibility or GPU buffer alignment. The DSL supports explicit offsets.
+### Explicit Memory Layout
+
+Sometimes you need exact control over the parameter struct layout, perhaps for binary compatibility with GPU constant buffers. You can specify word offsets explicitly.
 
 ```c
 parameter
@@ -230,40 +159,35 @@ parameter
   float31 Scale:0 (-1024..1024 step 0.01) = 1;
   float30 Rotate:3 (-16..16 step 0.01) = 0;
   float31 Translate:6 (-65536..65536 step 0.01) = 0;
-  int Count:9 (1..1024) = 2;
 }
 ```
 
-The `:0`, `:3`, `:6`, `:9` specify word offsets. The generator inserts padding as needed to achieve this layout. This is valuable when operators share parameter memory with GPU constant buffers.
+The `:0`, `:3`, `:6` after each name specify word offsets. `float31` occupies three words (x, y, z), so Scale sits at offset 0-2, Rotate at 3-5, Translate at 6-8. The clerk inserts padding as needed to achieve this layout. This is valuable when operators share parameter memory with shader uniform buffers.
 
 ### Conditional Parameters
 
-The GUI can show or hide parameters based on other parameter values.
+The GUI can show or hide parameters based on other parameter values. Imagine a camera operator that offers both "orbit" and "target" modes. In orbit mode, you adjust rotation angles. In target mode, you specify a look-at point.
 
 ```c
 parameter
 {
-  flags Mode ("rotate|target") = 0;
+  flags Mode ("orbit|target") = 0;
   if((Mode & 15) == 1)
     float31 Target (-1024..1024 step 0.01);
 }
 ```
 
-The parser builds an expression tree for the condition. The generator emits a C++ conditional around the widget code. The parameter is always present in the struct, but only visible in the GUI when the condition holds.
+The clerk parses the condition, builds an expression tree, and generates C++ conditionals around the widget code. The Target parameter exists in the struct regardless, but only appears in the GUI when the condition holds. Users see a clean interface that adapts to their chosen mode.
 
 ### Typed Inputs
 
-Input declarations specify type constraints.
+Input declarations specify type constraints and optionality. The parentheses after an operator name list what inputs the operator accepts.
 
 ```c
 operator Wz4Mesh Transform(Wz4Mesh, ?Wz4Skeleton)
 ```
 
-Here `Wz4Mesh` is a required input and `?Wz4Skeleton` is optional. The generated code retrieves inputs with appropriate null checks for optional ones. Other modifiers include `*` for variadic inputs (accepting multiple connections) and `~` for weak references that do not force evaluation.
-
-### Semantic Type Hints
-
-Types like `float30` versus `float31` carry semantic meaning beyond storage size. Both store three floats, but `float30` represents a direction (normalized vector) while `float31` represents a position (point in space). The GUI can use this hint to offer appropriate manipulation handles in the 3D viewport.
+`Wz4Mesh` is a required input - the operator will not run without it. `?Wz4Skeleton` is optional - the skeleton enhances the transform but is not mandatory. The clerk generates appropriate null checks for optional inputs. Other modifiers include `*` for variadic inputs (accepting multiple connections) and `~` for weak references that do not force evaluation.
 
 ---
 
@@ -271,19 +195,19 @@ Types like `float30` versus `float31` carry semantic meaning beyond storage size
 
 ### Single Source of Truth
 
-The DSL declaration is the canonical definition. Change a parameter name in one place, and it propagates to the struct, GUI, serialization, and script bindings automatically. This eliminates the entire class of bugs where names drift out of sync.
+The DSL declaration is the canonical definition of your operator. Change a parameter name in one place, and it propagates to the struct, GUI, serialization, and script bindings automatically. This eliminates the entire class of bugs where names drift out of sync across files.
 
 ### Separation of Concerns
 
-The user writes the interesting logic (how to generate a torus). The generator writes the boring infrastructure (GUI widgets, type casting, registration). Neither pollutes the other.
+You write the interesting logic (how to generate a torus from parameters). The clerk writes the boring infrastructure (GUI widgets, type casting, registration). Neither pollutes the other. Your code block focuses on mesh generation; it never mentions sliders or default values.
 
 ### Debuggable Output
 
-The generated C++ is clean and readable. The generator emits `#line` directives so debugger breakpoints in user code map back to the `.ops` file. You can step through generated code and understand what is happening.
+The generated C++ is clean and readable. The clerk emits `#line` directives so debugger breakpoints in user code map back to the `.ops` file. You can step through generated code and understand what is happening. When something breaks, you are not fighting opaque machine output.
 
 ### Extensibility
 
-Adding a new parameter type requires adding a case to the parser and a case to the generator. Existing operators automatically benefit. This is far easier than updating hundreds of operator files by hand.
+Adding a new parameter type requires adding a case to the parser and a case to the generator. All existing operators automatically benefit from the new capability. This is far easier than updating hundreds of operator files by hand.
 
 ---
 
@@ -293,79 +217,60 @@ The core insight transfers directly: declarative operator definitions with code 
 
 ### The Rust Equivalent
 
-```rust
-use framework::prelude::*;
+Where Werkkzeug4 uses an external tool reading `.ops` files, Rust can achieve the same result with derive macros. The developer writes a struct with attributes, and the macro generates all the supporting code at compile time.
 
+```rust
 #[derive(Operator)]
 #[operator(name = "Torus", category = "Mesh/Primitives", shortcut = 'o')]
 pub struct TorusOp {
     #[param(range = 3..=4096, default = 12)]
     pub slices: i32,
 
-    #[param(range = 3..=4096, default = 8)]
-    pub segments: i32,
-
     #[param(range = 0.0..=1024.0, step = 0.01, default = 0.25)]
     pub inner_radius: f32,
 
     #[param(range = 0.0..=1024.0, step = 0.01, default = 1.0)]
     pub outer_radius: f32,
-
-    #[param(range = -4.0..=4.0, step = 0.001)]
-    pub phase: f32,
-
-    #[param(range = 0.0..=1.0, step = 0.001, default = 1.0)]
-    pub arc: f32,
 }
 
 impl Execute for TorusOp {
     type Output = Mesh;
 
     fn execute(&self, _ctx: &Context) -> Result<Self::Output> {
-        Ok(Mesh::torus(
-            self.slices,
-            self.segments,
-            self.outer_radius,
-            self.inner_radius,
-            self.phase,
-            self.arc,
-        ))
+        Ok(Mesh::torus(self.slices, self.inner_radius, self.outer_radius))
     }
 }
 ```
 
-The `#[derive(Operator)]` macro generates:
-- `impl Default for TorusOp` with the specified defaults
-- `impl Gui for TorusOp` emitting egui widgets
-- `impl Serialize + Deserialize` for save/load
-- Registration with the operator registry via `inventory` or `linkme`
+The `#[derive(Operator)]` macro becomes the tireless clerk, generating `impl Default` with the specified defaults, `impl Gui` emitting egui widgets, `impl Serialize + Deserialize` for save/load, and registration with the operator registry. The single source of truth is the struct definition with its attributes.
 
 ### What to Adopt
 
-**Declarative parameter definitions.** The attribute-based approach captures the same information as the DSL. Range, step, default, and semantic hints all become attributes.
+**Declarative parameter definitions.** The attribute-based approach captures the same information as the DSL. Range, step, default, and semantic hints all become attributes on struct fields.
 
-**Compile-time code generation.** Proc-macros integrate with the Rust toolchain. Error messages point to your source code, not generated files. IDE features like autocompletion work naturally.
+**Compile-time code generation.** Proc-macros integrate with the Rust toolchain. Error messages point to your source code, not generated files. IDE features like autocompletion work naturally because the compiler understands everything.
 
-**Type-safe inputs.** Rust's type system enforces input constraints at compile time. An operator that requires a `Mesh` input cannot accidentally receive a `Texture`.
+**Type-safe inputs.** Rust's type system enforces input constraints at compile time. An operator that requires a `Mesh` input cannot accidentally receive a `Texture`. The type system catches these errors before runtime.
 
 ### What to Change
 
-**Replace runtime registration with static dispatch.** The `Doc->Classes.AddTail(cl)` pattern uses runtime registration. Rust can do better with the `inventory` crate for static registration, or simply with traits and generic dispatch.
+**Replace runtime registration with static dispatch.** The `Doc->Classes.AddTail(cl)` pattern uses runtime registration and global state. Rust can do better with the `inventory` or `linkme` crates for static registration, or simply with traits and generic dispatch.
 
-**Replace string type names with actual types.** The `.ops` system uses string comparisons (`L"Wz4Mesh"`) for type checking. Rust's generics and trait bounds provide this statically.
+**Replace string type names with actual types.** The `.ops` system uses string comparisons (`L"Wz4Mesh"`) for type checking at runtime. Rust's generics and trait bounds provide this statically, catching errors at compile time.
 
-**Replace global document with explicit context.** The global `Doc` pointer is convenient but not thread-safe. Rust's ownership system encourages explicit context passing, which also makes testing easier.
+**Replace global document with explicit context.** The global `Doc` pointer is convenient but not thread-safe. Rust's ownership system encourages explicit context passing, which also makes testing easier and enables parallel execution.
 
 ### What to Avoid
 
-**External code generators.** Keeping generated files in sync with source files is fragile. Proc-macros generate code at compile time, eliminating the synchronization problem.
+**External code generators.** Keeping generated files in sync with source files is fragile. If someone edits the generated file directly, chaos ensues. Proc-macros generate code at compile time within the compiler's own process, eliminating the synchronization problem entirely.
 
-**Manual memory layout.** The explicit offset syntax exists because C++ lacks reflection. Rust's `#[repr(C)]` and `std::mem::offset_of!` handle layout concerns safely.
+**Manual memory layout.** The explicit offset syntax exists because C++ lacks reflection and has complex struct layout rules. Rust's `#[repr(C)]` provides predictable layout, and `std::mem::offset_of!` handles layout concerns safely when needed.
 
 ---
 
 ## Further Reading
 
-- [Architecture overview](../architecture.md) for how the operator system fits into the larger Altona framework
+- [Graph Execution](./graph-execution.md) for how wOp graphs become wCommand sequences
+- [Type System](./type-system.md) for type hierarchy and automatic conversions
 - [Code trace: .ops to C++](../code-traces/ops-to-cpp.md) for line-by-line source analysis
 - [ryg's Breakpoint 2007 talk on metaprogramming](https://fgiesen.wordpress.com/2012/04/08/metaprogramming-for-madmen/) for the philosophy behind the approach
