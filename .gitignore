@@ -49,3 +49,4 @@ frameworks/*/.gradle/
 
 # Keep empty directories with .gitkeep
 !.gitkeep
+CLAUDE.md
