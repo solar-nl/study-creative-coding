@@ -112,13 +112,13 @@ drawBot.textBox("Hello", (100, 100, 200, 50), align="center")
 
 ---
 
-## Documents to Create
+## Study Documents
 
-- [ ] `architecture.md` — Context system, drawing stack, page model
-- [ ] `typography.md` — Font handling, OpenType features, variable fonts, text layout
-- [ ] `api-design.md` — Function naming, context managers, Python idioms
-- [ ] `export-pipeline.md` — How different contexts produce different formats
-- [ ] `path-operations.md` — Boolean operations, bezier manipulation
+- [x] [`architecture.md`](architecture.md) — Context system, drawing stack, page model
+- [x] [`typography.md`](typography.md) — Font handling, OpenType features, variable fonts, text layout
+- [x] [`api-design.md`](api-design.md) — Function naming, context managers, Python idioms
+- [x] [`export-pipeline.md`](export-pipeline.md) — How different contexts produce different formats
+- [x] [`path-operations.md`](path-operations.md) — Boolean operations, bezier manipulation
 
 ---
 
