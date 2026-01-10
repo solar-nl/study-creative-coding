@@ -83,6 +83,12 @@ This repository collects major creative coding frameworks as git submodules alon
 |------------|----------|-------|
 | [WebGPU samples](examples/webgpu-samples) | JS/TS | Next-gen graphics API examples |
 
+## Demoscene
+
+| Project | Languages | Focus |
+|---------|-----------|-------|
+| [fr_public](demoscene/fr_public) | C++, Assembly | Werkkzeug demo tool, V2 synthesizer, .kkrieger, procedural content (2001-2011) |
+
 ## Repository Structure
 
 ```
@@ -94,6 +100,7 @@ study-creative-coding/
 ├── visual-programming/          # Node-based environments (3 submodules)
 ├── libraries/                   # Reusable libraries (8 submodules, organized by ecosystem)
 ├── examples/                    # Sample code & demos (1 submodule)
+├── demoscene/                   # Demoscene tools and techniques (1 submodule)
 │
 ├── notes/
 │   ├── per-framework/           # Deep dives into each framework
@@ -105,6 +112,7 @@ study-creative-coding/
 │   │       └── code-traces/     # Annotated walkthroughs
 │   │
 │   ├── per-library/             # Library-specific notes
+│   ├── per-demoscene/           # Demoscene project analysis
 │   ├── per-example/             # Example-specific notes
 │   │
 │   └── themes/                  # Cross-cutting analysis
@@ -156,6 +164,7 @@ Some frameworks were considered but not included as submodules:
 |----------|----------|---------|---------|
 | **Frameworks** | p5.js, cables | nannou, tixl, drawbot | openrndr, cinder, openframeworks, processing |
 | **Libraries** | mixbox, threejs, pixijs, babylonjs | controlp5 | orx, toxiclibs, wgpu |
+| **Demoscene** | — | fr_public | — |
 | **Examples** | — | — | webgpu-samples |
 | **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |
 

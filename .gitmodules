@@ -55,3 +55,6 @@
 [submodule "frameworks/drawbot"]
 	path = frameworks/drawbot
 	url = https://github.com/typemytype/drawbot.git
+[submodule "demoscene/fr_public"]
+	path = demoscene/fr_public
+	url = https://github.com/farbrausch/fr_public.git
