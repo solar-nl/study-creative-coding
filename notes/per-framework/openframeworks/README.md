@@ -56,3 +56,10 @@ openframeworks/
 - [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
+
+## See Also
+
+- [Cinder](../cinder/) — Alternative C++ creative coding framework with modern API
+- [Processing](../processing/) — Java-based framework that inspired OpenFrameworks
+- [openrndr](../openrndr/) — Modern Kotlin-based creative coding framework
+- [toxiclibs](../../per-library/toxiclibs/) — Computational design library with geometry/physics

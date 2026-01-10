@@ -21,6 +21,10 @@ Deep-dive documentation for each creative coding framework.
 - **Partial**: Template structure with some content
 - **Planned**: Stub files with planned topics
 
+## How to Read
+
+New to this documentation? See [READING_GUIDE.md](../READING_GUIDE.md) for tips on navigating these docs effectively (based on cognitive science research).
+
 ## See Also
 
 - [FRAMEWORK_COMPARISON.md](../FRAMEWORK_COMPARISON.md) — Cross-framework comparison matrix

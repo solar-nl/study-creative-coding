@@ -39,6 +39,13 @@ Tessellation typically happens in two stages:
 └──────────────────────────────────────────────────────────────┘
 ```
 
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. Parse | Path commands | Decode beziers, arcs, lines | Curve segments |
+| 2. Flatten | Curve segments | Adaptive subdivision | Line segments (polyline) |
+| 3. Triangulate | Polyline contours | Ear clipping / monotone decomposition | Triangle mesh |
+| 4. Upload | Triangle mesh | Buffer to GPU | Vertex buffer |
+
 ### Adaptive Curve Flattening
 
 The key insight: you don't need uniform subdivision. Tight curves need more segments; gentle curves need fewer.

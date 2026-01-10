@@ -54,3 +54,9 @@ cinder/
 - [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
+
+## See Also
+
+- [OpenFrameworks](../openframeworks/) — Alternative C++ creative coding toolkit
+- [Processing](../processing/) — Java-based framework with simpler learning curve
+- [openrndr](../openrndr/) — Modern Kotlin framework with similar professional focus

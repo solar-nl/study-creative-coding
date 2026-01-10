@@ -129,6 +129,15 @@ When the batch executes, it:
 2. Binds all 4 textures into a single bind group
 3. Issues one `drawIndexed(6000, 1, 0)` call
 
+### Batch Assembly State Table
+
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. Collection | Scene sprites | Record index/vertex offsets, accumulate buffer sizes | Element list with size requirements |
+| 2. Break | Element list | Walk elements, break on texture overflow/blend change/topology change | Batch boundaries defined |
+| 3. Pack | Batch + elements | Pack position, UV, color, textureId into vertex buffer | GPU-ready vertex/index buffers |
+| 4. Execute | Finalized batch | Set geometry, bind textures, issue single drawIndexed call | One draw call for entire batch |
+
 The shader selects the correct texture based on a per-vertex texture ID:
 
 ```wgsl

@@ -29,6 +29,20 @@ But making this feel good requires solving several problems:
 
 ---
 
+## Overview
+
+The movement system works in three layers:
+
+1. **Selection layer** determines what moves together. When you click a node, the system either drags your current selection (if the node is selected) or flood-fills through snapped connections to find the entire snapped group. This means dragging one node in a chain moves the whole chain.
+
+2. **Snapping layer** runs every frame during a drag. It expands the bounding box of dragged items by a threshold distance, finds all overlapping items, and tests every anchor pair for type compatibility and proximity. The best snap candidate (lowest distance) wins. When the distance falls below half a line height (~17 pixels), items visually lock together.
+
+3. **Connection layer** responds to snap state changes. When items snap together, `AddConnectionCommand` creates the wiring. When items unsnap, `DeleteConnectionCommand` breaks it. If unsnapping leaves a vertical or horizontal gap, the system tries to collapse surrounding items and reconnect the broken chain.
+
+Insertion (splicing into existing wires) follows the same pattern but with tighter thresholds and additional cycle-checking. A shake gesture—detected via mouse velocity reversals—disconnects all border connections at once.
+
+---
+
 ## The Drag Lifecycle
 
 ```

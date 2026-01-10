@@ -36,3 +36,9 @@ Target audience: Processing/Java users needing advanced math/geometry.
 - [ ] How does TColor implement color theory?
 - [ ] What data structures are provided?
 - [ ] How does it integrate with Processing?
+
+## See Also
+
+- [Processing](../../per-framework/processing/) — Primary target platform for toxiclibs
+- [orx](../orx/) — openrndr extensions with similar modular design (noise, color, shapes)
+- [OpenFrameworks](../../per-framework/openframeworks/) — C++ framework with comparable addon ecosystem

@@ -35,6 +35,14 @@ Mixbox is a **color mixing library** that simulates pigment-based color blending
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. LUT Lookup | RGB color | 64x64x64 3D table interpolation | Pigment concentrations (c0, c1, c2) + residual |
+| 2. Derive White | c0, c1, c2 | c3 = 1 - c0 - c1 - c2 | Complete latent vector (7D) |
+| 3. Linear Mix | Two latent vectors + t | Weighted average per channel | Mixed latent vector |
+| 4. Polynomial | Mixed pigments (c0-c3) | 20-term cubic evaluation | Base RGB |
+| 5. Add Residual | Base RGB + mixed residual | Component-wise addition | Final RGB |
+
 ---
 
 ## The 7-Dimensional Latent Space (Decoded)

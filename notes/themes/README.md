@@ -45,6 +45,10 @@ Runtime concerns and framework infrastructure.
 - [Cross-Platform](./systems/cross-platform.md) — Desktop, mobile, web targeting
 - [Extension Systems](./systems/extension-systems.md) — Plugins, addons, middleware
 
+## How to Read
+
+New to this documentation? See [READING_GUIDE.md](../READING_GUIDE.md) for tips on navigating these docs effectively (based on cognitive science research).
+
 ## Documentation Status
 
 | Category | Status |

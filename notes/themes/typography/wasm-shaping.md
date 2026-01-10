@@ -59,6 +59,13 @@ Output:  [(glyph_id: 72, x: 0, y: 0),
           ...]
 ```
 
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. Map | Text string + Font | Character-to-glyph lookup (cmap) | Glyph IDs |
+| 2. Substitute | Glyph IDs | OpenType GSUB (ligatures, alternates) | Substituted glyphs |
+| 3. Position | Substituted glyphs | OpenType GPOS (kerning, marks) | Glyphs with x,y offsets |
+| 4. Render | Positioned glyphs | Rasterize or vectorize | Pixels or paths |
+
 For English text, this is relatively simple. For Arabic (right-to-left, contextual letter forms), Hindi (complex ligatures, reordering), or emoji sequences—it's enormously complicated.
 
 ---

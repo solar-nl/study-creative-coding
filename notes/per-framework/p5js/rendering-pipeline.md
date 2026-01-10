@@ -85,6 +85,15 @@ User code: circle(100, 100, 50)
 
 The key insight here is the **renderer abstraction**. User code calls high-level functions like `circle()`, which delegate to a renderer. The renderer translates those calls to actual graphics API commands. This lets p5.js support both Canvas 2D and WebGL through the same user-facing API.
 
+### Draw Flow State Table
+
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. User draw call | `circle(100, 100, 50)` | Validate args, convert to primitive params | Normalized drawing parameters |
+| 2. Renderer dispatch | Drawing params | Route to Renderer2D or RendererGL based on mode | Backend-specific method call |
+| 3. Backend execution | Method call | Canvas: `ctx.arc()` + fill/stroke; WebGL: build buffers + uniforms + draw | Pixels written to canvas buffer |
+| 4. Browser composite | Canvas buffer | Compositor blends canvas into page at vsync | Visible pixels on screen |
+
 ---
 
 ## The Renderer Abstraction: Why Two Backends?

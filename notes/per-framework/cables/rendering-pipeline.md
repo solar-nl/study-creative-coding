@@ -48,6 +48,14 @@ Think of a Cables frame as a theater production in three acts:
 
 The stage manager (`CglRenderLoop`) keeps this show running continuously using `requestAnimationFrame`, and can limit the frame rate or pause entirely when the editor is idle.
 
+### Frame Lifecycle State Table
+
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. renderStart | Frame request | Push default state to all stacks, reset matrices, load default shader | Clean slate with identity transforms |
+| 2. MainLoop.trigger | Initial state | Operators push/pop state in nested order, meshes issue draw calls | Rendered geometry with accumulated state changes |
+| 3. renderEnd | Completed frame | Pop any orphaned state, emit "endFrame" event | State stacks reset to baseline, frame complete |
+
 ---
 
 ## Tracing a Frame: From Request to Pixels

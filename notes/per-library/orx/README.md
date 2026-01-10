@@ -32,3 +32,9 @@ orx extends openrndr with specialized functionality:
 - [ ] How do extensions integrate with openrndr core?
 - [ ] What patterns do extensions follow?
 - [ ] How is versioning handled?
+
+## See Also
+
+- [openrndr](../../per-framework/openrndr/) — The core framework that orx extends
+- [toxiclibs](../toxiclibs/) — Similar modular approach to computational design tools
+- [Processing](../../per-framework/processing/) — Framework with similar library/contribution ecosystem

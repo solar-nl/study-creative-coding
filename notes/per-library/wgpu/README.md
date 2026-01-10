@@ -36,3 +36,9 @@ Target audience: Rust developers needing GPU access.
 - [ ] How are command buffers structured?
 - [ ] How does compute shader support work?
 - [ ] How does the web target differ from native?
+
+## See Also
+
+- [openrndr](../../per-framework/openrndr/) — Framework using OpenGL (different abstraction level)
+- [Cinder](../../per-framework/cinder/) — C++ framework with direct OpenGL access
+- [OpenFrameworks](../../per-framework/openframeworks/) — C++ toolkit with GL renderer

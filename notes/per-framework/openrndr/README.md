@@ -53,6 +53,9 @@ openrndr/
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
 
-## Related Libraries
+## See Also
 
 - [orx](../../per-library/orx/) — Extensions library for openrndr (color, noise, shapes, etc.)
+- [Processing](../processing/) — Original creative coding framework that inspired many designs
+- [Cinder](../cinder/) — C++ framework with similar professional focus
+- [wgpu](../../per-library/wgpu/) — Modern GPU abstraction used by Rust creative coding tools

@@ -93,6 +93,16 @@ Now the pipeline iterates through both lists (opaque first, then transparent) an
 
 The render pass is ended. The command encoder is finished, producing a command buffer. That buffer is submitted to the GPU queue for execution. The frame is done.
 
+### Render Flow State Table
+
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. Prepare | Scene graph + camera | Update world matrices, compute frustum | View/projection matrices, frustum planes |
+| 2. Traverse | All scene objects | Frustum cull, split opaque/transparent, sort by depth + material | Sorted render lists (front-to-back opaque, back-to-front transparent) |
+| 3. Begin | Render lists | Create command encoder, configure render pass | Active render pass with clear operations |
+| 4. Draw | Sorted list items | Get/create RenderObject, bind pipeline + resources, issue draw calls | GPU commands recorded to encoder |
+| 5. Finish | Completed encoder | End render pass, submit command buffer to queue | Frame submitted for GPU execution |
+
 ---
 
 ## Concrete Example: Drawing a Single Mesh

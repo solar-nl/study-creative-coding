@@ -19,6 +19,10 @@ Documentation for reusable libraries that complement creative coding frameworks.
 - **Partial**: Template structure with some content
 - **Planned**: Stub files with planned topics
 
+## How to Read
+
+New to this documentation? See [READING_GUIDE.md](../READING_GUIDE.md) for tips on navigating these docs effectively (based on cognitive science research).
+
 ## See Also
 
 - [per-framework/](../per-framework/) — Framework-specific documentation

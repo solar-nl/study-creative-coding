@@ -41,3 +41,10 @@ Target audience: Artists, designers, students, educators.
 - [Architecture](./architecture.md)
 - [Rendering Pipeline](./rendering-pipeline.md)
 - [API Design](./api-design.md)
+
+## See Also
+
+- [OpenFrameworks](../openframeworks/) — C++ creative coding toolkit with similar philosophy
+- [Cinder](../cinder/) — Professional-quality C++ alternative
+- [openrndr](../openrndr/) — Modern Kotlin-based framework inspired by Processing
+- [toxiclibs](../../per-library/toxiclibs/) — Computational design library for Processing/Java

@@ -65,6 +65,16 @@ postrender()
 
 The critical insight is the middle section: every draw call goes through a cache check. This is where redundant work gets filtered out.
 
+### Command Recording State Table
+
+| Stage | Input | Transform | Output |
+|-------|-------|-----------|--------|
+| 1. renderStart | Frame begin signal | Create CommandEncoder, create completion Promise | Fresh encoder ready to record |
+| 2. beginRenderPass | Render target config | End previous pass, clear state cache, begin new pass | Active render pass encoder with empty cache |
+| 3. Draw calls | setPipeline, setGeometry, setBindGroup, draw* | Check cache before recording; skip if redundant | Minimal GPU commands in encoder |
+| 4. finishRenderPass | Pass complete signal | End render pass encoder | Closed render pass |
+| 5. postrender | Frame end signal | Submit command buffer to queue, resolve Promise | GPU executing, frame complete |
+
 ---
 
 ## The Caching Strategy: Don't Repeat Yourself
