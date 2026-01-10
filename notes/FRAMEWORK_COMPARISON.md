@@ -57,7 +57,7 @@ You connect boxes with wires. Data flows through connections. Execution order em
 
 ### Retained-Mode Scene Graphs
 
-**Three.js, Babylon.js** (not studied in depth here)
+**Three.js, Babylon.js** (see [threejs](per-library/web/threejs/) and [babylonjs](per-library/web/babylonjs/))
 
 You build a scene tree of objects, then the framework renders it. Objects persist between frames.
 
