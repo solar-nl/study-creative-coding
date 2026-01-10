@@ -1,6 +1,8 @@
 # Theme: API Ergonomics
 
-> Cross-cutting analysis of how frameworks expose functionality to users.
+> Partially documented. Needs deeper analysis per framework.
+
+Cross-cutting analysis of how frameworks expose functionality to users.
 
 ## Concept Overview
 

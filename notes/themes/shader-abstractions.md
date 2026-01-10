@@ -1,6 +1,8 @@
 # Theme: Shader Abstractions
 
-> Cross-cutting analysis of how frameworks wrap shader programming.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks wrap shader programming.
 
 ## Concept Overview
 

@@ -1,16 +1,17 @@
-# Orx - architecture
+# ORX Architecture
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. ORX is the official extension library collection for OPENRNDR.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Multi-module Gradle structure
+- [ ] Extension loading and dependency management
+- [ ] Shared utilities and common patterns
+- [ ] Platform-specific extensions
+- [ ] Version compatibility with OPENRNDR core
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

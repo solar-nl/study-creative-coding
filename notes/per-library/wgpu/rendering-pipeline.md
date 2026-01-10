@@ -1,16 +1,17 @@
-# Wgpu - rendering pipeline
+# wgpu Rendering Pipeline
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. wgpu is a safe, portable WebGPU implementation in Rust.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Render pipeline state objects
+- [ ] Compute pipeline workflows
+- [ ] Command buffer recording and submission
+- [ ] Surface and swapchain management
+- [ ] Synchronization and resource barriers
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

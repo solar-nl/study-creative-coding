@@ -1,16 +1,17 @@
-# Openframeworks - architecture
+# OpenFrameworks Architecture
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of OpenFrameworks and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Library organization (app, graphics, gl, math, events, utils)
+- [ ] ofApp and window management
+- [ ] Cross-platform abstraction
+- [ ] Addon loading and project generator
+- [ ] Third-party library integration (FreeType, OpenCV, etc.)
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

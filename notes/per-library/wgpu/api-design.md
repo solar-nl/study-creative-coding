@@ -1,16 +1,17 @@
-# Wgpu - api design
+# wgpu API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. wgpu is a safe, portable WebGPU implementation in Rust.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Resource handle types (Buffer, Texture, Pipeline)
+- [ ] Descriptor pattern for object creation
+- [ ] Command encoder and render pass API
+- [ ] Bind group layout system
+- [ ] Error handling and validation
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

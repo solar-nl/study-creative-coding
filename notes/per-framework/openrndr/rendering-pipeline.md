@@ -1,16 +1,17 @@
-# Openrndr - rendering pipeline
+# openrndr Rendering Pipeline
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of openrndr and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Frame lifecycle and extend {} blocks
+- [ ] OpenGL 3.3 backend implementation
+- [ ] Shader compilation and caching
+- [ ] Render targets and post-processing
+- [ ] Draw call batching strategies
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

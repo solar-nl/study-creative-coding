@@ -1,6 +1,8 @@
 # Theme: Extension Systems
 
-> Cross-cutting analysis of how frameworks support plugins and extensions.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks support plugins and extensions.
 
 ## Concept Overview
 

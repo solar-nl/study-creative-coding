@@ -127,6 +127,20 @@ Some frameworks were considered but not included as submodules:
 
 - **vvvv gamma** — Main IDE is not open source; VL.StandardLibs requires git-lfs. Study via [The Gray Book](https://thegraybook.vvvv.org/) and [VL.StandardLibs](https://github.com/vvvv/VL.StandardLibs) online.
 
+## Documentation Status
+
+| Category | Complete | Partial | Planned |
+|----------|----------|---------|---------|
+| **Frameworks** | p5.js, cables | nannou, tixl | openrndr, cinder, openframeworks, processing |
+| **Libraries** | mixbox, threejs, pixijs | — | orx, toxiclibs, wgpu |
+| **Examples** | — | — | webgpu-samples |
+| **Themes** | color-systems, typography, state-management, + 12 more | rendering-backends, api-ergonomics | animation-timing, asset-loading, + 6 more |
+
+**Legend:**
+- **Complete**: Deep analysis with architecture traces, code walkthroughs, and conceptual explanations
+- **Partial**: Template structure with some content, needs expansion
+- **Planned**: Stub files marked "Not yet documented" with planned topics
+
 ## Contributing
 
 This is a personal study repository. Notes are opinionated and focused on extracting patterns for a specific Rust framework design.

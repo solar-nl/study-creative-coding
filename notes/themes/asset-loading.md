@@ -1,6 +1,8 @@
 # Theme: Asset Loading
 
-> Cross-cutting analysis of how frameworks load external resources.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks load external resources.
 
 ## Concept Overview
 

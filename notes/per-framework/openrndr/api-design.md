@@ -1,16 +1,17 @@
-# Openrndr - api design
+# openrndr API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of openrndr and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Kotlin DSL patterns and builder syntax
+- [ ] Drawer API and drawing primitives
+- [ ] Extension system (orx) integration
+- [ ] Shader DSL and GLSL composition
+- [ ] Color handling patterns
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

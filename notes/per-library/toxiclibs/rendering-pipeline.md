@@ -1,16 +1,17 @@
-# Toxiclibs - rendering pipeline
+# toxiclibs Rendering Pipeline
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. toxiclibs is a generative design library originally created for Processing.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Mesh rendering abstractions
+- [ ] Isosurface generation (marching cubes)
+- [ ] Particle system visualization
+- [ ] Spline and curve rendering
+- [ ] Integration with Processing's PGraphics
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

@@ -1,16 +1,17 @@
-# Webgpu-samples - rendering pipeline
+# WebGPU Samples Rendering Pipeline
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. WebGPU Samples is Google's official collection of WebGPU example code.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Render pass setup patterns
+- [ ] Pipeline state object creation
+- [ ] Bind group and uniform management
+- [ ] Frame loop and animation timing
+- [ ] Multi-pass rendering examples
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for example collection overview and key entry points.

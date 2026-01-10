@@ -1,6 +1,8 @@
 # Theme: Geometry Primitives
 
-> Cross-cutting analysis of how frameworks represent shapes and meshes.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks represent shapes and meshes.
 
 ## Concept Overview
 

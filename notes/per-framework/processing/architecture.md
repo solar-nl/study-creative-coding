@@ -1,16 +1,17 @@
-# Processing - architecture
+# Processing Architecture
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of Processing and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] PApplet core class structure
+- [ ] Renderer backends (JAVA2D, P2D, P3D, PDF)
+- [ ] Event dispatch and input handling
+- [ ] Sketch lifecycle management
+- [ ] IDE integration (PDE)
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

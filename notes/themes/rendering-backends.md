@@ -1,6 +1,8 @@
 # Theme: Rendering Backends
 
-> Cross-cutting analysis of how frameworks abstract graphics APIs.
+> Partially documented. Needs deeper analysis per framework.
+
+Cross-cutting analysis of how frameworks abstract graphics APIs.
 
 ## Concept Overview
 

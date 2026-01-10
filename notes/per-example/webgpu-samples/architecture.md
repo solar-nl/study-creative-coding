@@ -1,16 +1,17 @@
-# Webgpu-samples - architecture
+# WebGPU Samples Architecture
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. WebGPU Samples is Google's official collection of WebGPU example code.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Project structure and build system
+- [ ] TypeScript setup and tooling
+- [ ] Shared utility modules
+- [ ] Sample categorization (basic, advanced, compute)
+- [ ] WGSL shader organization
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for example collection overview and key entry points.

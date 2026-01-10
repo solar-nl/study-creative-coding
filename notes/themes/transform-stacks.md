@@ -1,6 +1,8 @@
 # Theme: Transform Stacks
 
-> Cross-cutting analysis of how frameworks handle transformations.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks handle transformations.
 
 ## Concept Overview
 

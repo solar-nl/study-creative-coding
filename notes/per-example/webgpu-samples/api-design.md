@@ -1,16 +1,17 @@
-# Webgpu-samples - api design
+# WebGPU Samples API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. WebGPU Samples is Google's official collection of WebGPU example code.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Sample structure and organization
+- [ ] Device and adapter initialization patterns
+- [ ] Buffer and texture creation idioms
+- [ ] Shader module loading conventions
+- [ ] Common utility abstractions
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for example collection overview and key entry points.

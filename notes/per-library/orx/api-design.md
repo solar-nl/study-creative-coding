@@ -1,16 +1,17 @@
-# Orx - api design
+# ORX API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. ORX is the official extension library collection for OPENRNDR.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Extension module organization
+- [ ] orx-compositor for layer-based rendering
+- [ ] orx-gui parameter binding
+- [ ] orx-noise procedural generation functions
+- [ ] Integration patterns with OPENRNDR core
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

@@ -1,16 +1,17 @@
-# Processing - api design
+# Processing API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of Processing and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] setup()/draw() callback pattern
+- [ ] Global function API vs PApplet methods
+- [ ] PGraphics and renderer abstraction
+- [ ] Mode system (Java, Python, p5.js)
+- [ ] Library and contribution ecosystem
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

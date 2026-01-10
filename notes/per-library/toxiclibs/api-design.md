@@ -1,16 +1,17 @@
-# Toxiclibs - api design
+# toxiclibs API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. toxiclibs is a generative design library originally created for Processing.
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] Fluent builder pattern usage
+- [ ] Vector and geometry abstractions
+- [ ] Physics simulation API
+- [ ] Color theory utilities (TColor)
+- [ ] Mesh generation and manipulation
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for library overview and key entry points.

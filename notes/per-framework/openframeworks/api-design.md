@@ -1,16 +1,17 @@
-# Openframeworks - api design
+# OpenFrameworks API Design
 
-## Overview
+> Not yet documented.
 
-*To be documented during study.*
+This document is planned but not yet written. For an overview of OpenFrameworks and how it compares to other frameworks, see [FRAMEWORK_COMPARISON.md](../../FRAMEWORK_COMPARISON.md).
 
-## Key Questions
+## Planned Topics
 
-- [ ] How is the system structured?
-- [ ] What patterns are used?
-- [ ] What can be applied to a Rust framework?
+- [ ] of-prefixed naming conventions
+- [ ] ofGraphics global function style
+- [ ] Addon system and ofxAddons
+- [ ] Event callback patterns
+- [ ] ofParameter for GUI binding
 
-## Key Files
+## Quick Reference
 
-*To be identified during study.*
-
+See the [README](./README.md) for framework overview and key entry points.

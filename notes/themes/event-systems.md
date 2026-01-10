@@ -1,6 +1,8 @@
 # Theme: Event Systems
 
-> Cross-cutting analysis of how frameworks handle input and events.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks handle input and events.
 
 ## Concept Overview
 

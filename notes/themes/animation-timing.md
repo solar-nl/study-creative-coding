@@ -1,6 +1,8 @@
 # Theme: Animation & Timing
 
-> Cross-cutting analysis of how frameworks handle time and animation.
+> Not yet complete. This theme document needs cross-framework analysis.
+
+Cross-cutting analysis of how frameworks handle time and animation.
 
 ## Concept Overview
 
