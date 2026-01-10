@@ -10,7 +10,7 @@ JavaScript libraries for browser-based graphics.
 |---------|--------|-------------|
 | [threejs](./web/threejs/) | Complete | WebGL/WebGPU 3D scene graph |
 | [pixijs](./web/pixijs/) | Complete | High-performance 2D WebGL renderer |
-| [babylonjs](./web/babylonjs/) | Planned | Full-featured 3D game engine |
+| [babylonjs](./web/babylonjs/) | Complete | Full-featured 3D game engine with WebGPU support |
 
 ## Universal Libraries
 
