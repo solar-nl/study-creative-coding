@@ -94,6 +94,8 @@ CTFontRef fallback = CTFontCreateForString(font, string, range);
 
 The second approach is more flexible but has per-call overhead. It's what you'd use when you can't predict what characters you'll encounter.
 
+**DrawBot uses this:** As a macOS-native application, DrawBot gets CoreText's fallback automatically. This is why mixed-script text "just works" in DrawBot—CoreText handles the per-character font selection transparently.
+
 ### Windows: DirectWrite
 
 Microsoft's approach is more complex but equally powerful:
@@ -282,6 +284,9 @@ Most creative coding frameworks... don't do much:
 | Cinder | Platform-native (but only for TextBox, not TextureFont) |
 | openrndr | None—single font per text draw |
 | nannou | None—uses whatever RustType returns |
+| DrawBot | CoreText cascade—automatic per-character fallback (macOS) |
+
+DrawBot benefits from CoreText's sophisticated fallback system, which handles mixed scripts automatically. If you draw "Hello こんにちは 👋", CoreText finds appropriate fonts for Latin, Japanese, and emoji without any configuration.
 
 This is actually reasonable for creative coding. When you're designing visuals, you typically control the text and can ensure your font covers it. Fallback matters more for user-input scenarios.
 

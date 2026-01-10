@@ -30,6 +30,7 @@ This document analyzes these aspects across frameworks to inform the design of a
 | **p5.js** | ✓ | ✓ | ✓ | - | - | - | - | - | - |
 | **Processing** | ✓ | ✓ | - | - | - | - | - | - | - |
 | **tixl** | ✓ | - | - | - | ✓ | - | - | ✓ | - |
+| **DrawBot** | ✓ | - | - | - | - | - | - | - | ✓ |
 
 ### Libraries
 
@@ -45,7 +46,7 @@ This document analyzes these aspects across frameworks to inform the design of a
 - **openrndr** has the most comprehensive color space support (16+ models)
 - **nannou** leverages the Rust `palette` crate for extensive support
 - **tixl** uniquely implements **OkLab** (modern perceptual model) in GPU shaders
-- **toxiclibs** (library) is the only one with **CMYK** support
+- **DrawBot** and **toxiclibs** have **CMYK** support—rare in creative coding, essential for print
 - **mixbox** (library) provides pigment-based mixing, not color spaces
 - Web libraries (three.js) focus on RGB/HSL basics
 
@@ -64,6 +65,7 @@ How frameworks and libraries store color values internally:
 | **p5.js** | `levels` array | 0-255 (internal 0-1) | Normalized internally, 8-bit output |
 | **Processing** | `int` (32-bit ARGB) | 0-255 packed | Bit-shifted components |
 | **tixl** | `Vector4` / `float4` | 0.0-1.0 (float) | RGBA in shaders |
+| **DrawBot** | NSColor / CGColor | 0.0-1.0 | macOS native, RGB + CMYK parallel APIs |
 
 ### Libraries
 
@@ -103,6 +105,18 @@ c.levels  // [255, 128, 64, 255] (8-bit)
 val rgb = ColorRGBa(1.0, 0.5, 0.25)
 val hsv: ColorHSVa = rgb.toHSVa()
 val lab: ColorLABa = rgb.toLABa()
+```
+
+```python
+# DrawBot (Python) - Dual RGB/CMYK system for print
+fill(1, 0, 0, 0.5)           # RGB: red at 50% opacity
+cmykFill(0, 1, 1, 0)         # CMYK: same red, print-ready
+
+stroke(0, 0, 1)              # RGB blue stroke
+cmykStroke(1, 1, 0, 0)       # CMYK blue stroke
+
+# Color spaces: sRGB, adobeRGB, genericGray
+fill(0.5, 0.5, 0.5, colorSpace="adobeRGB")
 ```
 
 ---
@@ -483,6 +497,25 @@ float cyan = c.cyan();  // CMYK access
 **Pros:** Flexible, one type to learn
 **Cons:** Memory overhead, implicit conversions
 
+### Pattern 5: Parallel Color Systems (DrawBot)
+
+Separate functions for different color models, allowing explicit choice:
+
+```python
+# DrawBot - RGB and CMYK as parallel function families
+fill(1, 0, 0)             # RGB red
+cmykFill(0, 1, 1, 0)      # CMYK red (for print)
+
+linearGradient(...)       # RGB gradient
+cmykLinearGradient(...)   # CMYK gradient (for print)
+
+shadow(...)               # RGB shadow
+cmykShadow(...)           # CMYK shadow
+```
+
+**Pros:** Explicit print/screen intent, no accidental color space mixing
+**Cons:** API surface area doubles, must remember to use correct family
+
 ### Constructor Patterns
 
 ```javascript
@@ -663,8 +696,9 @@ impl From<(f32, f32, f32)> for Color { } // (1.0, 0.0, 0.0)
 3. **nannou/palette** shows idiomatic Rust color handling
 4. **OkLab** is the modern choice for perceptual color - implement in shaders
 5. **Mixbox** enables natural pigment mixing - essential for paint-like applications
-6. **Type safety vs ergonomics** is the key tradeoff - provide both layers
-7. **Linear workflow** is essential for correct rendering - make it explicit
+6. **DrawBot** demonstrates print-focused color (CMYK) with parallel API pattern
+7. **Type safety vs ergonomics** is the key tradeoff - provide both layers
+8. **Linear workflow** is essential for correct rendering - make it explicit
 
 ---
 

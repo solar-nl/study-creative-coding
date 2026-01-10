@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **The core challenge:** Variable fonts enable smooth weight/width animation that is impossible with traditional fonts, yet none of the six studied creative coding frameworks expose this capability despite their underlying libraries supporting it.
+> **The core challenge:** Variable fonts enable smooth weight/width animation impossible with traditional fonts. Most creative coding frameworks don't expose this capability despite their underlying libraries supporting it—but **DrawBot proves it can be done**, offering full variable font axis control through a clean API.
 
 ---
 
@@ -145,7 +145,7 @@ The second approach matters for animation—you can interpolate normalized value
 
 ## What Creative Coding Frameworks Expose
 
-Disappointingly little:
+Most frameworks don't expose variable font capabilities:
 
 | Framework | Variable Font Support |
 |-----------|----------------------|
@@ -155,8 +155,9 @@ Disappointingly little:
 | Cinder | None—platform APIs support it, but not exposed |
 | openrndr | None—STB TrueType doesn't support variable fonts |
 | nannou | None—RustType has limited support, not exposed |
+| **DrawBot** | **Full support**—CoreText axis control + fontTools inspection |
 
-This is a significant gap. Variable fonts enable effects that are otherwise impossible:
+DrawBot is the exception—and a working example of what's possible. Variable fonts enable effects that are otherwise impossible:
 
 ```
 Frame 1:  Weight 400  →  "Hello"
@@ -167,6 +168,87 @@ Frame 30: Weight 900  →  "Hello" (maximum black)
 ```
 
 Smooth weight animation, impossible with traditional fonts, becomes trivial.
+
+---
+
+## DrawBot: The Working Example
+
+DrawBot demonstrates that variable fonts *can* be accessible in creative coding. Its API is worth studying as a design reference.
+
+### Axis Discovery and Control
+
+```python
+import drawBot
+
+# Load a variable font
+font("Inter-Variable.ttf")
+
+# Discover what axes this font offers
+axes = listFontVariations()
+for tag, info in axes.items():
+    print(f"{tag}: {info['name']}")
+    print(f"  Range: {info['minValue']}–{info['maxValue']}")
+    print(f"  Default: {info['defaultValue']}")
+
+# Set axis values using tag names
+fontVariations(wght=650, wdth=87.5)
+
+# Reset to defaults
+fontVariations(resetVariations=True)
+```
+
+### Named Instances
+
+DrawBot exposes the designer's pre-defined axis combinations:
+
+```python
+# List available named instances
+instances = listNamedInstances()
+# Returns: {'Bold': {...}, 'Bold Condensed': {...}, 'Light': {...}}
+
+# Apply a named instance
+fontNamedInstance("Bold Condensed")
+```
+
+### Animation Example
+
+```python
+# Smooth weight animation
+for i in range(60):
+    newPage(500, 200)
+
+    # Interpolate weight from 400 to 900 over 60 frames
+    weight = 400 + (i / 59) * 500
+
+    font("Inter-Variable.ttf")
+    fontVariations(wght=weight)
+    fontSize(72)
+    text(f"Weight: {int(weight)}", (50, 80))
+
+saveImage("weight-animation.gif")
+```
+
+### How It Works Internally
+
+DrawBot's variable font support uses macOS CoreText under the hood:
+
+1. **Font loading:** `CTFontManagerRegisterFontsForURL()` registers the font
+2. **Axis discovery:** `CTFontCopyVariationAxes()` returns the fvar table data
+3. **Axis application:** `CTFontCreateWithOptions()` with a variations dictionary
+4. **Named instances:** Parsed from the font's `fvar` table
+
+The key files in DrawBot's source:
+- `drawBot/context/tools/variation.py` — `getVariationAxesForFont()` wraps CoreText axis queries
+- `drawBot/drawBotDrawingTools.py` — `fontVariations()` and `listFontVariations()` API
+
+### Why Other Frameworks Don't Do This
+
+DrawBot's approach works because:
+1. **macOS only:** CoreText is a high-quality, complete implementation
+2. **Type design heritage:** DrawBot's creators *care* about fonts
+3. **Python flexibility:** No need for compile-time font feature flags
+
+Frameworks targeting multiple platforms face harder choices—FreeType supports variable fonts but requires more manual setup, and not all platforms have equivalent APIs.
 
 ---
 
@@ -258,6 +340,8 @@ draw.text("Hello")
 
 **Pro:** Complete flexibility; custom axes just work.
 **Con:** Users must know axis tags.
+
+**Real-world example:** DrawBot uses this pattern with `fontVariations(wght=650, wdth=87.5)`. Users pass axis tags directly as keyword arguments. Combined with `listFontVariations()` for discovery, this proves the pattern is ergonomic in practice.
 
 ### Pattern 4: Named Instance Shorthand
 
@@ -369,7 +453,7 @@ For a WASM creative coding framework, you might want to:
 
 ## Recommendations for a Rust Framework
 
-1. **Support variable fonts from day one.** The complexity is mostly in the font library (swash handles it); exposing axes is straightforward.
+1. **Support variable fonts from day one.** The complexity is mostly in the font library (swash handles it); exposing axes is straightforward. DrawBot proves this is valuable—its variable font support is a key differentiator.
 
 2. **Use Pattern 3 (raw axis access)** as the foundation—it's the most flexible. Layer convenience methods on top:
 

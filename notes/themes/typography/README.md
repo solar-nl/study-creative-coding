@@ -317,6 +317,82 @@ draw.text("rainbow")
 
 ---
 
+### DrawBot: The Typography Specialist
+
+**The approach:** DrawBot uses macOS CoreText for text shaping and rendering, with fontTools for font inspection. This is a *platform-native* approach like Cinder, but from the type design community rather than creative coding.
+
+**Why DrawBot is different:** Unlike other creative coding frameworks that add typography as a feature, DrawBot was built *by type designers for type designers*. Its heritage shows—OpenType features, variable fonts, and multi-page documents are first-class citizens, not afterthoughts.
+
+**Variable fonts work here:** DrawBot is the only creative coding framework studied that fully exposes variable font axes:
+
+```python
+# Load a variable font and set axes
+font("Inter-Variable.ttf")
+fontVariations(wght=650, wdth=87.5)
+
+# Query available axes
+for axis, info in listFontVariations().items():
+    print(f"{axis}: {info['minValue']}–{info['maxValue']}")
+
+# Use designer-defined named instances
+fontNamedInstance("Bold Condensed")
+```
+
+This enables smooth weight animation—impossible with traditional fonts—by interpolating axis values each frame.
+
+**OpenType feature discovery and control:** DrawBot doesn't just *support* OpenType features; it lets you *discover* what a font offers:
+
+```python
+# See what features this font supports
+features = listOpenTypeFeatures()
+# Returns: {'liga': True, 'smcp': True, 'onum': True, 'ss01': True, ...}
+
+# Enable specific features
+openTypeFeatures(liga=True, smcp=True)  # Ligatures + small caps
+
+# Or disable defaults
+openTypeFeatures(liga=False)  # Turn off ligatures
+```
+
+This introspection capability is rare—most frameworks let you *request* features but don't tell you what's available.
+
+**Rich text via FormattedString:** DrawBot's `FormattedString` class enables per-character styling:
+
+```python
+txt = FormattedString()
+txt.append("Hello ", font="Helvetica", fontSize=24)
+txt.append("World", font="Helvetica-Bold", fontSize=36, fill=(1, 0, 0))
+text(txt, (100, 100))
+```
+
+Each segment can have different fonts, sizes, colors, and even different OpenType features.
+
+**Text-to-path conversion:** Like OpenFrameworks and nannou, DrawBot provides vector path access:
+
+```python
+# Get text as a BezierPath for creative manipulation
+path = BezierPath()
+path.text("creative", font="Helvetica", fontSize=200)
+
+# Now path.points contains all the control points
+for contour in path.contours:
+    for point in contour:
+        # Each point has x, y, and type (onCurve, offCurve)
+        pass
+```
+
+Under the hood, this uses CoreText's `CTRunGetGlyphs()` and `CTFontCreatePathForGlyph()` to extract glyph paths.
+
+**The limitation:** macOS only. DrawBot is built on PyObjC and requires CoreText, making it impossible to run on Windows or Linux. For cross-platform projects, you'll need a different framework.
+
+**Key files to study:**
+- `drawBot/drawBotDrawingTools.py` — The user-facing API including `font()`, `fontVariations()`, `openTypeFeatures()`
+- `drawBot/context/baseContext.py` — Lines 1400-1537 show text attribute handling
+- `drawBot/context/tools/openType.py` — The `getFeatureTagsForFont()` implementation
+- `drawBot/context/tools/variation.py` — Variable font axis discovery
+
+---
+
 ## The Trade-offs, Visualized
 
 Here's how the frameworks compare on key dimensions:
@@ -331,6 +407,7 @@ Here's how the frameworks compare on key dimensions:
     Cinder         ●●●●●●○○         ●●●●●●●●          ○○○○○○○○
     openrndr       ●●●●●●●○         ●●●○○○○○          ●●●●●●●●
     nannou         ●●●●●●●●         ○○○○○○○○          ●●●●●●●●
+    DrawBot        ●●●●●●●●         ●●●●●●●●          ●●●●●●●●  (macOS only)
 ```
 
 | Framework | Font Library | What It Gets You | What You Give Up |
@@ -341,6 +418,7 @@ Here's how the frameworks compare on key dimensions:
 | Cinder | Platform-native | Best OS integration, ligatures | Cross-platform consistency |
 | openrndr | STB TrueType | Pluggable architecture, token-based layout | Basic shaping only |
 | nannou | RustType | Pure Rust, clean path API | Limited feature set |
+| DrawBot | CoreText | Variable fonts, OpenType features, fontTools inspection | macOS only |
 
 ---
 
@@ -459,6 +537,7 @@ These topics warranted their own detailed analysis:
 | Cinder | `include/cinder/Font.h`, `src/cinder/gl/TextureFont.cpp`, `include/cinder/Text.h` |
 | openrndr | `openrndr-draw/.../font/Font.kt`, `orx-text-writer/.../TextWriter.kt` |
 | nannou | `nannou/src/text/font.rs`, `nannou/src/text/glyph.rs`, `nannou/src/draw/primitive/text.rs` |
+| DrawBot | `drawBot/drawBotDrawingTools.py`, `drawBot/context/tools/openType.py`, `drawBot/context/tools/variation.py` |
 
 ---
 
