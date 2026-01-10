@@ -651,7 +651,7 @@ impl Inspectable for StandardMaterial {
 
 ---
 
-## Key Takeaways for wgpu Framework
+## Key Takeaways for [wgpu](https://github.com/gfx-rs/wgpu) Framework
 
 1. **Options objects are powerful** — Use Rust's Default trait and struct initialization
 2. **Method chaining improves ergonomics** — Return self for setters

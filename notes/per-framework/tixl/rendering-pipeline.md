@@ -265,10 +265,10 @@ Format.R32G32B32A32_Float  // Full precision
 ## Patterns for Rust Framework
 
 1. **Command abstraction** - Rust could use closures or a trait-based command system
-2. **PBR material struct** - Direct translation to Rust struct with wgpu textures
+2. **PBR material struct** - Direct translation to Rust struct with [wgpu](https://github.com/gfx-rs/wgpu) textures
 3. **Transform stack** - Could use a stack of matrices or a scene graph
-4. **Shader compilation** - wgpu handles this cross-platform; cache SPIR-V
-5. **Render-to-texture** - wgpu `TextureView` as render target
+4. **Shader compilation** - [wgpu](https://github.com/gfx-rs/wgpu) handles this cross-platform; cache SPIR-V
+5. **Render-to-texture** - [wgpu](https://github.com/gfx-rs/wgpu) `TextureView` as render target
 
 ## Key Files to Study
 

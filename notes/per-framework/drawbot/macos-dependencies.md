@@ -198,9 +198,9 @@ These features have no abstraction and are entirely macOS-specific:
 
 | Feature | macOS APIs | Cross-Platform Alternative |
 |---------|-----------|---------------------------|
-| BezierPath | NSBezierPath | kurbo, lyon |
+| BezierPath | NSBezierPath | [kurbo](https://github.com/linebender/kurbo), lyon |
 | Color | NSColor | palette crate |
-| Basic transforms | NSAffineTransform | kurbo Transform |
+| Basic transforms | NSAffineTransform | [kurbo](https://github.com/linebender/kurbo) Transform |
 
 ### Good Model: SVGContext
 
@@ -230,15 +230,15 @@ Even SVGContext requires NSBezierPath for path extraction.
 | CTFramesetter | `cosmic-text` or custom | Text layout engine |
 | **Quartz** | | |
 | CGPDFContext | `pdf-writer`, `lopdf`, `printpdf` | PDF generation |
-| CGPath | `kurbo` or `lyon` | Path representation and operations |
+| CGPath | `kurbo` or [`lyon`](https://github.com/nical/lyon) | Path representation and operations |
 | CGPathCreateCopyByStrokingPath | `lyon::path::builder` | Path stroking/expansion |
 | CGGradient | Custom implementation | Gradient structures |
 | **AppKit** | | |
 | NSBezierPath | `kurbo::BezPath` | Path abstraction |
-| NSBitmapImageRep | `image` crate | Bitmap encoding |
-| NSColor | `palette` crate | Color spaces and conversion |
+| NSBitmapImageRep | [`image`](https://github.com/image-rs/image) crate | Bitmap encoding |
+| NSColor | [`palette`](https://github.com/Ogeon/palette) crate | Color spaces and conversion |
 | NSFont | `font-kit` + `rustybuzz` | Font access |
-| NSImage | `image` crate | Image loading |
+| NSImage | [`image`](https://github.com/image-rs/image) crate | Image loading |
 
 ## Recommendations for Your Framework
 
@@ -255,7 +255,7 @@ Even SVGContext requires NSBezierPath for path extraction.
 
 5. **Test SVG export first.** Since SVG is the most portable output format, implement and validate SVG export before tackling PDF or bitmap outputs.
 
-6. **Variable font support requires care.** CoreText's variable font APIs (CTFontCopyVariationAxes) need equivalent functionality via fontkit-rs or direct OpenType parsing with `read-fonts`.
+6. **Variable font support requires care.** CoreText's variable font APIs (CTFontCopyVariationAxes) need equivalent functionality via [fontkit-rs](https://github.com/nickkraft/font-kit) or direct OpenType parsing with `read-fonts`.
 
 ## Key Source Files
 

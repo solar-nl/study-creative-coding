@@ -549,11 +549,11 @@ renderPass.executeBundles([bundle]);
 
 ---
 
-## wgpu Mapping
+## [wgpu](https://github.com/gfx-rs/wgpu) Mapping
 
-Babylon's WebGPU implementation maps directly to wgpu:
+Babylon's WebGPU implementation maps directly to [wgpu](https://github.com/gfx-rs/wgpu):
 
-| Babylon WebGPU | wgpu Equivalent |
+| Babylon WebGPU | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent |
 |----------------|-----------------|
 | WebGPUEngine | Device + Queue wrapper |
 | _renderEncoder | CommandEncoder |
@@ -564,7 +564,7 @@ Babylon's WebGPU implementation maps directly to wgpu:
 | WebGPUDrawContext | Per-draw state |
 | WebGPUBufferManager | Buffer utilities |
 
-A wgpu implementation would have similar structures:
+A [wgpu](https://github.com/gfx-rs/wgpu) implementation would have similar structures:
 
 ```rust
 struct WgpuEngine {

@@ -170,13 +170,13 @@ This ensures that when the browser substitutes fonts, the line height stays cons
 
 ---
 
-## The Rust Ecosystem: cosmic-text
+## The Rust Ecosystem: [cosmic-text](https://github.com/pop-os/cosmic-text)
 
 For a Rust creative coding framework, [cosmic-text](https://github.com/pop-os/cosmic-text) provides the most complete fallback implementation.
 
 ### The Fallback Trait
 
-cosmic-text defines a `Fallback` trait that lets you customize behavior:
+[cosmic-text](https://github.com/pop-os/cosmic-text) defines a `Fallback` trait that lets you customize behavior:
 
 ```rust
 pub trait Fallback {
@@ -188,7 +188,7 @@ The library ships with platform-specific fallback lists borrowed from Chromium a
 
 ### Granularity Options
 
-cosmic-text supports three fallback granularities:
+[cosmic-text](https://github.com/pop-os/cosmic-text) supports three fallback granularities:
 
 **Per-character** (most flexible):
 ```rust
@@ -215,9 +215,9 @@ The per-locale option matters because of **Han unification**—Chinese, Japanese
 
 ---
 
-## HarfBuzz: The Shaping Perspective
+## [HarfBuzz](https://github.com/harfbuzz/harfbuzz): The Shaping Perspective
 
-When using HarfBuzz (or rustybuzz), fallback detection integrates with the shaping loop:
+When using [HarfBuzz](https://github.com/harfbuzz/harfbuzz) (or [rustybuzz](https://github.com/RazrFalcon/rustybuzz)), fallback detection integrates with the shaping loop:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -353,7 +353,7 @@ Font fallback isn't free:
 | Re-shape with new font | Expensive (full shaping pass) |
 | Render with multiple fonts | Memory cost (multiple atlases) |
 
-For real-time creative coding, you generally want to **pre-compute fallback** during setup, not during animation. cosmic-text's shape run cache helps with this.
+For real-time creative coding, you generally want to **pre-compute fallback** during setup, not during animation. [cosmic-text](https://github.com/pop-os/cosmic-text)'s shape run cache helps with this.
 
 ---
 
@@ -361,7 +361,7 @@ For real-time creative coding, you generally want to **pre-compute fallback** du
 
 Based on this research:
 
-1. **Use cosmic-text's Fallback trait** rather than implementing from scratch. It embeds years of browser fallback knowledge.
+1. **Use [cosmic-text](https://github.com/pop-os/cosmic-text)'s Fallback trait** rather than implementing from scratch. It embeds years of browser fallback knowledge.
 
 2. **Default to per-character fallback** for text that might contain mixed scripts.
 
@@ -389,10 +389,10 @@ text_buffer.shape();
 
 ## Sources
 
-- [cosmic-text GitHub](https://github.com/pop-os/cosmic-text) — Pure Rust text handling with built-in fallback
+- [cosmic-text](https://github.com/pop-os/cosmic-text) — Pure Rust text handling with built-in fallback
 - [CSS font-family MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family) — How browser fallback works
 - [Chrome Improved Font Fallbacks](https://developer.chrome.com/blog/font-fallbacks) — Metric override technique
-- [HarfBuzz Missing Glyphs Discussion](https://lists.freedesktop.org/archives/harfbuzz/2015-May/004854.html) — Why glyph_id == 0 means missing
+- [HarfBuzz Missing Glyphs Discussion](https://lists.freedesktop.org/archives/[harfbuzz](https://github.com/harfbuzz/harfbuzz)/2015-May/004854.html) — Why glyph_id == 0 means missing
 - [DirectWrite Documentation](https://learn.microsoft.com/en-us/windows/win32/directwrite/introducing-directwrite) — Windows fallback API
 - [Mozilla Font Fallback Investigation](https://bugzilla.mozilla.org/show_bug.cgi?id=1238863) — CoreText fallback deep dive
 

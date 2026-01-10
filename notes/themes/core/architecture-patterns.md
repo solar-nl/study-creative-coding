@@ -38,7 +38,7 @@ Architecture patterns determine how a framework's code is organized:
 
 ## Library Architectures
 
-### three.js
+### [three.js](https://github.com/mrdoob/three.js)
 **Approach**: Class hierarchy, composition pattern
 **Key insight**: Everything inherits from Object3D; scene graph based
 
@@ -66,10 +66,10 @@ Architecture patterns determine how a framework's code is organized:
 
 | Library | Module System | Integration Model | Config Approach |
 |---------|---------------|-------------------|-----------------|
-| three.js | ES Modules | External modules | Constructor options |
+| [three.js](https://github.com/mrdoob/three.js) | ES Modules | External modules | Constructor options |
 | toxiclibs | Maven/Gradle | Import packages | Factory methods |
 | orx | Gradle | Depend on modules | DSL extensions |
-| wgpu | Cargo | Depend on crate | Builder pattern |
+| [wgpu](https://github.com/gfx-rs/wgpu) | Cargo | Depend on crate | Builder pattern |
 
 ## Recommendations for Rust Framework
 

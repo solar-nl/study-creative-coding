@@ -75,7 +75,7 @@ Here is how to think about Cables at the highest level:
 
 A **Patch** is a container for **Ops** (operators) connected via **Ports** and **Links**. Each op performs a specific function: reading mouse position, transforming coordinates, drawing shapes. Data flows through the connections.
 
-The key insight: Cables does not use Three.js or any existing rendering engine. It implements its own `CgContext` abstraction that targets either WebGL (`CglContext`) or WebGPU (`CgpContext`). This is important because it means the visual programming layer is designed around GPU concepts from the ground up, not bolted onto an existing framework.
+The key insight: Cables does not use [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) or any existing rendering engine. It implements its own `CgContext` abstraction that targets either WebGL (`CglContext`) or WebGPU (`CgpContext`). This is important because it means the visual programming layer is designed around GPU concepts from the ground up, not bolted onto an existing framework.
 
 ---
 
@@ -104,11 +104,11 @@ This dual model maps surprisingly well to how modern graphics APIs work. Value c
 
 ---
 
-## Concepts That Transfer to wgpu
+## Concepts That Transfer to [wgpu](https://github.com/gfx-rs/wgpu)
 
-The parallels to modern graphics APIs run deeper than just the execution model. If you are building a Rust creative coding framework with wgpu, here is what Cables teaches:
+The parallels to modern graphics APIs run deeper than just the execution model. If you are building a Rust creative coding framework with [wgpu](https://github.com/gfx-rs/wgpu), here is what Cables teaches:
 
-| Cables Concept | wgpu Equivalent | Why It Matters |
+| Cables Concept | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent | Why It Matters |
 |----------------|-----------------|----------------|
 | State stack (push/pop transforms) | Transform hierarchy in scene graph | Composable rendering without global state |
 | Trigger-based execution | Command buffer recording | Explicit control over render order |

@@ -155,7 +155,7 @@ Most frameworks don't expose variable font capabilities:
 | Cinder | None—platform APIs support it, but not exposed |
 | openrndr | None—STB TrueType doesn't support variable fonts |
 | nannou | None—RustType has limited support, not exposed |
-| **DrawBot** | **Full support**—CoreText axis control + fontTools inspection |
+| **DrawBot** | **Full support**—CoreText axis control + [fontTools](https://github.com/fonttools/fonttools) inspection |
 
 DrawBot is the exception—and a working example of what's possible. Variable fonts enable effects that are otherwise impossible:
 
@@ -252,7 +252,7 @@ Frameworks targeting multiple platforms face harder choices—FreeType supports 
 
 ---
 
-## The Rust Ecosystem: swash
+## The Rust Ecosystem: [swash](https://github.com/dfrg/swash)
 
 The [swash](https://github.com/dfrg/swash) library provides the most complete variable font support in the Rust ecosystem:
 
@@ -287,11 +287,11 @@ let mut scaler = font.scaler(&settings)
     .build();
 ```
 
-### Integration with cosmic-text
+### Integration with [cosmic-text](https://github.com/pop-os/cosmic-text)
 
-[cosmic-text](https://github.com/pop-os/cosmic-text) uses swash under the hood but doesn't currently expose variation axes to users. There's an [open issue #406](https://github.com/pop-os/cosmic-text/issues/406) discussing this—variable fonts work, but the UI controls for axes aren't wired up.
+[cosmic-text](https://github.com/pop-os/cosmic-text) uses [swash](https://github.com/dfrg/swash) under the hood but doesn't currently expose variation axes to users. There's an [open issue #406](https://github.com/pop-os/cosmic-text/issues/406) discussing this—variable fonts work, but the UI controls for axes aren't wired up.
 
-This means: the capability exists at the library level, but you'd need to patch or fork cosmic-text to expose it.
+This means: the capability exists at the library level, but you'd need to patch or fork [cosmic-text](https://github.com/pop-os/cosmic-text) to expose it.
 
 ---
 
@@ -447,13 +447,13 @@ When targeting WASM/web, browsers handle variable fonts natively:
 
 For a WASM creative coding framework, you might want to:
 1. Use CSS for basic variable font support (free, optimized)
-2. Bring your own (swash) only when you need glyph-level access
+2. Bring your own ([swash](https://github.com/dfrg/swash)) only when you need glyph-level access
 
 ---
 
 ## Recommendations for a Rust Framework
 
-1. **Support variable fonts from day one.** The complexity is mostly in the font library (swash handles it); exposing axes is straightforward. DrawBot proves this is valuable—its variable font support is a key differentiator.
+1. **Support variable fonts from day one.** The complexity is mostly in the font library ([swash](https://github.com/dfrg/swash) handles it); exposing axes is straightforward. DrawBot proves this is valuable—its variable font support is a key differentiator.
 
 2. **Use Pattern 3 (raw axis access)** as the foundation—it's the most flexible. Layer convenience methods on top:
 
@@ -503,8 +503,8 @@ for instance in font.named_instances() {
 - [OpenType fvar Table Spec](https://learn.microsoft.com/en-us/typography/opentype/spec/fvar) — The authoritative reference
 - [Variable Fonts Introduction](https://medium.com/variable-fonts/https-medium-com-tiro-introducing-opentype-variable-fonts-12ba6cd2369) — John Hudson's excellent overview
 - [Google Fonts Variable Guide](https://googlefonts.github.io/gf-guide/variable.html) — Practical implementation guide
-- [swash Documentation](https://docs.rs/swash/latest/swash/) — Rust library with full variation support
-- [cosmic-text Issue #406](https://github.com/pop-os/cosmic-text/issues/406) — Variable font UI discussion
+- [swash](https://github.com/dfrg/swash) — Rust library with full variation support
+- [cosmic-text](https://github.com/pop-os/cosmic-text) — Variable font UI discussion
 - [State of Text Rendering 2024](https://behdad.org/text2024/) — Industry overview including variable fonts
 
 ---

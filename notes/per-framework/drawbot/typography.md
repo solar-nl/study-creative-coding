@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **Typography's core idea:** DrawBot exposes full OpenType feature control and variable font axes through CoreText, with FormattedString enabling per-character styling while fontTools provides direct access to GPOS/GSUB tables.
+> **Typography's core idea:** DrawBot exposes full OpenType feature control and variable font axes through CoreText, with FormattedString enabling per-character styling while [fontTools](https://github.com/fonttools/fonttools) provides direct access to GPOS/GSUB tables.
 
 ## Font Loading
 
@@ -24,7 +24,7 @@ font("Times-Italic", 48)
 font("MyFontCollection.ttc", fontNumber=1)
 ```
 
-From `drawBotDrawingTools.py`:
+From [`drawBotDrawingTools.py`](https://github.com/robotools/drawbot/blob/master/drawBotDrawingTools.py):
 ```python
 def font(self, fontNameOrPath: SomePath, fontSize: float | None = None, fontNumber: int = 0):
     """Set a font with the name of the font.
@@ -53,7 +53,7 @@ openTypeFeatures(resetFeatures=True)
 print(listOpenTypeFeatures())  # ['calt', 'kern', 'liga', 'smcp', ...]
 ```
 
-From `openType.py`, feature discovery uses fontTools to parse GPOS/GSUB tables:
+From [`openType.py`](https://github.com/robotools/drawbot/blob/master/context/tools/openType.py), feature discovery uses [fontTools](https://github.com/fonttools/fonttools) to parse GPOS/GSUB tables:
 ```python
 @memoize
 def getFeatureTagsForFont(font):
@@ -87,7 +87,7 @@ print(listNamedInstances())  # {'SkiaRegular': {'wght': 1.0}, ...}
 fontNamedInstance("SkiaBlack")
 ```
 
-From `variation.py`, axes are retrieved via CoreText:
+From [`variation.py`](https://github.com/robotools/drawbot/blob/master/context/tools/variation.py), axes are retrieved via CoreText:
 ```python
 @memoize
 def getVariationAxesForFont(font):

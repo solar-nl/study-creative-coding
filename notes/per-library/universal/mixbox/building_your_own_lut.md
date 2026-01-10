@@ -1,4 +1,4 @@
-# Building Your Own Mixbox-Style LUT
+# Building Your Own [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))-Style LUT
 
 > "The magic is in the spectral data - once you have K(lambda) and S(lambda), the rest is straightforward physics."
 
@@ -41,7 +41,7 @@ For each pigment, you need K(λ) and S(λ) curves:
 - [Okumura Thesis (2005)](https://repository.rit.edu/theses/4892/)
 - Measure yourself with a spectrophotometer
 
-**Mixbox uses:**
+**[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) uses:**
 - PB15:4 (Phthalo Blue)
 - PY73 (Hansa Yellow)
 - PR122 (Quinacridone Magenta)
@@ -244,11 +244,11 @@ def fit_polynomial(pigments, num_samples=100000):
 
 ---
 
-## Alternative: Using Mixbox's LUT as Training Data
+## Alternative: Using [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))'s LUT as Training Data
 
 If you can't get spectral data, you can:
 
-1. **Sample Mixbox's LUT** exhaustively (64³ = 262,144 points)
+1. **Sample [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))'s LUT** exhaustively (64³ = 262,144 points)
 2. **Train a neural network**: RGB → (c0, c1, c2)
 3. **Use the same polynomial** for decoding
 

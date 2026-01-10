@@ -1,8 +1,8 @@
-# wgpu API Design
+# [wgpu](https://github.com/gfx-rs/wgpu) API Design
 
 > Not yet documented.
 
-This document is planned but not yet written. wgpu is a safe, portable WebGPU implementation in Rust.
+This document is planned but not yet written. [wgpu](https://github.com/gfx-rs/wgpu) is a safe, portable WebGPU implementation in Rust.
 
 ## Planned Topics
 

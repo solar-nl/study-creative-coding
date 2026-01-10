@@ -1,4 +1,4 @@
-# Three.js Architecture
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Architecture
 
 > Why everything in 3D graphics eventually becomes a tree
 
@@ -12,23 +12,23 @@
 
 Picture this: you are building a solar system visualization. Earth orbits the Sun. The Moon orbits Earth. A satellite orbits the Moon. When Earth moves, the Moon and satellite should move with it automatically. When the Moon moves relative to Earth, the satellite should follow. How do you express these relationships without manually updating every object's position every frame?
 
-This is the fundamental challenge Three.js's architecture solves. A 3D scene is not just a bag of objects floating in space. Objects have spatial relationships. A wheel belongs to a car. A car belongs to a street. A character's hand belongs to their arm, which belongs to their torso. When the torso turns, everything downstream should follow.
+This is the fundamental challenge [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s architecture solves. A 3D scene is not just a bag of objects floating in space. Objects have spatial relationships. A wheel belongs to a car. A car belongs to a street. A character's hand belongs to their arm, which belongs to their torso. When the torso turns, everything downstream should follow.
 
 The naive approach would be to store absolute world positions for everything and manually update them when parent objects move. This is tedious, error-prone, and scales terribly. Move the car, and you must remember to update four wheels, two doors, six windows, and a hundred other parts.
 
-Three.js solves this with a **scene graph** — a tree structure where each node stores its position relative to its parent. Move the car, and all children automatically inherit that movement. The scene graph is the backbone of the entire architecture, and understanding it unlocks everything else.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) solves this with a **scene graph** — a tree structure where each node stores its position relative to its parent. Move the car, and all children automatically inherit that movement. The scene graph is the backbone of the entire architecture, and understanding it unlocks everything else.
 
 ---
 
 ## The Mental Model: A Mobile Sculpture
 
-Think of Three.js's scene graph like a hanging mobile sculpture — the kind you might see above a baby's crib.
+Think of [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s scene graph like a hanging mobile sculpture — the kind you might see above a baby's crib.
 
 The topmost hook is the **Scene**: the root from which everything hangs. From it dangle several wires, each holding another piece. Some pieces are simple shapes. Others are sub-mobiles with their own dangling pieces.
 
 When you push the top of the mobile, everything below sways together. Push a middle piece, and only its children move — the pieces above stay still. This is exactly how the scene graph works: transformations (position, rotation, scale) cascade downward but not upward.
 
-Each piece in the mobile corresponds to an **Object3D**: Three.js's universal base class for anything that exists in 3D space. A Mesh is an Object3D. A Camera is an Object3D. Even a Light is an Object3D. They all share the same transform properties and parent-child machinery.
+Each piece in the mobile corresponds to an **Object3D**: [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s universal base class for anything that exists in 3D space. A Mesh is an Object3D. A Camera is an Object3D. Even a Light is an Object3D. They all share the same transform properties and parent-child machinery.
 
 ```
 Scene (root of the mobile)
@@ -44,13 +44,13 @@ Scene (root of the mobile)
     └── Camera (PerspectiveCamera)
 ```
 
-When Earth rotates around the Sun, the Moon and Satellite rotate with it. When the Moon rotates around Earth, only the Satellite follows. The scene graph expresses these relationships declaratively — you describe what belongs to what, and Three.js handles the math.
+When Earth rotates around the Sun, the Moon and Satellite rotate with it. When the Moon rotates around Earth, only the Satellite follows. The scene graph expresses these relationships declaratively — you describe what belongs to what, and [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) handles the math.
 
 ---
 
 ## The Core Abstractions
 
-Three.js is built on a handful of fundamental abstractions. Each exists for a specific reason.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) is built on a handful of fundamental abstractions. Each exists for a specific reason.
 
 ### Object3D: The Universal Base Class
 
@@ -75,7 +75,7 @@ Every object that can exist in 3D space inherits from `Object3D`. This is where 
 - `frustumCulled` — should the renderer skip this if outside camera view?
 - `renderOrder` — explicit draw order override
 
-The key insight is that `matrixWorld` is computed, not stored directly. When you call `updateMatrixWorld()`, Three.js walks the tree: each node multiplies its local matrix by its parent's matrixWorld to produce its own matrixWorld. This cascade is what makes "move the car, children follow" work automatically.
+The key insight is that `matrixWorld` is computed, not stored directly. When you call `updateMatrixWorld()`, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) walks the tree: each node multiplies its local matrix by its parent's matrixWorld to produce its own matrixWorld. This cascade is what makes "move the car, children follow" work automatically.
 
 ### BufferGeometry: Vertex Data
 
@@ -89,15 +89,15 @@ In GPU terms, a shape is just arrays of numbers: vertex positions, normals (whic
 - `index` — optional array that defines faces by referencing vertices
 - `groups` — ranges within the geometry that use different materials
 
-Why a generic container instead of specific shape classes? Because GPUs do not care about "cubes" or "spheres" — they only see vertex buffers. By standardizing on BufferGeometry, Three.js can send any shape to the GPU the same way.
+Why a generic container instead of specific shape classes? Because GPUs do not care about "cubes" or "spheres" — they only see vertex buffers. By standardizing on BufferGeometry, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) can send any shape to the GPU the same way.
 
-The `boundingBox` and `boundingSphere` properties enable frustum culling. Before the expensive work of transforming and shading vertices, Three.js can check: "Is this object's bounding sphere even inside the camera's view?" If not, skip it entirely.
+The `boundingBox` and `boundingSphere` properties enable frustum culling. Before the expensive work of transforming and shading vertices, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) can check: "Is this object's bounding sphere even inside the camera's view?" If not, skip it entirely.
 
 ### Materials: Surface Appearance
 
 Geometry defines shape, but a shape without appearance is invisible. Materials answer the second part: "What does this surface look like?" They define color, texture, shininess, transparency, and how light interacts with the surface.
 
-Three.js provides a hierarchy of material types:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) provides a hierarchy of material types:
 
 ```
 Material (base class — rarely used directly)
@@ -209,9 +209,9 @@ The key insight is separation of concerns: the application manipulates high-leve
 
 ## The Extension Model
 
-Three.js has no formal plugin system. Instead, extensions are separate modules that work with the core objects:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) has no formal plugin system. Instead, extensions are separate modules that work with the core objects:
 
-**Loaders** parse external formats and produce Three.js objects:
+**Loaders** parse external formats and produce [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) objects:
 - `GLTFLoader` — loads glTF models
 - `FBXLoader` — loads FBX models
 - `TextureLoader` — loads image files as textures
@@ -226,13 +226,13 @@ Three.js has no formal plugin system. Instead, extensions are separate modules t
 - `RenderPass` — renders the scene to a texture
 - `BloomPass`, `SSAOPass`, etc. — various effects
 
-These extensions live in `/examples/jsm/` rather than the core. This keeps the core small while providing a rich ecosystem. The pattern is simple: extensions import Three.js core and create, manipulate, or render Object3Ds using the standard APIs.
+These extensions live in `/examples/jsm/` rather than the core. This keeps the core small while providing a rich ecosystem. The pattern is simple: extensions import [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) core and create, manipulate, or render Object3Ds using the standard APIs.
 
 ---
 
-## wgpu/Rust Equivalent Patterns
+## [wgpu](https://github.com/gfx-rs/wgpu)/Rust Equivalent Patterns
 
-If you are building a similar architecture in Rust with wgpu, here is how these concepts map:
+If you are building a similar architecture in Rust with [wgpu](https://github.com/gfx-rs/wgpu), here is how these concepts map:
 
 ### Scene Graph
 
@@ -280,7 +280,7 @@ struct Geometry {
 
 ### Material-like State
 
-In wgpu, materials become pipeline configurations. The "material hierarchy" becomes a set of pipeline variants:
+In [wgpu](https://github.com/gfx-rs/wgpu), materials become pipeline configurations. The "material hierarchy" becomes a set of pipeline variants:
 
 ```rust
 struct MaterialParams {
@@ -360,7 +360,7 @@ A few gotchas that catch most newcomers:
 
 **Gimbal lock with Euler rotations** — When using `rotation` (Euler angles), certain orientations cause axes to align and "lock up," making further rotation unintuitive. For smooth, arbitrary rotations — especially interpolated animations — use `quaternion` directly.
 
-**Circular references and memory leaks** — Three.js objects hold references to geometry, materials, and textures. When removing objects from a scene, call `.dispose()` on geometries, materials, and textures you no longer need. Simply removing from the scene does not free GPU memory.
+**Circular references and memory leaks** — [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) objects hold references to geometry, materials, and textures. When removing objects from a scene, call `.dispose()` on geometries, materials, and textures you no longer need. Simply removing from the scene does not free GPU memory.
 
 **Parent transforms affecting children unexpectedly** — Scaling a parent scales all children. A child at position (1, 0, 0) with a parent scaled 2x ends up at world position (2, 0, 0). This is correct behavior, but surprises people who forget that all transforms are relative.
 

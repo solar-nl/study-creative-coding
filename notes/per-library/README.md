@@ -18,7 +18,7 @@ Cross-platform libraries available in multiple languages.
 
 | Library | Languages | Status | Description |
 |---------|-----------|--------|-------------|
-| [mixbox](./universal/mixbox/) | C++, JS, Rust, GLSL, Python | Complete | Pigment-based color mixing (Kubelka-Munk) |
+| [mixbox](https://github.com/scrtwpns/mixbox) | C++, JS, Rust, GLSL, Python | Complete | Pigment-based color mixing (Kubelka-Munk) |
 
 ## OPENRNDR Ecosystem
 
@@ -43,7 +43,7 @@ Native Rust graphics libraries.
 
 | Library | Status | Description |
 |---------|--------|-------------|
-| [wgpu](./rust/wgpu/) | Planned | Cross-platform WebGPU implementation |
+| [wgpu](https://github.com/gfx-rs/wgpu) | Planned | Cross-platform WebGPU implementation |
 
 ## Status Legend
 

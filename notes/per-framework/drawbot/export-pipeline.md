@@ -57,7 +57,7 @@ The `_makeBitmapImageRep` function creates an `NSBitmapImageRep` at the target r
 
 ## Animation Pipeline
 
-### GIF: Pages to Frames via gifsicle
+### GIF: Pages to Frames via [gifsicle](https://www.lcdf.org/gifsicle/)
 
 `GIFContext` renders all pages as temporary GIFs, then assembles them:
 
@@ -71,7 +71,7 @@ def _writeDataToFile(self, data, path, options):
         generateGif(self._inputPaths, path, self._delayData, loop=True)
 ```
 
-The `generateGif` function invokes gifsicle with frame delays:
+The `generateGif` function invokes [gifsicle](https://www.lcdf.org/gifsicle/) with frame delays:
 
 ```python
 cmds = [gifsiclePath, "-w", "--colors", "256", "--loop"]
@@ -80,7 +80,7 @@ for i, inputPath in enumerate(sourcePaths):
 cmds += ["--output", destPath]
 ```
 
-### MP4: Pages to Frames via ffmpeg
+### MP4: Pages to Frames via [ffmpeg](https://ffmpeg.org/)
 
 `MP4Context` extends `PNGContext` and exports frames to a temp directory:
 
@@ -92,7 +92,7 @@ def _writeDataToFile(self, data, path, options):
     shutil.rmtree(tempDir)
 ```
 
-The `generateMP4` function runs ffmpeg with H.264 encoding:
+The `generateMP4` function runs [ffmpeg](https://ffmpeg.org/) with H.264 encoding:
 
 ```python
 cmds = [ffmpegPath, "-y", "-r", str(frameRate), "-i", imageTemplate,
@@ -122,12 +122,12 @@ Drawing commands translate to SVG elements: `<path>` for shapes, `<text>/<tspan>
 | JPEG | JPEGContext | Quartz | Via multipage | No |
 | TIFF | TIFFContext | Quartz | Via multipage | No |
 | BMP | BMPContext | Quartz | Via multipage | No |
-| GIF | GIFContext | gifsicle | Yes | Yes |
-| MP4 | MP4Context | ffmpeg | N/A | Yes |
+| GIF | GIFContext | [gifsicle](https://www.lcdf.org/gifsicle/) | Yes | Yes |
+| MP4 | MP4Context | [ffmpeg](https://ffmpeg.org/) | N/A | Yes |
 
 ## Recommendations for Your Framework
 
-1. **Embrace PDF as Intermediate Format** - Quartz's PDF rendering is high-quality and handles text/vector perfectly. For cross-platform, wgpu could render to an internal texture, then export via image encoders.
+1. **Embrace PDF as Intermediate Format** - Quartz's PDF rendering is high-quality and handles text/vector perfectly. For cross-platform, [wgpu](https://github.com/gfx-rs/wgpu) could render to an internal texture, then export via image encoders.
 
 2. **Context Trait with Extension Matching** - The `fileExtensions` pattern maps cleanly to Rust:
    ```rust
@@ -137,7 +137,7 @@ Drawing commands translate to SVG elements: `<path>` for shapes, `<text>/<tspan>
    }
    ```
 
-3. **External Tool Integration** - DrawBot shells out to gifsicle/ffmpeg for animation. Consider using Rust crates (`gif`, `mp4`) for zero-dependency builds, with optional ffmpeg for advanced codecs.
+3. **External Tool Integration** - DrawBot shells out to [gifsicle](https://www.lcdf.org/gifsicle/)/[ffmpeg](https://ffmpeg.org/) for animation. Consider using Rust crates (`gif`, `mp4`) for zero-dependency builds, with optional [ffmpeg](https://ffmpeg.org/) for advanced codecs.
 
 4. **Resolution-Independent Rendering** - The PDF-first approach means all content is resolution-independent until rasterization. Match this by keeping your scene graph in logical coordinates.
 

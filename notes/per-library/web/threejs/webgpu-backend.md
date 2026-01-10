@@ -1,4 +1,4 @@
-# Three.js WebGPU Backend
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) WebGPU Backend
 
 > The translator that speaks GPU fluently so you don't have to
 
@@ -10,7 +10,7 @@
 
 ## The Problem: Two Languages That Don't Understand Each Other
 
-Here is the challenge: Three.js speaks in abstractions. "Draw this mesh with that material." "Clear the screen to black." "Update this texture." These are high-level commands that make sense to humans building 3D applications.
+Here is the challenge: [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) speaks in abstractions. "Draw this mesh with that material." "Clear the screen to black." "Update this texture." These are high-level commands that make sense to humans building 3D applications.
 
 WebGPU speaks in something entirely different. It wants command encoders, render pass descriptors, bind groups, pipeline layouts, and buffer slices. It demands exact specifications for every attachment, every format, every load and store operation.
 
@@ -22,14 +22,14 @@ The `WebGPUBackend` exists to be that translator. It takes the renderer's high-l
 
 ## The Mental Model: An Embassy Between Two Nations
 
-Think of `WebGPUBackend` as an embassy. On one side, you have Three.js — a nation that speaks in objects, materials, and scenes. On the other side, you have WebGPU — a nation that speaks in buffers, passes, and command queues.
+Think of `WebGPUBackend` as an embassy. On one side, you have [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) — a nation that speaks in objects, materials, and scenes. On the other side, you have WebGPU — a nation that speaks in buffers, passes, and command queues.
 
 The embassy (backend) handles all diplomatic communication:
 
-- When Three.js says "initialize everything," the embassy negotiates with the GPU adapter, requests a device with the right features, and sets up the canvas context
-- When Three.js says "start drawing," the embassy prepares the command encoder and begins a render pass with properly configured attachments
-- When Three.js says "draw this object," the embassy sets the pipeline, binds resources, configures vertex buffers, and issues the actual draw command
-- When Three.js says "finish up," the embassy ends the pass, submits the command buffer, and handles any post-processing like mipmap generation
+- When [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) says "initialize everything," the embassy negotiates with the GPU adapter, requests a device with the right features, and sets up the canvas context
+- When [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) says "start drawing," the embassy prepares the command encoder and begins a render pass with properly configured attachments
+- When [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) says "draw this object," the embassy sets the pipeline, binds resources, configures vertex buffers, and issues the actual draw command
+- When [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) says "finish up," the embassy ends the pass, submits the command buffer, and handles any post-processing like mipmap generation
 
 The embassy also maintains a staff of specialists — the utility classes — each expert in one area:
 
@@ -187,7 +187,7 @@ draw(renderObject, info) {
 }
 ```
 
-Notice the pattern: `this.get(something)` returns cached GPU resources. This is the `DataMap` pattern — a WeakMap wrapper that associates Three.js objects with their GPU counterparts.
+Notice the pattern: `this.get(something)` returns cached GPU resources. This is the `DataMap` pattern — a WeakMap wrapper that associates [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) objects with their GPU counterparts.
 
 ---
 
@@ -340,9 +340,9 @@ finishCompute(computeGroup) {
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
-Here is how these concepts translate to Rust and wgpu:
+Here is how these concepts translate to Rust and [wgpu](https://github.com/gfx-rs/wgpu):
 
 ```rust
 struct WebGPUBackend {
@@ -439,11 +439,11 @@ impl PipelineUtils {
 }
 ```
 
-### wgpu-Specific Considerations
+### [wgpu](https://github.com/gfx-rs/wgpu)-Specific Considerations
 
 **Lifetime management** is the biggest difference. In JavaScript, the garbage collector handles cleanup. In Rust, you must explicitly manage when resources are dropped. The `RenderContextData` struct shows one approach: store the encoder and pass as `Option` types, taking ownership when needed.
 
-**Render pass lifetimes** in wgpu are strict. You cannot hold a mutable reference to the render pass while also accessing the encoder. This forces different code structure than JavaScript.
+**Render pass lifetimes** in [wgpu](https://github.com/gfx-rs/wgpu) are strict. You cannot hold a mutable reference to the render pass while also accessing the encoder. This forces different code structure than JavaScript.
 
 ---
 
@@ -471,7 +471,7 @@ The backend delegates to specialized classes rather than becoming monolithic.
 
 ### 2. DataMap Caching
 
-WeakMap wrapper associates Three.js objects with GPU resources. Automatic cleanup when source objects are collected.
+WeakMap wrapper associates [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) objects with GPU resources. Automatic cleanup when source objects are collected.
 
 ### 3. Redundant State Tracking
 

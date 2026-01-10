@@ -292,9 +292,9 @@ import * as BABYLON from "@babylonjs/core";
 
 ---
 
-## Comparison with Three.js Architecture
+## Comparison with [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Architecture
 
-| Aspect | Babylon.js | Three.js |
+| Aspect | Babylon.js | [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) |
 |--------|------------|----------|
 | Organization | Monorepo with packages | Single package |
 | Core size | ~67KB (thin), ~2MB (full) | ~150KB |
@@ -304,11 +304,11 @@ import * as BABYLON from "@babylonjs/core";
 | Scene graph | Rich (groups, layers) | Minimal (Object3D tree) |
 | Built-in tools | Inspector, Playground, NME | None |
 
-Both approaches work. Three.js optimizes for simplicity and size. Babylon.js optimizes for features and tooling.
+Both approaches work. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) optimizes for simplicity and size. Babylon.js optimizes for features and tooling.
 
 ---
 
-## Key Patterns for wgpu Implementation
+## Key Patterns for [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
 Several patterns from Babylon.js translate well to Rust:
 

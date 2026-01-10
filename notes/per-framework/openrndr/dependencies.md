@@ -83,7 +83,7 @@ openrndr/
 
 - **LWJGL is central** - All native functionality through LWJGL
 - **Multiplatform** - JVM (desktop) and JS (web) targets
-- **FFmpeg for video** - Full codec support via javacpp
+- **[FFmpeg](https://[ffmpeg](https://ffmpeg.org/).org/) for video** - Full codec support via javacpp
 - **Coroutines-friendly** - Async design throughout
 - **Modular** - Can use openrndr-math independently
 

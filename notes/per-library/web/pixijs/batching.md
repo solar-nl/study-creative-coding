@@ -237,9 +237,9 @@ The key optimization insight: **use texture atlases**. Combining sprites into sh
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
-Here's how the same pattern translates to Rust and wgpu:
+Here's how the same pattern translates to Rust and [wgpu](https://github.com/gfx-rs/wgpu):
 
 ```rust
 struct Batcher {

@@ -18,7 +18,7 @@ When you compile a Rust creative coding framework to WebAssembly, you face a cho
 - Handles complex scripts automatically
 - But it's a black box: you can't access glyph positions or paths
 
-**Path B: Bring your own text shaping (rustybuzz, cosmic-text)**
+**Path B: Bring your own text shaping ([rustybuzz](https://github.com/RazrFalcon/rustybuzz), [cosmic-text](https://github.com/pop-os/cosmic-text))**
 - Full control over every glyph
 - Consistent behavior across browsers and platforms
 - Enables creative manipulation
@@ -142,11 +142,11 @@ For basic UI text, this doesn't matter. For creative typography—where you want
 
 ## Path B: Bringing Your Own Shaping
 
-### rustybuzz: HarfBuzz in Pure Rust
+### [rustybuzz](https://github.com/RazrFalcon/rustybuzz): [HarfBuzz](https://github.com/harfbuzz/harfbuzz) in Pure Rust
 
-[rustybuzz](https://github.com/harfbuzz/rustybuzz) is a port of HarfBuzz (the industry-standard shaper) to Rust. It passes 2,221 of 2,252 HarfBuzz shaping tests.
+[rustybuzz](https://github.com/RazrFalcon/rustybuzz) is a port of [HarfBuzz](https://github.com/harfbuzz/harfbuzz) (the industry-standard shaper) to Rust. It passes 2,221 of 2,252 [HarfBuzz](https://github.com/harfbuzz/harfbuzz) shaping tests.
 
-Performance is excellent: **280,000+ glyphs per second** on typical hardware—about 20x faster than opentype.js (JavaScript).
+Performance is excellent: **280,000+ glyphs per second** on typical hardware—about 20x faster than [opentype.js](https://github.com/opentypejs/opentype.js) (JavaScript).
 
 ```rust
 use rustybuzz::{Face, UnicodeBuffer};
@@ -178,7 +178,7 @@ for (info, pos) in glyph_buffer.glyph_infos()
 
 ### WASM Support
 
-rustybuzz added official WASM bindings in v0.18.0 (August 2024):
+[rustybuzz](https://github.com/RazrFalcon/rustybuzz) added official WASM bindings in v0.18.0 (August 2024):
 
 ```bash
 npm install rustybuzz-wasm
@@ -191,7 +191,7 @@ await init();
 const glyphs = shape(fontData, "Hello", {});
 ```
 
-### cosmic-text: The All-in-One Solution
+### [cosmic-text](https://github.com/pop-os/cosmic-text): The All-in-One Solution
 
 If you need more than just shaping—layout, fallback, rendering—[cosmic-text](https://github.com/pop-os/cosmic-text) bundles it all:
 
@@ -213,7 +213,7 @@ for run in buffer.layout_runs() {
 }
 ```
 
-**WASM support:** cosmic-text compiles to WASM, but has font fallback issues—it can panic if no default fonts are embedded. You need to bundle fonts or implement custom fallback.
+**WASM support:** [cosmic-text](https://github.com/pop-os/cosmic-text) compiles to WASM, but has font fallback issues—it can panic if no default fonts are embedded. You need to bundle fonts or implement custom fallback.
 
 ### fontdue: Rasterization Only
 
@@ -236,14 +236,14 @@ Here's what bringing your own shaping costs:
 
 | Library | Unoptimized | With wasm-opt -Oz | Gzipped |
 |---------|-------------|-------------------|---------|
-| rustybuzz | 600KB–1MB | 300–400KB | 80–120KB |
-| cosmic-text | 800KB–1.5MB | 400–600KB | 150–250KB |
+| [rustybuzz](https://github.com/RazrFalcon/rustybuzz) | 600KB–1MB | 300–400KB | 80–120KB |
+| [cosmic-text](https://github.com/pop-os/cosmic-text) | 800KB–1.5MB | 400–600KB | 150–250KB |
 | fontdue (rasterization only) | ~200KB | ~100KB | ~50KB |
 
 For context:
 - A typical WASM creative coding framework (without text) might be 500KB–2MB gzipped
-- Adding rustybuzz increases bundle by 15–25%
-- Adding cosmic-text increases bundle by 30–50%
+- Adding [rustybuzz](https://github.com/RazrFalcon/rustybuzz) increases bundle by 15–25%
+- Adding [cosmic-text](https://github.com/pop-os/cosmic-text) increases bundle by 30–50%
 
 ### Optimization Techniques
 
@@ -355,9 +355,9 @@ impl TextRenderer {
 
 Real-world benchmarks for text rendering in WASM:
 
-| Operation | Browser Canvas | rustybuzz | Notes |
+| Operation | Browser Canvas | [rustybuzz](https://github.com/RazrFalcon/rustybuzz) | Notes |
 |-----------|---------------|-----------|-------|
-| Shape "Hello World" | N/A (black box) | ~0.03ms | rustybuzz is fast |
+| Shape "Hello World" | N/A (black box) | ~0.03ms | [rustybuzz](https://github.com/RazrFalcon/rustybuzz) is fast |
 | Draw 100 words | ~0.5ms | ~2ms | Browser batches better |
 | Per-glyph animation | Not possible | ~5ms/frame | Worth the cost for effects |
 | Initial load | 0ms | 10–100ms | WASM module parsing |
@@ -377,7 +377,7 @@ Who uses what approach?
 | Photopea | harfbuzzjs (WASM) | Professional tool, users expect control |
 | Canva | Hybrid | Browser for preview, custom for export |
 | Google Docs | Browser | Editing doesn't need glyph access |
-| Prezi | Custom (HarfBuzz) | Animation requires glyph positions |
+| Prezi | Custom ([HarfBuzz](https://github.com/harfbuzz/harfbuzz)) | Animation requires glyph positions |
 
 ---
 
@@ -456,7 +456,7 @@ The text rendering landscape is evolving:
 
 **Wasm-fonts proposal:** Would enable more expressive fonts in WASM contexts.
 
-**HarfBuzz drawing API:** Expected in 2025, would enable full text rendering in WASM without separate rasterizer.
+**[HarfBuzz](https://github.com/harfbuzz/harfbuzz) drawing API:** Expected in 2025, would enable full text rendering in WASM without separate rasterizer.
 
 **Incremental Font Transfer:** Streaming fonts over the network, reducing initial load times.
 
@@ -468,9 +468,9 @@ For now, the hybrid approach—browser for simple cases, custom for creative—r
 
 ## Sources
 
-- [rustybuzz-wasm npm](https://www.npmjs.com/package/rustybuzz-wasm) — Official WASM bindings
-- [rustybuzz GitHub](https://github.com/harfbuzz/rustybuzz) — The HarfBuzz port
-- [cosmic-text GitHub](https://github.com/pop-os/cosmic-text) — All-in-one text handling
+- [rustybuzz](https://github.com/RazrFalcon/rustybuzz) — Official WASM bindings
+- [rustybuzz](https://github.com/RazrFalcon/rustybuzz) — The [HarfBuzz](https://github.com/harfbuzz/harfbuzz) port
+- [cosmic-text](https://github.com/pop-os/cosmic-text) — All-in-one text handling
 - [wasm-bindgen Canvas Guide](https://rustwasm.github.io/docs/wasm-bindgen/examples/2d-canvas.html) — Using Canvas from WASM
 - [State of Text Rendering 2024](https://behdad.org/text2024/) — Industry overview
 - [Bevy WASM Guide](https://bevy-cheatbook.github.io/platforms/wasm.html) — Practical WASM optimization

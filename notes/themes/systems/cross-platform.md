@@ -21,7 +21,7 @@ Cross-platform concerns:
 
 ## Recommendations for Rust Framework
 
-1. **wgpu for graphics** — Vulkan/Metal/DX12/WebGPU
-2. **winit for windowing** — Cross-platform windows
+1. **[wgpu](https://github.com/gfx-rs/wgpu) for graphics** — Vulkan/Metal/DX12/WebGPU
+2. **[winit](https://github.com/rust-windowing/winit) for windowing** — Cross-platform windows
 3. **WASM support** — Web target via wasm-bindgen
 4. **Conditional compilation** — Platform-specific code paths

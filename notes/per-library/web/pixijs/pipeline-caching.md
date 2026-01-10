@@ -343,9 +343,9 @@ private _createPipeline(geometry, program, state, topology): GPURenderPipeline {
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
-The Rust/wgpu version follows the same structure. The main difference is using `HashMap` instead of JavaScript objects:
+The Rust/[wgpu](https://github.com/gfx-rs/wgpu) version follows the same structure. The main difference is using `HashMap` instead of JavaScript objects:
 
 ```rust
 use std::collections::HashMap;

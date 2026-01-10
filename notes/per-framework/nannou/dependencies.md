@@ -33,7 +33,7 @@ nannou/
 | Dependency | Version | Purpose |
 |------------|---------|---------|
 | `wgpu` | 0.17.1 | Cross-platform GPU abstraction |
-| `lyon` | 0.17 | 2D path tessellation |
+| [`lyon`](https://github.com/nical/lyon) | 0.17 | 2D path tessellation |
 | `rusttype` | 0.8 | Font rendering with GPU cache |
 
 ### Windowing
@@ -46,7 +46,7 @@ nannou/
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| `glam` | (via wgpu) | Vector/matrix math |
+| `glam` | (via [wgpu](https://github.com/gfx-rs/wgpu)) | Vector/matrix math |
 | (nannou_core) | internal | Creative coding math utilities |
 
 ### Audio
@@ -59,7 +59,7 @@ nannou/
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| `image` | 0.23 | Image loading and processing |
+| [`image`](https://github.com/image-rs/image) | 0.23 | Image loading and processing |
 
 ### Serialization
 
@@ -77,7 +77,7 @@ nannou/
 
 ## Dependency Graph Notes
 
-- **wgpu is central** - All rendering flows through nannou_wgpu
+- **[wgpu](https://github.com/gfx-rs/wgpu) is central** - All rendering flows through nannou_wgpu
 - **Modular design** - Audio, OSC, laser are optional sub-crates
 - **lyon for 2D** - All 2D path rendering uses lyon tessellation
 - **Minimal dependencies** - Core is lightweight, features opt-in
@@ -86,4 +86,4 @@ nannou/
 
 - Main Cargo.toml: `frameworks/nannou/Cargo.toml`
 - nannou crate: `frameworks/nannou/nannou/Cargo.toml`
-- wgpu wrapper: `frameworks/nannou/nannou_wgpu/Cargo.toml`
+- [wgpu](https://github.com/gfx-rs/wgpu) wrapper: `frameworks/nannou/nannou_wgpu/Cargo.toml`

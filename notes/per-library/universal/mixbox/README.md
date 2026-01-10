@@ -1,4 +1,4 @@
-# Mixbox
+# [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))
 
 > Pigment-based color mixing library using Kubelka-Munk theory.
 
@@ -7,7 +7,7 @@
 | Property | Value |
 |----------|-------|
 | **Type** | Color mixing library (not a framework) |
-| **Repository** | [scrtwpns/mixbox](https://github.com/scrtwpns/mixbox) |
+| **Repository** | [scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)](https://github.com/scrtwpns/mixbox) |
 | **License** | CC BY-NC 4.0 (non-commercial), commercial licenses available |
 | **Version** | 2.0.0 |
 | **Languages** | Rust, C/C++, C#, Java, JavaScript, Python |
@@ -16,15 +16,15 @@
 
 ## Philosophy & Purpose
 
-Mixbox solves the fundamental problem with RGB color mixing:
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) solves the fundamental problem with RGB color mixing:
 
-| Colors | RGB Result | Mixbox Result |
+| Colors | RGB Result | [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) Result |
 |--------|------------|---------------|
 | Blue + Yellow | Gray/Brown | **Green** |
 | Red + Blue | Muddy Purple | **Vibrant Purple** |
 | Cyan + Magenta | Gray | **Blue** |
 
-Traditional RGB is **additive** (light mixing), but artists expect **subtractive** behavior (pigment mixing). Mixbox simulates real paint behavior using physics-based color theory.
+Traditional RGB is **additive** (light mixing), but artists expect **subtractive** behavior (pigment mixing). [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) simulates real paint behavior using physics-based color theory.
 
 **Target audience:** Digital painting tools, creative coding with natural color gradients, any application where artists expect paint-like color behavior.
 
@@ -69,7 +69,7 @@ The library uses a **lookup table (LUT)** texture to encode pigment behavior, ma
 
 ## Study Questions
 
-- [x] What problem does Mixbox solve? → RGB mixing produces muddy colors
+- [x] What problem does [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) solve? → RGB mixing produces muddy colors
 - [x] How does it work? → Kubelka-Munk theory via LUT texture
 - [x] What platforms are supported? → Rust, C/C++, shaders (GLSL/HLSL/Metal)
 - [x] How does the latent space encoding work? → See [architecture.md](architecture.md)
@@ -84,12 +84,12 @@ The library uses a **lookup table (LUT)** texture to encode pigment behavior, ma
 | [architecture.md](architecture.md) | Full polynomial coefficients, latent space structure, why the LUT exists |
 | [reverse_engineering.md](reverse_engineering.md) | Our reverse engineering findings: complementary contamination, white as catalyst, three-way interactions |
 | [building_your_own_lut.md](building_your_own_lut.md) | **Complete recipe** for constructing your own LUT from the paper |
-| [error_reduction_strategies.md](error_reduction_strategies.md) | Attempts to match Mixbox without the LUT |
+| [error_reduction_strategies.md](error_reduction_strategies.md) | Attempts to match [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) without the LUT |
 | [compare_with_mixbox/](compare_with_mixbox/) | Experimental Rust code for all our investigations |
 
 ## Paper Reference
 
-The [Mixbox paper](../../libraries/mixbox/paper/mixbox.pdf) (Sochorová & Jamriška, SIGGRAPH 2021) is included in the library folder. Key insights:
+The [Mixbox paper](../../libraries/[mixbox](https://github.com/scrtwpns/mixbox)/paper/[mixbox](https://github.com/scrtwpns/mixbox).pdf) (Sochorová & Jamriška, SIGGRAPH 2021) is included in the library folder. Key insights:
 
 - **LUT construction**: Simply `unmix(RGB)` for each color using Newton solver
 - **Surrogate pigments**: Real pigments exceed sRGB; optimized surrogates stay within gamut
@@ -98,7 +98,7 @@ The [Mixbox paper](../../libraries/mixbox/paper/mixbox.pdf) (Sochorová & Jamri�
 
 ## Comparison with Standard Mixing
 
-| Aspect | RGB Lerp | Mixbox |
+| Aspect | RGB Lerp | [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) |
 |--------|----------|--------|
 | Speed | Fastest | Slightly slower (LUT lookup) |
 | Results | Additive (light) | Subtractive (pigment) |

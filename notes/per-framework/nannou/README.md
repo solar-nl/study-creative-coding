@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **nannou's core idea:** A modular workspace of focused crates that brings creative coding to Rust through idiomatic builder patterns, callback-based lifecycles, and wgpu-powered graphics.
+> **nannou's core idea:** A modular workspace of focused crates that brings creative coding to Rust through idiomatic builder patterns, callback-based lifecycles, and [wgpu](https://github.com/gfx-rs/wgpu)-powered graphics.
 
 ## Quick Facts
 
@@ -21,7 +21,7 @@ nannou brings creative coding to Rust with idiomatic patterns:
 
 - **Type safety**: Leverage Rust's type system for correctness
 - **Performance**: Native speed, no GC pauses
-- **Modular**: Workspace of focused crates (core, wgpu, audio, etc.)
+- **Modular**: Workspace of focused crates (core, [wgpu](https://github.com/gfx-rs/wgpu), audio, etc.)
 - **Builder pattern**: Fluent API for configuration
 
 Target audience: Rust developers interested in creative coding, artists wanting performance.
@@ -75,7 +75,7 @@ Start reading here to understand the framework:
 ## Study Questions
 
 - [ ] How does the App builder configure the application?
-- [ ] How does the Draw API map to wgpu?
+- [ ] How does the Draw API map to [wgpu](https://github.com/gfx-rs/wgpu)?
 - [ ] How does the event system dispatch to user code?
 - [ ] How is the crate workspace organized for reuse?
 - [ ] What Rust idioms are used for the drawing DSL?
@@ -88,4 +88,4 @@ Start reading here to understand the framework:
 
 ## Related Libraries
 
-- [wgpu](../../per-library/wgpu/) — WebGPU implementation that powers nannou's graphics backend
+- [wgpu](https://github.com/gfx-rs/wgpu) — WebGPU implementation that powers nannou's graphics backend

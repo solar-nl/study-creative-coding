@@ -327,9 +327,9 @@ FNV-1a is fast but not collision-free. Two different texture combinations can th
 
 ---
 
-## wgpu Equivalent
+## [wgpu](https://github.com/gfx-rs/wgpu) Equivalent
 
-Here's how this pattern translates to Rust with wgpu. The core concepts remain identical - the main difference is Rust's ownership model requires more explicit lifetime management:
+Here's how this pattern translates to Rust with [wgpu](https://github.com/gfx-rs/wgpu). The core concepts remain identical - the main difference is Rust's ownership model requires more explicit lifetime management:
 
 ```rust
 use std::collections::HashMap;
@@ -412,7 +412,7 @@ impl BindGroupCache {
 }
 ```
 
-The wgpu version is more explicit about resource lifetimes, but the caching strategy is identical: compute a key, check the cache, create on miss.
+The [wgpu](https://github.com/gfx-rs/wgpu) version is more explicit about resource lifetimes, but the caching strategy is identical: compute a key, check the cache, create on miss.
 
 ---
 

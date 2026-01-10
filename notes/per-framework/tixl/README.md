@@ -88,4 +88,4 @@ Symbol (Definition)
 | Learning curve | Lower (visual) | Higher (code) |
 | Flexibility | Constrained to operators | Unlimited (code) |
 | Live coding | Excellent | Good |
-| Cross-platform | Yes (Silk.NET) | Yes (wgpu) |
+| Cross-platform | Yes (Silk.NET) | Yes ([wgpu](https://github.com/gfx-rs/wgpu)) |

@@ -1,4 +1,4 @@
-# wgpu
+# [wgpu](https://github.com/gfx-rs/wgpu)
 
 > A cross-platform, safe, pure-Rust graphics API.
 
@@ -8,12 +8,12 @@
 |----------|-------|
 | **Language** | Rust |
 | **License** | MIT/Apache-2.0 |
-| **Repository** | [gfx-rs/wgpu](https://github.com/gfx-rs/wgpu) |
-| **Documentation** | [docs.rs/wgpu](https://docs.rs/wgpu) |
+| **Repository** | [gfx-rs/[wgpu](https://github.com/gfx-rs/wgpu)](https://github.com/gfx-rs/wgpu) |
+| **Documentation** | [docs.rs/[wgpu](https://github.com/gfx-rs/wgpu)](https://docs.rs/wgpu) |
 
 ## Philosophy & Target Audience
 
-wgpu implements WebGPU in Rust:
+[wgpu](https://github.com/gfx-rs/wgpu) implements WebGPU in Rust:
 - Safe abstraction over native APIs
 - Cross-platform (Vulkan, Metal, DX12, WebGPU)
 - Modern graphics API design
@@ -31,7 +31,7 @@ Target audience: Rust developers needing GPU access.
 
 ## Study Questions
 
-- [ ] How does wgpu abstract backend differences?
+- [ ] How does [wgpu](https://github.com/gfx-rs/wgpu) abstract backend differences?
 - [ ] How does the resource binding model work?
 - [ ] How are command buffers structured?
 - [ ] How does compute shader support work?

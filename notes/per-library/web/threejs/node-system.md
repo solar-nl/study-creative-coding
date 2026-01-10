@@ -1,4 +1,4 @@
-# Three.js Node System (TSL)
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Node System (TSL)
 
 > What if shader code could write itself?
 
@@ -120,7 +120,7 @@ material.colorNode = mix(colorA, colorB, uv().x);
 
 **Step 1: Node Creation**
 
-When you call `uniform(new Color(0xff0000))`, Three.js creates a `UniformNode`. This node stores a reference to your Color object and knows its type is `vec3`. When you call `uv()`, it creates a `UVNode` that references the vertex attribute. The `.x` swizzle creates another node that extracts a single float.
+When you call `uniform(new Color(0xff0000))`, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) creates a `UniformNode`. This node stores a reference to your Color object and knows its type is `vec3`. When you call `uv()`, it creates a `UVNode` that references the vertex attribute. The `.x` swizzle creates another node that extracts a single float.
 
 **Step 2: Graph Assembly**
 
@@ -361,7 +361,7 @@ Loop({ start: 0, end: 100 }, ({ i }) => {
 
 ## Material Integration
 
-TSL integrates with Three.js's material system through node slots:
+TSL integrates with [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s material system through node slots:
 
 ### Standard Material Nodes
 
@@ -472,7 +472,7 @@ function animate() {
 
 ---
 
-## wgpu Considerations
+## [wgpu](https://github.com/gfx-rs/wgpu) Considerations
 
 A similar pattern could be implemented in Rust:
 

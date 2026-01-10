@@ -668,7 +668,7 @@ A well-designed framework routes primitives to the optimal strategy automaticall
 ## Sources
 
 - [OpenGL Instanced Rendering](https://www.khronos.org/opengl/wiki/Vertex_Rendering#Instancing)
-- [wgpu Instancing Tutorial](https://sotrh.github.io/learn-wgpu/beginner/tutorial7-instancing/)
+- [wgpu](https://github.com/gfx-rs/wgpu)
 - [Inigo Quilez - 2D SDF Functions](https://iquilezles.org/articles/distfunctions2d/)
 - [Lyon Tessellation](https://github.com/nical/lyon)
 

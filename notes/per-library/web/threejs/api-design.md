@@ -1,4 +1,4 @@
-# Three.js API Design
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) API Design
 
 > Why the way you name things shapes how people think about them
 
@@ -12,17 +12,17 @@ How do you design an API that serves all of them?
 
 This is not just about picking good names. Every API decision is a trade-off. Do you expose the full power of the underlying graphics system, or do you hide complexity behind friendly abstractions? Do you follow the conventions of the web platform, or the conventions of computer graphics academia? Do you optimize for discoverability (can a beginner figure out what to do?) or for expressiveness (can an expert do everything they need?)?
 
-Three.js has been making these decisions for over a decade, and its choices reveal a coherent philosophy: progressive disclosure. The simple things are simple. The complex things are possible. And you do not need to understand the complex things to use the simple ones.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) has been making these decisions for over a decade, and its choices reveal a coherent philosophy: progressive disclosure. The simple things are simple. The complex things are possible. And you do not need to understand the complex things to use the simple ones.
 
 ---
 
 ## The Mental Model: A Vocabulary for 3D
 
-Think of Three.js's API as a vocabulary for talking about 3D scenes. Like any language, it has nouns (Scene, Mesh, Light), verbs (add, remove, lookAt), and adjectives (visible, castShadow).
+Think of [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s API as a vocabulary for talking about 3D scenes. Like any language, it has nouns (Scene, Mesh, Light), verbs (add, remove, lookAt), and adjectives (visible, castShadow).
 
 The brilliance of a well-designed vocabulary is that it lets you think at the right level of abstraction. You do not say "emit photons at 550 nanometers wavelength in a hemispherical distribution pattern." You say "add a green light." The vocabulary matches the mental model of the domain.
 
-Three.js's naming conventions are not arbitrary. They encode decades of accumulated wisdom about how to think about 3D graphics:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s naming conventions are not arbitrary. They encode decades of accumulated wisdom about how to think about 3D graphics:
 
 - **PascalCase for classes** tells you "this is a thing you can create"
 - **camelCase for methods** tells you "this is an action you can perform"
@@ -33,7 +33,7 @@ Three.js's naming conventions are not arbitrary. They encode decades of accumula
 
 ## The Philosophy: Progressive Disclosure
 
-Three.js's API follows a principle called progressive disclosure. The surface is simple. The depths are vast. You only encounter complexity when you need it.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s API follows a principle called progressive disclosure. The surface is simple. The depths are vast. You only encounter complexity when you need it.
 
 Watch how each constructor signature matches its domain's needs:
 
@@ -58,7 +58,7 @@ The key insight: consistency should serve comprehension, not the other way aroun
 
 ## Alternative Approaches: What Could They Have Done?
 
-To understand Three.js's choices, consider the alternatives:
+To understand [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s choices, consider the alternatives:
 
 ### 1. The Low-Level Approach (like WebGL raw)
 
@@ -71,7 +71,7 @@ gl.enableVertexAttribArray(positionAttributeLocation);
 // ... 50 more lines to draw a single triangle
 ```
 
-This is maximally flexible but requires understanding GPU state machines, buffer binding points, and the precise order of operations. Three.js abstracts this entirely. The trade-off: power users cannot optimize at the GL level (though the WebGPU backend changes this somewhat).
+This is maximally flexible but requires understanding GPU state machines, buffer binding points, and the precise order of operations. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) abstracts this entirely. The trade-off: power users cannot optimize at the GL level (though the WebGPU backend changes this somewhat).
 
 ### 2. The Declarative Approach (like React Three Fiber)
 
@@ -82,7 +82,7 @@ This is maximally flexible but requires understanding GPU state machines, buffer
 </mesh>
 ```
 
-This is how React Three Fiber wraps Three.js. It is declarative rather than imperative. You describe what you want, not how to create it. The trade-off: harder to express complex procedural logic, and it requires understanding a different paradigm.
+This is how React Three Fiber wraps [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)). It is declarative rather than imperative. You describe what you want, not how to create it. The trade-off: harder to express complex procedural logic, and it requires understanding a different paradigm.
 
 ### 3. The Entity-Component-System Approach (like PlayCanvas or Bevy)
 
@@ -94,9 +94,9 @@ entity.addComponent('rigidbody', { type: 'dynamic' });
 
 ECS treats everything as an entity with attached components. This is composition over inheritance. The trade-off: less obvious what an entity "is" (a Mesh feels like a thing; an entity with a render component feels like a bag of properties).
 
-Three.js chose classical object-oriented design: a Mesh is a concrete thing that has geometry and material. This matches how artists think about 3D scenes better than components do. Whether that is "right" depends on your users.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) chose classical object-oriented design: a Mesh is a concrete thing that has geometry and material. This matches how artists think about 3D scenes better than components do. Whether that is "right" depends on your users.
 
-Each approach solves the same fundamental problem—getting geometry rendered to screen—but makes different trade-offs. WebGL raw optimizes for control. React Three Fiber optimizes for declarative composition. ECS optimizes for runtime flexibility. Three.js optimizes for intuition. The "best" choice depends on your audience and use case.
+Each approach solves the same fundamental problem—getting geometry rendered to screen—but makes different trade-offs. WebGL raw optimizes for control. React Three Fiber optimizes for declarative composition. ECS optimizes for runtime flexibility. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) optimizes for intuition. The "best" choice depends on your audience and use case.
 
 ---
 
@@ -104,7 +104,7 @@ Each approach solves the same fundamental problem—getting geometry rendered to
 
 ### The Geometry + Material = Mesh Pattern
 
-This is Three.js's most fundamental abstraction:
+This is [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s most fundamental abstraction:
 
 ```javascript
 const geometry = new BoxGeometry(1, 1, 1);
@@ -186,7 +186,7 @@ vector.multiplyScalar(2);
 
 The chained version is more concise and makes the operation sequence explicit. The separate version is easier to debug (you can inspect intermediate values).
 
-Three.js's choice to enable chaining does not prevent the separate style. You can still break it into lines. This is progressive disclosure again: the simple case is concise, the debug case is possible.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s choice to enable chaining does not prevent the separate style. You can still break it into lines. This is progressive disclosure again: the simple case is concise, the debug case is possible.
 
 ---
 
@@ -256,7 +256,7 @@ This vocabulary, once learned, applies everywhere. You do not need to remember w
 
 ## Error Handling: Soft Failures and Console Warnings
 
-Three.js takes a forgiving approach to errors:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) takes a forgiving approach to errors:
 
 ```javascript
 // Missing texture shows magenta
@@ -277,13 +277,13 @@ if (!texture.isLoaded) {
 
 Strict validation catches errors early but also crashes the app for recoverable issues. The magenta texture is ugly, but the scene still renders. The user can see something is wrong and fix it. The alternative is a blank screen with an error in the console that a beginner might not know to check.
 
-The trade-off: soft failures can hide bugs. A missing texture in production might go unnoticed for months if no one looks closely at that particular model. Three.js trusts developers to notice visual anomalies rather than catching them programmatically.
+The trade-off: soft failures can hide bugs. A missing texture in production might go unnoticed for months if no one looks closely at that particular model. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) trusts developers to notice visual anomalies rather than catching them programmatically.
 
 ---
 
-## wgpu Considerations: Designing a Rust API
+## [wgpu](https://github.com/gfx-rs/wgpu) Considerations: Designing a Rust API
 
-How would you apply Three.js's lessons to a Rust creative coding library?
+How would you apply [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s lessons to a Rust creative coding library?
 
 ### Builder Pattern Instead of Config Objects
 
@@ -309,7 +309,7 @@ Builders give you compile-time validation, IDE autocomplete, and the ability to 
 
 ### Method Chaining with Ownership
 
-Three.js returns `this` for chaining. In Rust, you have choices:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) returns `this` for chaining. In Rust, you have choices:
 
 ```rust
 // Option 1: Return &mut Self (borrow)
@@ -323,7 +323,7 @@ The borrow approach matches JavaScript's behavior. The move approach is more fun
 
 ### Type-Enforced Separation
 
-Rust's type system can enforce the geometry/material separation that Three.js uses by convention:
+Rust's type system can enforce the geometry/material separation that [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) uses by convention:
 
 ```rust
 // Geometry and material are different types
@@ -340,7 +340,7 @@ This is stricter than JavaScript but catches errors at compile time rather than 
 
 ### Scene Graph Patterns
 
-Three.js's add/remove pattern is tricky in Rust because of ownership. Common approaches:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s add/remove pattern is tricky in Rust because of ownership. Common approaches:
 
 ```rust
 // Arena-based (like generational-arena)
@@ -351,11 +351,11 @@ let child_id = scene.add_child(node_id, another_mesh);
 commands.spawn((Transform::default(), Mesh::default()));
 ```
 
-Neither feels exactly like Three.js's `scene.add(mesh)`, but both handle the ownership semantics correctly.
+Neither feels exactly like [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s `scene.add(mesh)`, but both handle the ownership semantics correctly.
 
 ### Event System
 
-Three.js uses EventDispatcher:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) uses EventDispatcher:
 
 ```javascript
 object.addEventListener('removed', callback);
@@ -384,13 +384,13 @@ The channel approach plays best with Rust's ownership model.
 
 ---
 
-## Trade-offs: What Three.js Sacrifices
+## Trade-offs: What [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Sacrifices
 
 Every API choice has costs:
 
 ### Flexibility vs. Simplicity
 
-Three.js hides the raw WebGL/WebGPU API. You cannot optimize at the lowest level. You cannot easily implement custom rendering techniques that the architecture does not anticipate. The node material system (TSL) helps, but you are still working within Three.js's mental model.
+[Three.js](https://github.com/mrdoob/three.js)) hides the raw WebGL/WebGPU API. You cannot optimize at the lowest level. You cannot easily implement custom rendering techniques that the architecture does not anticipate. The node material system (TSL) helps, but you are still working within [Three.js](https://github.com/mrdoob/three.js)'s mental model.
 
 ### Convention vs. Type Safety
 
@@ -418,7 +418,7 @@ Simple things should be simple. Complex things should be possible. You should no
 
 ### 3. Match the Mental Model
 
-Three.js's API matches how artists and designers think about 3D: scenes contain objects, objects have geometry and appearance, transforms are hierarchical. The API vocabulary mirrors the domain vocabulary.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s API matches how artists and designers think about 3D: scenes contain objects, objects have geometry and appearance, transforms are hierarchical. The API vocabulary mirrors the domain vocabulary.
 
 ### 4. Be Forgiving in Development
 
@@ -426,7 +426,7 @@ Soft failures (magenta textures, console warnings) let developers see what went 
 
 ### 5. Trade-offs Are Inevitable
 
-There is no perfect API. Every choice favors some users over others, some use cases over others. Three.js consistently chooses accessibility over raw power, which is why it succeeded as a mainstream library rather than a specialist tool.
+There is no perfect API. Every choice favors some users over others, some use cases over others. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) consistently chooses accessibility over raw power, which is why it succeeded as a mainstream library rather than a specialist tool.
 
 ---
 

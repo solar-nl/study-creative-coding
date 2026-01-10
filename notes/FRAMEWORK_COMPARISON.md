@@ -57,7 +57,7 @@ You connect boxes with wires. Data flows through connections. Execution order em
 
 ### Retained-Mode Scene Graphs
 
-**Three.js, Babylon.js** (see [threejs](per-library/web/threejs/) and [babylonjs](per-library/web/babylonjs/))
+**[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)), Babylon.js** (see [threejs](per-library/web/threejs/) and [babylonjs](per-library/web/babylonjs/))
 
 You build a scene tree of objects, then the framework renders it. Objects persist between frames.
 
@@ -77,7 +77,7 @@ You build a scene tree of objects, then the framework renders it. Objects persis
 | OpenFrameworks | OpenGL | Push/pop stacks | Manual | Addons |
 | Cinder | OpenGL | Explicit state | Manual | Blocks |
 | openrndr | OpenGL 3.3 | Drawer context | Manual | orx extensions |
-| nannou | wgpu | Draw context | Automatic (lyon) | Crates |
+| nannou | [wgpu](https://github.com/gfx-rs/wgpu) | Draw context | Automatic (lyon) | Crates |
 | Cables | WebGL / WebGPU | Push/pop stacks | Manual | Operators |
 | tixl | DirectX 11 | Dirty flags | Automatic | Operators |
 
@@ -367,7 +367,7 @@ Based on patterns observed across all eight frameworks:
 
 3. **Shader composition via AST.** Use naga rather than string concatenation.
 
-4. **Explicit render passes.** Don't hide wgpu's command buffer model.
+4. **Explicit render passes.** Don't hide [wgpu](https://github.com/gfx-rs/wgpu)'s command buffer model.
 
 ### Extensibility
 

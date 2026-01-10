@@ -96,7 +96,7 @@ const uniColor = new CGL.Uniform(shader, "f", "uColor", inColor);
 
 The key insight: JavaScript handles the imperative aspects - responding to events, managing state, updating uniforms. The JSON handles the declarative aspects - what ports exist, their types, their default values. Each does what it's best at.
 
-In wgpu terms, this split resembles the distinction between pipeline descriptors (declarative) and command encoding (imperative).
+In [wgpu](https://github.com/gfx-rs/wgpu) terms, this split resembles the distinction between pipeline descriptors (declarative) and command encoding (imperative).
 
 ---
 
@@ -189,7 +189,7 @@ shader.setModules([
 ]);
 ```
 
-Shader modules are Cables' answer to shader variants. Instead of maintaining separate shaders for every feature combination, modules inject code snippets at specific points. This is similar to wgpu's approach of composing shader modules.
+Shader modules are Cables' answer to shader variants. Instead of maintaining separate shaders for every feature combination, modules inject code snippets at specific points. This is similar to [wgpu](https://github.com/gfx-rs/wgpu)'s approach of composing shader modules.
 
 ### Step 3: Uniform Binding
 
@@ -229,7 +229,7 @@ render.onTriggered = function() {
 
 Notice the pattern: define/removeDefine toggles shader features at runtime. The shader uses `#ifdef HAS_TEXTURE` to conditionally sample. This avoids the combinatorial explosion of separate shaders for every feature permutation.
 
-In wgpu, you'd achieve similar flexibility with bind group layouts and pipeline variants, though the mechanism is more explicit.
+In [wgpu](https://github.com/gfx-rs/wgpu), you'd achieve similar flexibility with bind group layouts and pipeline variants, though the mechanism is more explicit.
 
 ### Step 5: The Complete Render Loop
 
@@ -305,7 +305,7 @@ op.onDelete = function() {
 
 When an op is removed from the patch, `onDelete` fires. This is your chance to release GPU resources. Miss this, and you leak VRAM.
 
-In wgpu terms, this maps to explicit `drop()` calls or letting resources fall out of scope. The difference: wgpu uses Rust's ownership system to enforce cleanup; Cables relies on developer discipline.
+In [wgpu](https://github.com/gfx-rs/wgpu) terms, this maps to explicit `drop()` calls or letting resources fall out of scope. The difference: [wgpu](https://github.com/gfx-rs/wgpu) uses Rust's ownership system to enforce cleanup; Cables relies on developer discipline.
 
 ### Common Resource Types and Their Cleanup Methods
 
@@ -324,7 +324,7 @@ Having traced through Cables' architecture, several patterns stand out as broadl
 
 ### 1. The Push/Pop State Stack
 
-Cables' hierarchical state management via push/pop is elegant. Each op modifies state for its subtree without polluting siblings. In wgpu, you'd implement this with render pass builders or command encoder scopes.
+Cables' hierarchical state management via push/pop is elegant. Each op modifies state for its subtree without polluting siblings. In [wgpu](https://github.com/gfx-rs/wgpu), you'd implement this with render pass builders or command encoder scopes.
 
 ```rust
 // wgpu equivalent concept
@@ -351,7 +351,7 @@ struct MyMaterial {
 
 ### 3. Dirty Flags for Lazy Updates
 
-The `needsUpdate` pattern avoids redundant rebuilds. In wgpu, you'd track which buffers need uploading and batch updates before the render pass.
+The `needsUpdate` pattern avoids redundant rebuilds. In [wgpu](https://github.com/gfx-rs/wgpu), you'd track which buffers need uploading and batch updates before the render pass.
 
 ### 4. Typed Port Connections
 

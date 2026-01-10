@@ -119,9 +119,9 @@ For animation, browsers recommend **not** animating properties that trigger layo
 
 The FLIP technique (First, Last, Invert, Play) extends this: compute the layout positions you want, then animate there using transforms only.
 
-### cosmic-text: Buffer + Editor
+### [cosmic-text](https://github.com/pop-os/cosmic-text): Buffer + Editor
 
-cosmic-text separates concerns:
+[cosmic-text](https://github.com/pop-os/cosmic-text) separates concerns:
 
 **Buffer:** Holds text and layout results. Can be mutated, but mutations trigger re-shaping:
 
@@ -460,8 +460,8 @@ This gives you:
 - [Android DynamicLayout Documentation](https://developer.android.com/reference/android/text/DynamicLayout)
 - [CSS Animation Performance](https://web.dev/articles/animations-and-performance) — Transform vs layout properties
 - [FLIP Animation Technique](https://css-tricks.com/animating-layouts-with-the-flip-technique/) — Layout animation optimization
-- [cosmic-text Buffer API](https://docs.rs/cosmic-text/latest/cosmic_text/struct.Buffer.html)
-- [cosmic-text Editor API](https://docs.rs/cosmic-text/latest/cosmic_text/struct.Editor.html)
+- [cosmic-text](https://github.com/pop-os/cosmic-text)
+- [cosmic-text](https://github.com/pop-os/cosmic-text)
 - [Mastering Android Text Layout](https://medium.com/kotlin-android-chronicle/mastering-text-layout-with-staticlayout-and-dynamiclayout-in-android-52afca255820)
 
 ---

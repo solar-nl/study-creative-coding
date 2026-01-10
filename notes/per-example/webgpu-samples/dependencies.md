@@ -92,7 +92,7 @@ interface GPUDevice {
 }
 ```
 
-## Math Library: wgpu-matrix
+## Math Library: [wgpu](https://github.com/gfx-rs/wgpu)-matrix
 
 Chosen for WebGPU compatibility:
 
@@ -128,7 +128,7 @@ webgpu-samples follows:
 
 1. **Minimal runtime** - Few dependencies
 2. **Educational focus** - Clear, readable code
-3. **wgpu-matrix for math** - WebGPU-optimized
+3. **[wgpu](https://github.com/gfx-rs/wgpu)-matrix for math** - WebGPU-optimized
 4. **TypeScript** - Type safety for API learning
 5. **Interactive** - dat.gui for parameter tweaking
 
@@ -146,7 +146,7 @@ WebGPU requires modern browsers:
 ## Dependency Graph Notes
 
 - **@webgpu/types is essential** - API definitions
-- **wgpu-matrix over gl-matrix** - Better WebGPU fit
+- **[wgpu](https://github.com/gfx-rs/wgpu)-matrix over gl-matrix** - Better WebGPU fit
 - **dat.gui for interaction** - Standard demo UI
 - **CodeMirror for WGSL** - Shader editing in browser
 

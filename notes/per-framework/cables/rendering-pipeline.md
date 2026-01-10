@@ -192,9 +192,9 @@ cgl.popBlendMode();
 
 Each push/pop pair is independent. The inner ops don't need to know what the outer ops set, they just restore to "whatever was there before."
 
-### wgpu Equivalent
+### [wgpu](https://github.com/gfx-rs/wgpu) Equivalent
 
-In wgpu, this pattern maps to render pass and pipeline state:
+In [wgpu](https://github.com/gfx-rs/wgpu), this pattern maps to render pass and pipeline state:
 
 ```rust
 // Cables' state stacks → wgpu render pass configuration
@@ -221,7 +221,7 @@ let blend_state = wgpu::BlendState {
 };
 ```
 
-The main difference here is that wgpu uses immutable pipeline objects rather than mutable state. To get the same stack behavior, you'd maintain a stack of pipeline references and bind whichever one is currently on top.
+The main difference here is that [wgpu](https://github.com/gfx-rs/wgpu) uses immutable pipeline objects rather than mutable state. To get the same stack behavior, you'd maintain a stack of pipeline references and bind whichever one is currently on top.
 
 ---
 
@@ -307,9 +307,9 @@ if (shaderCache.has(materialId)) {
 // Otherwise compile and cache
 ```
 
-### wgpu Equivalent
+### [wgpu](https://github.com/gfx-rs/wgpu) Equivalent
 
-In wgpu, this pattern maps to shader preprocessing or naga module manipulation:
+In [wgpu](https://github.com/gfx-rs/wgpu), this pattern maps to shader preprocessing or naga module manipulation:
 
 ```rust
 // Option 1: String preprocessing (similar to Cables)
@@ -393,7 +393,7 @@ void main() {
 }
 ```
 
-### wgpu Equivalent
+### [wgpu](https://github.com/gfx-rs/wgpu) Equivalent
 
 ```rust
 // Vertex buffers

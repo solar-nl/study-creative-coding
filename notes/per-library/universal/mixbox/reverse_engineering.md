@@ -1,8 +1,8 @@
-# Reverse Engineering the Mixbox Model
+# Reverse Engineering the [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) Model
 
 ## Executive Summary
 
-We successfully reverse engineered the key aspects of Mixbox's pigment mixing algorithm. Our findings:
+We successfully reverse engineered the key aspects of [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))'s pigment mixing algorithm. Our findings:
 
 1. **The polynomial is fully transparent** - all 60 coefficients are exposed
 2. **The LUT encodes optimized decompositions** - not just valid, but optimal for mixing
@@ -11,7 +11,7 @@ We successfully reverse engineered the key aspects of Mixbox's pigment mixing al
 
 ---
 
-## The Three Layers of Mixbox
+## The Three Layers of [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -160,13 +160,13 @@ Convert to RGB via CIE color matching + Saunderson correction
 The K and S coefficients may be proprietary. Options:
 - [Berns database](https://www.rit.edu/science/sites/rit.edu.science/files/2019-03/ArtistSpectralDatabase.pdf) (academic)
 - Measure with spectrophotometer
-- Fit from Mixbox samples (reverse engineer K/S from LUT)
+- Fit from [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) samples (reverse engineer K/S from LUT)
 
 ---
 
 ## What the Paper Actually Contains
 
-The Mixbox paper (Sochorová & Jamriška, SIGGRAPH 2021) describes:
+The [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) paper (Sochorová & Jamriška, SIGGRAPH 2021) describes:
 
 1. **Pigment Selection**: Phthalo Blue, Hansa Yellow, Quinacridone Magenta, Titanium White
    - Chosen for wide gamut coverage (suggested by Briggs 2007)
@@ -194,13 +194,13 @@ The Mixbox paper (Sochorová & Jamriška, SIGGRAPH 2021) describes:
 
 ## Conclusion
 
-The Mixbox model is elegant in its design:
+The [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) model is elegant in its design:
 - **Simple forward pass**: Polynomial evaluation + residual
 - **Complex inverse pass**: Globally optimized LUT
 
 The "magic" is not in hiding information—the polynomial is fully exposed. The magic is in the **optimization that created the LUT**, which considers the global structure of color mixing rather than just local reconstruction accuracy.
 
-To fully replicate Mixbox without the LUT, one would need either:
+To fully replicate [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) without the LUT, one would need either:
 1. Access to the same ground truth data (spectral measurements)
 2. A way to train on the existing LUT (neural network)
 3. A spectral simulation with accurate pigment data
@@ -213,7 +213,7 @@ All experiments are in `compare_with_mixbox/`:
 
 | File | Purpose |
 |------|---------|
-| `main.rs` | Basic comparison with mixbox |
+| `main.rs` | Basic comparison with [mixbox](https://github.com/scrtwpns/mixbox) |
 | `analyze_lut.rs` | LUT structure analysis |
 | `improved.rs` | Multi-start optimization |
 | `semantic.rs` | Semantic prior approach |

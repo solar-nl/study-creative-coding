@@ -22,6 +22,6 @@ Transform stacks manage:
 ## Recommendations for Rust Framework
 
 1. **Matrix stack** — Push/pop with save/restore semantics
-2. **glam for math** — Use established linear algebra crate
+2. **[glam](https://github.com/bitshifter/glam-rs) for math** — Use established linear algebra crate
 3. **Builder methods** — `.translate()`, `.rotate()`, `.scale()`
 4. **Clear coordinate system** — Document y-direction, units

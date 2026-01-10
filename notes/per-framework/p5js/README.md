@@ -128,7 +128,7 @@ fn main() {
 }
 ```
 
-Compare this to raw wgpu, which requires 50+ lines just to create a surface and render pass. The framework handles device creation, swap chain configuration, and render loop timing, letting the user focus on the creative work.
+Compare this to raw [wgpu](https://github.com/gfx-rs/wgpu), which requires 50+ lines just to create a surface and render pass. The framework handles device creation, swap chain configuration, and render loop timing, letting the user focus on the creative work.
 
 **Progressive disclosure.** p5.js lets you use global mode until you need instance mode. A Rust framework could similarly offer simple high-level APIs that expand into more control when needed, perhaps through configuration structs with sensible defaults.
 

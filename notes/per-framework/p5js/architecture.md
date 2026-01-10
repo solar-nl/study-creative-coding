@@ -53,7 +53,7 @@ Let's trace exactly what happens when you include p5.js and write a sketch:
 
 **Step 1: Script Loads**
 
-When the browser loads `p5.js`, it executes immediately. This defines the `p5` class and attaches it to `window`, but doesn't create an instance yet.
+When the browser loads [`p5.js`](https://github.com/processing/p5.js/blob/main/src/p5.js), it executes immediately. This defines the `p5` class and attaches it to `window`, but doesn't create an instance yet.
 
 **Step 2: DOMContentLoaded Fires**
 
@@ -275,9 +275,9 @@ The organization mirrors the mental categories artists use: color, math, images,
 
 ---
 
-## wgpu Considerations
+## [wgpu](https://github.com/gfx-rs/wgpu) Considerations
 
-If you were building a similar architecture with Rust and wgpu, several patterns would translate while others would need rethinking.
+If you were building a similar architecture with Rust and [wgpu](https://github.com/gfx-rs/wgpu), several patterns would translate while others would need rethinking.
 
 ### What Transfers Well
 
@@ -331,9 +331,9 @@ This is actually instance mode by default. The beginner-friendly global mode is 
 - A plugin system where modules register capabilities at startup
 - Feature flags at compile time
 
-**Renderer Backend**: wgpu requires explicit resource management that p5.js hides. Creating render pipelines, managing buffers, and batching draw calls all become your responsibility. The architecture would need explicit batching: collecting draw calls during `draw()`, then flushing them to the GPU in one go.
+**Renderer Backend**: [wgpu](https://github.com/gfx-rs/wgpu) requires explicit resource management that p5.js hides. Creating render pipelines, managing buffers, and batching draw calls all become your responsibility. The architecture would need explicit batching: collecting draw calls during `draw()`, then flushing them to the GPU in one go.
 
-Here's a glimpse of what the render loop would look like with actual wgpu types:
+Here's a glimpse of what the render loop would look like with actual [wgpu](https://github.com/gfx-rs/wgpu) types:
 
 ```rust
 fn flush_batched_draws(&mut self) {

@@ -404,7 +404,7 @@ A scene with 1000 identical trees becomes one draw call instead of 1000.
 
 ## The RenderItem Pattern
 
-Babylon doesn't have an explicit "RenderItem" like Three.js, but the concept exists implicitly:
+Babylon doesn't have an explicit "RenderItem" like [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)), but the concept exists implicitly:
 
 ```typescript
 // Conceptually, each submesh render is:
@@ -439,7 +439,7 @@ transparentPass.dependsOn(opaquePass);
 frameGraph.execute();
 ```
 
-This is conceptually similar to wgpu's render pass model and enables automatic pass merging and resource aliasing.
+This is conceptually similar to [wgpu](https://github.com/gfx-rs/wgpu)'s render pass model and enables automatic pass merging and resource aliasing.
 
 **Source:** `FrameGraph/` directory
 
@@ -482,20 +482,20 @@ The octree prunes entire regions before testing individual meshes.
 
 ---
 
-## wgpu Mapping
+## [wgpu](https://github.com/gfx-rs/wgpu) Mapping
 
-The Babylon.js rendering pipeline maps to wgpu concepts:
+The Babylon.js rendering pipeline maps to [wgpu](https://github.com/gfx-rs/wgpu) concepts:
 
-| Babylon Concept | wgpu Equivalent |
+| Babylon Concept | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent |
 |-----------------|-----------------|
 | RenderingGroup | Render pass organization |
 | Material.bind() | Bind group setup |
 | Mesh._draw() | RenderPass::draw_indexed() |
 | SubMesh | Draw call parameters |
-| RenderTarget | wgpu::TextureView + RenderPass |
+| RenderTarget | [wgpu](https://github.com/gfx-rs/wgpu)::TextureView + RenderPass |
 | FrameGraph pass | CommandEncoder + RenderPass |
 
-A wgpu implementation would structure similarly:
+A [wgpu](https://github.com/gfx-rs/wgpu) implementation would structure similarly:
 
 ```rust
 // Collect visible meshes

@@ -21,7 +21,7 @@ Event systems handle:
 
 ## Recommendations for Rust Framework
 
-1. **winit integration** — Use for cross-platform events
+1. **[winit](https://github.com/rust-windowing/winit) integration** — Use for cross-platform events
 2. **State tracking** — Provide current state accessors
 3. **Callback closures** — Register event handlers
 4. **Event enum** — Type-safe event handling

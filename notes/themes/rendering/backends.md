@@ -17,12 +17,12 @@ Creative coding frameworks need to render graphics. How they abstract the underl
 |-----------|------------|-------------------|
 | p5.js | Canvas 2D, WebGL | Renderer classes |
 | Processing | Java2D, OpenGL | PGraphics |
-| three.js | WebGL, WebGPU | WebGLRenderer/WebGPURenderer |
+| [three.js](https://github.com/mrdoob/three.js) | WebGL, WebGPU | WebGLRenderer/WebGPURenderer |
 | OpenFrameworks | OpenGL | ofGLRenderer |
 | Cinder | OpenGL | ci::gl namespace |
 | openrndr | OpenGL | Drawer |
-| nannou | wgpu | Draw → wgpu |
-| wgpu | Vulkan/Metal/DX12/WebGPU | Direct |
+| nannou | [wgpu](https://github.com/gfx-rs/wgpu) | Draw → [wgpu](https://github.com/gfx-rs/wgpu) |
+| [wgpu](https://github.com/gfx-rs/wgpu) | Vulkan/Metal/DX12/WebGPU | Direct |
 
 ## Key Questions
 
@@ -33,7 +33,7 @@ Creative coding frameworks need to render graphics. How they abstract the underl
 
 ## Recommendations for Rust Framework
 
-1. **wgpu as backend** — Cross-platform, Rust-native
-2. **High-level abstraction** — Hide wgpu complexity for common cases
-3. **Escape hatch** — Allow raw wgpu access when needed
+1. **[wgpu](https://github.com/gfx-rs/wgpu) as backend** — Cross-platform, Rust-native
+2. **High-level abstraction** — Hide [wgpu](https://github.com/gfx-rs/wgpu) complexity for common cases
+3. **Escape hatch** — Allow raw [wgpu](https://github.com/gfx-rs/wgpu) access when needed
 4. **Automatic batching** — Group similar draw calls

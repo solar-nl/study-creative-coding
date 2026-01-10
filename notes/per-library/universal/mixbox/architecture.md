@@ -1,16 +1,16 @@
-# Mixbox - Architecture (Demystified)
+# [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) - Architecture (Demystified)
 
 > How do you make digital colors mix like real paint?
 
 ## Key Insight
 
-> **Mixbox's core idea:** RGB can't represent pigment mixing, so colors are lifted into a 7-channel latent space (4 pigment concentrations + 3 residuals) where linear interpolation behaves like real paint, then projected back to RGB.
+> **[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))'s core idea:** RGB can't represent pigment mixing, so colors are lifted into a 7-channel latent space (4 pigment concentrations + 3 residuals) where linear interpolation behaves like real paint, then projected back to RGB.
 
 ---
 
 ## Overview
 
-Mixbox is a **color mixing library** that simulates pigment-based color blending using Kubelka-Munk theory. This document explains exactly how it works, including the polynomial coefficients, the LUT structure, and why certain design choices were made.
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) is a **color mixing library** that simulates pigment-based color blending using Kubelka-Munk theory. This document explains exactly how it works, including the polynomial coefficients, the LUT structure, and why certain design choices were made.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -47,7 +47,7 @@ Mixbox is a **color mixing library** that simulates pigment-based color blending
 
 ## The 7-Dimensional Latent Space (Decoded)
 
-Mixbox uses a 7-dimensional representation:
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) uses a 7-dimensional representation:
 
 ```
 Latent = [c0, c1, c2, c3, residual_r, residual_g, residual_b]
@@ -69,7 +69,7 @@ The residual captures colors that can't be represented by the pigment model (e.g
 
 ## The Polynomial (Fully Exposed)
 
-The RGB reconstruction uses a **20-term 3rd-order polynomial** in 4 variables. These coefficients are the core of Mixbox:
+The RGB reconstruction uses a **20-term 3rd-order polynomial** in 4 variables. These coefficients are the core of [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)):
 
 ```rust
 fn eval_polynomial(c0: f32, c1: f32, c2: f32, c3: f32) -> [f32; 3] {
@@ -146,7 +146,7 @@ The LUT (`lut.dat`, 786KB) maps RGB → (c0, c1, c2) pigment concentrations. It'
 
 We attempted to create a LUT-free implementation using Newton-Raphson inversion. **It produces subtractive mixing, but with errors:**
 
-| Colors | LUT-free Result | Mixbox (LUT) | Error |
+| Colors | LUT-free Result | [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) (LUT) | Error |
 |--------|-----------------|--------------|-------|
 | Blue + Yellow | (39, 121, 89) | (41, 130, 57) | 43 |
 | Red + Blue | (83, 49, 75) | (85, 47, 58) | 21 |
@@ -159,7 +159,7 @@ The polynomial is **not injective** — many pigment combinations produce the sa
 **Cobalt Blue RGB(0, 33, 133):**
 | Source | c0 (blue) | c1 (yellow) | c2 (magenta) |
 |--------|-----------|-------------|--------------|
-| **Mixbox LUT** | 0.864 | **0.005** | 0.030 |
+| **[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) LUT** | 0.864 | **0.005** | 0.030 |
 | Newton-Raphson | 0.763 | **0.234** | 0.000 |
 
 Both reconstruct the color correctly! But Newton-Raphson adds yellow to blue, which produces wrong results when mixing with actual yellow.
@@ -187,7 +187,7 @@ Black and saturated RGB colors require large residuals because they're outside t
 
 ## LUT-Free Implementation Attempts
 
-We tried several strategies to match Mixbox without the LUT:
+We tried several strategies to match [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) without the LUT:
 
 ### 1. Newton-Raphson Inversion
 Finds *a* valid decomposition, but not the *optimal* one for mixing.
@@ -209,7 +209,7 @@ The LUT contains information that **cannot be recovered algorithmically** from t
 
 ## What Would Enable LUT-Free Mixing
 
-To match Mixbox without the LUT, you would need:
+To match [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) without the LUT, you would need:
 
 1. **Spectral Kubelka-Munk**: Actual K(λ) and S(λ) curves for each pigment
 2. **Neural network trained on LUT samples**: Small MLP can approximate the mapping
@@ -264,7 +264,7 @@ mixbox/
 
 ## References
 
-- [Mixbox Paper](https://scrtwpns.com/mixbox.pdf) - Sochorová & Jamriška
+- [Mixbox Paper](https://scrtwpns.com/[mixbox](https://github.com/scrtwpns/mixbox).pdf) - Sochorová & Jamriška
 - [Kubelka-Munk Theory](https://en.wikipedia.org/wiki/Kubelka–Munk_theory)
 - `compare_with_mixbox/` - Our LUT-free experiments
 - `pigment_mixing_explained.rs` - Educational implementation

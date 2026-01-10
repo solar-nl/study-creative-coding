@@ -44,11 +44,11 @@ Each document explores a specific aspect of the WebGPU renderer:
 
 ---
 
-## Mapping PixiJS to wgpu
+## Mapping PixiJS to [wgpu](https://github.com/gfx-rs/wgpu)
 
-One of our goals is translating these patterns to Rust/wgpu. Here's how PixiJS concepts map:
+One of our goals is translating these patterns to Rust/[wgpu](https://github.com/gfx-rs/wgpu). Here's how PixiJS concepts map:
 
-| PixiJS | wgpu | Role |
+| PixiJS | [wgpu](https://github.com/gfx-rs/wgpu) | Role |
 |--------|------|------|
 | `GpuEncoderSystem` | `CommandEncoder` | Records GPU commands |
 | `renderPassEncoder` | `RenderPass` | Scopes a set of draw calls |
@@ -108,4 +108,4 @@ Each document explores one or more of these in depth.
 
 Start with [Architecture](architecture.md) for the big picture - it covers how the systems compose together and introduces the instruction-based render loop. If draw call optimization is your primary focus, jump directly to [Batching](batching.md) to see how PixiJS merges thousands of sprites into minimal GPU commands.
 
-For those implementing their own renderer, the [Pipeline Caching](pipeline-caching.md) and [Bind Groups](bind-groups.md) documents show specific techniques you can adapt to wgpu.
+For those implementing their own renderer, the [Pipeline Caching](pipeline-caching.md) and [Bind Groups](bind-groups.md) documents show specific techniques you can adapt to [wgpu](https://github.com/gfx-rs/wgpu).

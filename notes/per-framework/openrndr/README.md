@@ -58,4 +58,4 @@ openrndr/
 - [orx](../../per-library/orx/) — Extensions library for openrndr (color, noise, shapes, etc.)
 - [Processing](../processing/) — Original creative coding framework that inspired many designs
 - [Cinder](../cinder/) — C++ framework with similar professional focus
-- [wgpu](../../per-library/wgpu/) — Modern GPU abstraction used by Rust creative coding tools
+- [wgpu](https://github.com/gfx-rs/wgpu) — Modern GPU abstraction used by Rust creative coding tools

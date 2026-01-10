@@ -1,4 +1,4 @@
-# wgpu - Dependencies
+# [wgpu](https://github.com/gfx-rs/wgpu) - Dependencies
 
 ## Overview
 
@@ -11,7 +11,7 @@
 
 ## Workspace Structure
 
-wgpu is a large workspace with backend-specific crates:
+[wgpu](https://github.com/gfx-rs/wgpu) is a large workspace with backend-specific crates:
 
 ```
 wgpu/
@@ -63,7 +63,7 @@ wgpu/
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| `image` | 0.25 | PNG loading (examples) |
+| [`image`](https://github.com/image-rs/image) | 0.25 | PNG loading (examples) |
 | `ktx2` | 0.4 | KTX2 texture format |
 
 ### Web/WASM
@@ -82,7 +82,7 @@ wgpu/
 
 ## Feature Flags
 
-wgpu uses extensive feature flags for backend selection:
+[wgpu](https://github.com/gfx-rs/wgpu) uses extensive feature flags for backend selection:
 
 ```toml
 [features]
@@ -105,6 +105,6 @@ webgl = ["gles"]
 ## Key Files
 
 - Main Cargo.toml: `frameworks/wgpu/Cargo.toml`
-- wgpu crate: `frameworks/wgpu/wgpu/Cargo.toml`
+- [wgpu](https://github.com/gfx-rs/wgpu) crate: `frameworks/wgpu/wgpu/Cargo.toml`
 - HAL: `frameworks/wgpu/wgpu-hal/Cargo.toml`
 - Naga: `frameworks/wgpu/naga/Cargo.toml`

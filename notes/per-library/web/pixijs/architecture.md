@@ -77,11 +77,11 @@ const DefaultWebGPUSystems = [
 
 Why this granularity? Consider what happens when you need to optimize buffer uploads. In a monolithic renderer, you would be hunting through thousands of lines. With systems, you open `GpuBufferSystem.ts` and everything buffer-related is right there. Systems are independently testable, replaceable, and comprehensible.
 
-### How Systems Map to wgpu
+### How Systems Map to [wgpu](https://github.com/gfx-rs/wgpu)
 
-If you are building a wgpu renderer, here is how these responsibilities translate:
+If you are building a [wgpu](https://github.com/gfx-rs/wgpu) renderer, here is how these responsibilities translate:
 
-| PixiJS System | wgpu Equivalent | What It Manages |
+| PixiJS System | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent | What It Manages |
 |---------------|-----------------|-----------------|
 | `GpuEncoderSystem` | `CommandEncoder`, `RenderPass` | Recording GPU commands |
 | `GpuDeviceSystem` | `Device`, `Adapter` | GPU initialization |
@@ -237,7 +237,7 @@ postrender() {
 }
 ```
 
-### The wgpu Equivalent
+### The [wgpu](https://github.com/gfx-rs/wgpu) Equivalent
 
 The same flow in Rust:
 
@@ -299,7 +299,7 @@ You might wonder: does the GPU not already skip redundant state changes? Not exa
 
 By caching at the application level, PixiJS reduces CPU overhead, command buffer size, and validation work. With batched sprites, this compounds dramatically: 1000 sprites with the same texture need only 1 bind group call instead of 1000.
 
-The wgpu implementation follows the same pattern:
+The [wgpu](https://github.com/gfx-rs/wgpu) implementation follows the same pattern:
 
 ```rust
 struct StateCache {
@@ -396,9 +396,9 @@ This enables:
 
 ---
 
-## Key Takeaways for wgpu
+## Key Takeaways for [wgpu](https://github.com/gfx-rs/wgpu)
 
-If you are building a Rust/wgpu renderer inspired by PixiJS, focus on these patterns:
+If you are building a Rust/[wgpu](https://github.com/gfx-rs/wgpu) renderer inspired by PixiJS, focus on these patterns:
 
 1. **System Composition** - Break your renderer into focused systems (encoder, pipeline, buffer, texture, etc.). Each system owns one responsibility.
 

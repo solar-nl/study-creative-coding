@@ -1,4 +1,4 @@
-# Mixbox - Dependencies
+# [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) - Dependencies
 
 ## Overview
 
@@ -9,7 +9,7 @@
 | **Build System** | Language-specific |
 | **Version** | 2.0.0 |
 
-Mixbox is designed to be **dependency-free** in most implementations.
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) is designed to be **dependency-free** in most implementations.
 
 ## By Language
 
@@ -157,7 +157,7 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 ## Dependency Philosophy
 
-Mixbox follows a **zero-dependency** approach:
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) follows a **zero-dependency** approach:
 
 1. **Pure implementations** - No external libraries required
 2. **Self-contained** - All code in single file per language
@@ -201,6 +201,6 @@ shaders/
 
 ## License Note
 
-Mixbox uses **CC BY-NC 4.0** (non-commercial) by default.
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) uses **CC BY-NC 4.0** (non-commercial) by default.
 
 For commercial use, a separate license is required from Secret Weapons (the creators).

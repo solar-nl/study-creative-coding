@@ -1,4 +1,4 @@
-# Three.js WebGPU Rendering Pipeline
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) WebGPU Rendering Pipeline
 
 > How a million-polygon scene becomes 60 draw calls per second
 
@@ -16,7 +16,7 @@ This is the core challenge the rendering pipeline solves. You cannot just iterat
 
 A naive approach would be recalculating everything every frame: walk the entire scene graph, check every object against the frustum, sort the survivors, create fresh GPU resources. This would crush your frame rate.
 
-Three.js solves this through a layered system that separates concerns cleanly: the scene graph describes what exists, render lists describe what to draw and in what order, and RenderObjects bundle all the state needed for each draw call. Understanding these three layers is key to understanding the whole pipeline.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) solves this through a layered system that separates concerns cleanly: the scene graph describes what exists, render lists describe what to draw and in what order, and RenderObjects bundle all the state needed for each draw call. Understanding these three layers is key to understanding the whole pipeline.
 
 ---
 
@@ -266,9 +266,9 @@ This separation means the same renderer can handle wildly different targets—th
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
-Here is how these concepts translate to Rust and wgpu:
+Here is how these concepts translate to Rust and [wgpu](https://github.com/gfx-rs/wgpu):
 
 ```rust
 /// Render loop equivalent
@@ -360,7 +360,7 @@ impl RenderObject {
 }
 ```
 
-The wgpu code follows the same phases: prepare matrices, build sorted lists, begin pass, draw loop, submit. The main differences are syntactic—Rust's ownership model means you manage encoder and pass lifetimes explicitly.
+The [wgpu](https://github.com/gfx-rs/wgpu) code follows the same phases: prepare matrices, build sorted lists, begin pass, draw loop, submit. The main differences are syntactic—Rust's ownership model means you manage encoder and pass lifetimes explicitly.
 
 ---
 
@@ -399,17 +399,17 @@ The benefit? Reduced CPU overhead for static scenes. The draw commands are valid
 
 ### Pipeline Explosion
 
-WebGPU pipelines are immutable and encode most render state. A scene with 50 materials and 3 render passes (main, shadow, reflection) could produce 150+ pipelines. Three.js mitigates this through aggressive caching via `RenderObject.getCacheKey()`, but complex scenes can still hit pipeline creation costs on first frame.
+WebGPU pipelines are immutable and encode most render state. A scene with 50 materials and 3 render passes (main, shadow, reflection) could produce 150+ pipelines. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) mitigates this through aggressive caching via `RenderObject.getCacheKey()`, but complex scenes can still hit pipeline creation costs on first frame.
 
 ### The Transparency Sorting Problem
 
 Sorting transparent objects back-to-front sounds simple, but it falls apart with intersecting geometry. If two transparent objects pass through each other, there is no correct draw order—some pixels of A are in front of B, and some pixels of B are in front of A.
 
-The common workarounds are order-independent transparency (OIT) techniques, which Three.js does not implement in its core pipeline. For most scenes, careful art direction (avoiding intersecting transparent objects) is the pragmatic solution.
+The common workarounds are order-independent transparency (OIT) techniques, which [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) does not implement in its core pipeline. For most scenes, careful art direction (avoiding intersecting transparent objects) is the pragmatic solution.
 
 ### Bind Group Immutability
 
-In WebGPU, bind groups are immutable. If a texture changes (like video frames or dynamically generated content), you must create a new bind group. Three.js handles this automatically in `_update()` by detecting when a texture's underlying GPU texture has changed.
+In WebGPU, bind groups are immutable. If a texture changes (like video frames or dynamically generated content), you must create a new bind group. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) handles this automatically in `_update()` by detecting when a texture's underlying GPU texture has changed.
 
 ### Depth Buffer Precision
 
@@ -417,21 +417,21 @@ Front-to-back sorting for opaque objects improves performance but does not help 
 
 ---
 
-## wgpu Considerations
+## [wgpu](https://github.com/gfx-rs/wgpu) Considerations
 
 ### Lifetime Management
 
-The biggest difference when porting to wgpu is lifetime management. In JavaScript, the garbage collector handles cleanup. In Rust, you need to explicitly manage when resources are dropped.
+The biggest difference when porting to [wgpu](https://github.com/gfx-rs/wgpu) is lifetime management. In JavaScript, the garbage collector handles cleanup. In Rust, you need to explicitly manage when resources are dropped.
 
-RenderObjects and their cached GPU resources need careful thought: When can a pipeline be dropped? When is a RenderObject stale? Three.js uses reference counting (`usedTimes`) and periodic cleanup passes. In Rust, you might use `Arc` for shared ownership or explicit invalidation signals.
+RenderObjects and their cached GPU resources need careful thought: When can a pipeline be dropped? When is a RenderObject stale? [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) uses reference counting (`usedTimes`) and periodic cleanup passes. In Rust, you might use `Arc` for shared ownership or explicit invalidation signals.
 
 ### Command Encoder Scopes
 
-wgpu's command encoder and render pass have strict lifetime constraints. You cannot hold a mutable reference to the render pass while also accessing the encoder. Three.js sidesteps this in JavaScript, but in Rust, you will often need to structure code around these borrowing rules.
+[wgpu](https://github.com/gfx-rs/wgpu)'s command encoder and render pass have strict lifetime constraints. You cannot hold a mutable reference to the render pass while also accessing the encoder. [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) sidesteps this in JavaScript, but in Rust, you will often need to structure code around these borrowing rules.
 
 ### Pipeline Layout Explicit vs Automatic
 
-Three.js derives bind group layouts from material bindings, then creates explicit pipeline layouts. In wgpu, you can use auto-layout (`layout: None`) for simple cases, but explicit layouts give you control over bind group compatibility across pipelines.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) derives bind group layouts from material bindings, then creates explicit pipeline layouts. In [wgpu](https://github.com/gfx-rs/wgpu), you can use auto-layout (`layout: None`) for simple cases, but explicit layouts give you control over bind group compatibility across pipelines.
 
 ---
 

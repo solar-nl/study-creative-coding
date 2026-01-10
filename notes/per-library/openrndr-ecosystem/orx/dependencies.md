@@ -88,7 +88,7 @@ Some orx modules are JVM-only due to native dependencies:
 | `orx-kinect-v1` | Native Kinect driver |
 | `orx-realsense2` | Native RealSense SDK |
 | `orx-midi` | Native MIDI access |
-| `orx-video-profiles` | FFmpeg integration |
+| `orx-video-profiles` | [FFmpeg](https://[ffmpeg](https://ffmpeg.org/).org/) integration |
 | `orx-processing` | Processing core (JVM) |
 
 ## Dependency Graph Notes

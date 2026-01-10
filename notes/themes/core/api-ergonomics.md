@@ -21,7 +21,7 @@ API ergonomics determine how pleasant a framework is to use:
 |-----------|-----------|---------|-----------|
 | p5.js | camelCase | p5.Class | UPPER_SNAKE |
 | Processing | camelCase | PClass | UPPER_SNAKE |
-| three.js | camelCase | PascalCase | THREE.UPPER |
+| [three.js](https://github.com/mrdoob/three.js) | camelCase | PascalCase | THREE.UPPER |
 | OpenFrameworks | ofCamelCase | ofClass | OF_UPPER |
 | openrndr | camelCase | PascalCase | UPPER_SNAKE |
 | nannou | snake_case | PascalCase | UPPER_SNAKE |
@@ -31,7 +31,7 @@ API ergonomics determine how pleasant a framework is to use:
 | Framework | Supports? | Pattern |
 |-----------|-----------|---------|
 | p5.js | Limited | Only on p5.Vector |
-| three.js | Yes | Math objects return this |
+| [three.js](https://github.com/mrdoob/three.js) | Yes | Math objects return this |
 | openrndr | Yes | Builder pattern |
 | nannou | Yes | Builder and drawing |
 
@@ -40,7 +40,7 @@ API ergonomics determine how pleasant a framework is to use:
 | Framework | Approach |
 |-----------|----------|
 | p5.js | Friendly Error System |
-| three.js | Console warnings |
+| [three.js](https://github.com/mrdoob/three.js) | Console warnings |
 | Rust frameworks | Result/Option types |
 
 ## Recommendations for Rust Framework

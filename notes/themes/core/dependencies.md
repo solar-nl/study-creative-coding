@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **Dependency selection's core idea:** In Rust, the ecosystem has converged: wgpu for graphics, winit for windowing, glam for math, cpal for audio, image for textures - embrace these standards rather than reinventing.
+> **Dependency selection's core idea:** In Rust, the ecosystem has converged: [wgpu](https://github.com/gfx-rs/wgpu) for graphics, [winit](https://github.com/rust-windowing/winit) for windowing, [glam](https://github.com/bitshifter/glam-rs) for math, cpal for audio, image for textures - embrace these standards rather than reinventing.
 
 ## Overview
 
@@ -31,7 +31,7 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Framework | Primary Backend | Abstraction Level | Cross-Platform |
 |-----------|-----------------|-------------------|----------------|
-| **nannou** | wgpu | High (wgpu API) | Yes (Vulkan/Metal/DX12/WebGPU) |
+| **nannou** | [wgpu](https://github.com/gfx-rs/wgpu) | High ([wgpu](https://github.com/gfx-rs/wgpu) API) | Yes (Vulkan/Metal/DX12/WebGPU) |
 | **openrndr** | OpenGL 3.3+ via LWJGL | Medium | Yes (JVM) |
 | **tixl** | DirectX 11 via SharpDX | Medium | Windows primary |
 | **p5.js** | Canvas 2D / WebGL | High | Web only |
@@ -44,11 +44,11 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Primary Backend | Abstraction Level | Cross-Platform |
 |---------|-----------------|-------------------|----------------|
-| **wgpu** | Vulkan/Metal/DX12/WebGPU | Low-Medium | Yes |
-| **three.js** | WebGL / WebGPU | High (scene graph) | Web only |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | Vulkan/Metal/DX12/WebGPU | Low-Medium | Yes |
+| **[three.js](https://github.com/mrdoob/three.js)** | WebGL / WebGPU | High (scene graph) | Web only |
 | **orx** | (uses openrndr) | Medium | Yes (JVM) |
 | **toxiclibs** | (no renderer) | N/A | N/A |
-| **mixbox** | (color library) | N/A | N/A |
+| **[mixbox](https://github.com/scrtwpns/mixbox)** | (color library) | N/A | N/A |
 
 ### Examples
 
@@ -61,16 +61,16 @@ This document analyzes the dependency ecosystems across creative coding framewor
 | Framework | Graphics Dependency | Version |
 |-----------|---------------------|---------|
 | nannou | `wgpu` | 0.17.1 |
-| wgpu | `ash` (Vulkan), `metal`, `d3d12` | 0.38+ |
+| [wgpu](https://github.com/gfx-rs/wgpu) | `ash` (Vulkan), `metal`, `d3d12` | 0.38+ |
 | openrndr | `lwjgl-opengl` | 3.3.6 |
 | tixl | `SharpDX.Direct3D11` | 4.2.0 |
 | p5.js | Native browser APIs | - |
-| three.js | Native browser APIs | - |
+| [three.js](https://github.com/mrdoob/three.js) | Native browser APIs | - |
 | processing | `jogl-all` | varies |
 
 ### Patterns Observed
 
-1. **Modern Rust frameworks use wgpu** - Provides Vulkan/Metal/DX12 abstraction
+1. **Modern Rust frameworks use [wgpu](https://github.com/gfx-rs/wgpu)** - Provides Vulkan/Metal/DX12 abstraction
 2. **JVM frameworks use LWJGL** - Standard for Java/Kotlin OpenGL
 3. **Web frameworks rely on browser** - No external graphics deps
 4. **C++ frameworks use raw OpenGL** - Maximum control
@@ -83,7 +83,7 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Framework | Windowing Library | Event Model |
 |-----------|-------------------|-------------|
-| **nannou** | winit | Callback-based |
+| **nannou** | [winit](https://github.com/rust-windowing/winit) | Callback-based |
 | **openrndr** | LWJGL-GLFW | Polling + callbacks |
 | **tixl** | Silk.NET | Event-based |
 | **p5.js** | Browser DOM | Event listeners |
@@ -96,21 +96,21 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Windowing Library | Event Model |
 |---------|-------------------|-------------|
-| **wgpu** | winit (examples) | Callback-based |
-| **three.js** | Browser DOM | Event listeners |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | [winit](https://github.com/rust-windowing/winit) (examples) | Callback-based |
+| **[three.js](https://github.com/mrdoob/three.js)** | Browser DOM | Event listeners |
 
 ### Key Dependencies
 
 | Framework | Windowing Dependency | Version |
 |-----------|----------------------|---------|
 | nannou | `winit` | 0.28 |
-| wgpu | `winit` | 0.29 |
+| [wgpu](https://github.com/gfx-rs/wgpu) | `winit` | 0.29 |
 | openrndr | `lwjgl-glfw` | 3.3.6 |
 | tixl | `Silk.NET.Windowing` | 2.22.0 |
 
 ### Patterns Observed
 
-1. **winit dominates Rust ecosystem** - De facto standard
+1. **[winit](https://github.com/rust-windowing/winit) dominates Rust ecosystem** - De facto standard
 2. **GLFW popular across languages** - Via LWJGL (Kotlin), native (C++)
 3. **Browser handles web frameworks** - No windowing deps needed
 
@@ -122,7 +122,7 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Framework | Math Library | Features |
 |-----------|--------------|----------|
-| **nannou** | glam (via wgpu) | SIMD, no generics |
+| **nannou** | [glam](https://github.com/bitshifter/glam-rs) (via [wgpu](https://github.com/gfx-rs/wgpu)) | SIMD, no generics |
 | **openrndr** | Custom + LWJGL | DSL-friendly |
 | **tixl** | SharpDX.Mathematics / System.Numerics | .NET native |
 | **p5.js** | Custom (p5.Vector) | Simple, mutable |
@@ -135,23 +135,23 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Math Library | Features |
 |---------|--------------|----------|
-| **wgpu** | glam | SIMD, no generics |
-| **three.js** | Custom (THREE.Vector3, etc.) | Scene graph integrated |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | [glam](https://github.com/bitshifter/glam-rs) | SIMD, no generics |
+| **[three.js](https://github.com/mrdoob/three.js)** | Custom (THREE.Vector3, etc.) | Scene graph integrated |
 | **toxiclibs** | Custom (Vec2D, Vec3D) | Geometry focused |
 
 ### Key Dependencies
 
 | Framework | Math Dependency | Version |
 |-----------|-----------------|---------|
-| nannou | `glam` | (via wgpu) |
-| wgpu | `glam` | 0.30.7 |
+| nannou | `glam` | (via [wgpu](https://github.com/gfx-rs/wgpu)) |
+| [wgpu](https://github.com/gfx-rs/wgpu) | `glam` | 0.30.7 |
 | openrndr | `lwjgl` math | 3.3.6 |
 | tixl | `SharpDX.Mathematics` | 4.2.0 |
 
 ### Patterns Observed
 
-1. **glam is Rust standard** - Fast, SIMD-optimized, no generics overhead
-2. **Most frameworks roll their own** - For API ergonomics (p5, Processing, three.js)
+1. **[glam](https://github.com/bitshifter/glam-rs) is Rust standard** - Fast, SIMD-optimized, no generics overhead
+2. **Most frameworks roll their own** - For API ergonomics (p5, Processing, [three.js](https://github.com/mrdoob/three.js))
 3. **C++ uses glm** - Industry standard
 
 ---
@@ -174,7 +174,7 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Audio Library | Features |
 |---------|---------------|----------|
-| **three.js** | Web Audio API | 3D positional |
+| **[three.js](https://github.com/mrdoob/three.js)** | Web Audio API | 3D positional |
 | **orx** | Minim | Processing-style audio |
 
 ### Key Dependencies
@@ -212,20 +212,20 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Image Library | Formats |
 |---------|---------------|---------|
-| **wgpu** | image crate | PNG (examples) |
-| **three.js** | Browser native | Web formats |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | image crate | PNG (examples) |
+| **[three.js](https://github.com/mrdoob/three.js)** | Browser native | Web formats |
 
 ### Key Dependencies
 
 | Framework | Image Dependency | Version |
 |-----------|------------------|---------|
-| nannou | `image` | 0.23 |
-| wgpu | `image` | 0.25 |
+| nannou | [`image`](https://github.com/image-rs/image) | 0.23 |
+| [wgpu](https://github.com/gfx-rs/wgpu) | [`image`](https://github.com/image-rs/image) | 0.25 |
 | tixl | `OpenCvSharp4` | 4.11.0 |
 
 ### Patterns Observed
 
-1. **`image` crate for Rust** - Comprehensive format support
+1. **[`image`](https://github.com/image-rs/image) crate for Rust** - Comprehensive format support
 2. **stb_image popular** - Single-header C library, many bindings
 3. **OpenCV for advanced** - When processing needed beyond loading
 
@@ -250,11 +250,11 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Library | Build System | Package Manager |
 |---------|--------------|-----------------|
-| **wgpu** | Cargo | crates.io |
-| **three.js** | npm/Rollup | npm |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | Cargo | crates.io |
+| **[three.js](https://github.com/mrdoob/three.js)** | npm/Rollup | npm |
 | **orx** | Gradle | Maven Central |
 | **toxiclibs** | Maven/Gradle | Maven Central |
-| **mixbox** | Multiple | Cargo/npm/pip/NuGet |
+| **[mixbox](https://github.com/scrtwpns/mixbox)** | Multiple | Cargo/npm/pip/NuGet |
 
 ### Patterns Observed
 
@@ -268,9 +268,9 @@ This document analyzes the dependency ecosystems across creative coding framewor
 
 | Strategy | Frameworks/Libraries | Pros | Cons |
 |----------|---------------------|------|------|
-| **Native abstraction (wgpu)** | nannou, wgpu (library) | Best performance | Complex implementation |
+| **Native abstraction ([wgpu](https://github.com/gfx-rs/wgpu))** | nannou, [wgpu](https://github.com/gfx-rs/wgpu) (library) | Best performance | Complex implementation |
 | **JVM abstraction** | openrndr, processing | Write once | JVM overhead |
-| **Web only** | p5.js, cables, three.js (library) | Easy distribution | Browser limitations |
+| **Web only** | p5.js, cables, [three.js](https://github.com/mrdoob/three.js) (library) | Easy distribution | Browser limitations |
 | **Per-platform builds** | openframeworks, cinder | Full control | Maintenance burden |
 | **Single platform** | tixl (Windows primary) | Optimized | Limited reach |
 
@@ -279,15 +279,15 @@ This document analyzes the dependency ecosystems across creative coding framewor
 ## Recommendations for Rust Framework
 
 ### Graphics
-- **Use wgpu** - Industry standard for Rust, cross-platform, WebGPU future-proof
+- **Use [wgpu](https://github.com/gfx-rs/wgpu)** - Industry standard for Rust, cross-platform, WebGPU future-proof
 - Consider thin wrapper for ergonomics (like nannou does)
 
 ### Windowing
-- **Use winit** - De facto Rust standard, well-maintained
+- **Use [winit](https://github.com/rust-windowing/winit)** - De facto Rust standard, well-maintained
 - Event loop design critical for API feel
 
 ### Math
-- **Use glam** - Fast, well-integrated with wgpu ecosystem
+- **Use [glam](https://github.com/bitshifter/glam-rs)** - Fast, well-integrated with [wgpu](https://github.com/gfx-rs/wgpu) ecosystem
 - Consider wrapper types for creative coding ergonomics (like p5.js Vector)
 
 ### Audio
@@ -317,4 +317,4 @@ This document analyzes the dependency ecosystems across creative coding framewor
 The Rust ecosystem, while younger, benefits from:
 - Centralized package registry (crates.io)
 - Strong type system reducing "dependency hell"
-- wgpu emerging as clear graphics standard
+- [wgpu](https://github.com/gfx-rs/wgpu) emerging as clear graphics standard

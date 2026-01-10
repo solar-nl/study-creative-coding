@@ -73,7 +73,7 @@ Before reading code traces, study these graphs. They provide the mental scaffold
 
 Key facts are formatted for easy extraction:
 
-> **Mixbox uses a 7-channel latent space** to represent pigments, converting RGB → latent → mixed → RGB.
+> **[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) uses a 7-channel latent space** to represent pigments, converting RGB → latent → mixed → RGB.
 
 If you're learning a framework seriously, copy these into flashcards (Anki, etc.) for spaced repetition.
 

@@ -6,7 +6,7 @@
 
 ## Why Study Babylon.js?
 
-Babylon.js is one of the most comprehensive 3D engines targeting the web. Unlike Three.js which evolved organically over a decade, Babylon.js was designed from the ground up with structure in mind. It is TypeScript-first, has extensive tooling (Playground, Inspector, Node Material Editor), and was one of the earliest engines to ship production WebGPU support.
+Babylon.js is one of the most comprehensive 3D engines targeting the web. Unlike [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) which evolved organically over a decade, Babylon.js was designed from the ground up with structure in mind. It is TypeScript-first, has extensive tooling (Playground, Inspector, Node Material Editor), and was one of the earliest engines to ship production WebGPU support.
 
 For a Rust creative coding framework, Babylon.js offers insights into:
 
@@ -77,9 +77,9 @@ packages/
 
 ---
 
-## Comparison with Three.js
+## Comparison with [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))
 
-| Aspect | Babylon.js | Three.js |
+| Aspect | Babylon.js | [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) |
 |--------|------------|----------|
 | Language | TypeScript-first | JavaScript with TS types |
 | WebGPU | Full engine parity | Renderer-level |

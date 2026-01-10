@@ -77,7 +77,7 @@ cinder/
 | Dependency | Type | Purpose |
 |------------|------|---------|
 | FreeType | Vendored | Font rendering |
-| harfbuzz | Vendored | Text shaping |
+| [harfbuzz](https://github.com/harfbuzz/harfbuzz) | Vendored | Text shaping |
 
 ### XML/JSON
 

@@ -435,7 +435,7 @@ Under the hood, openrndr uses the **kartifex** library (a computational geometry
 
 ### nannou: The Pure Rust Path
 
-**The approach:** nannou is built entirely in Rust, using Lyon for tessellation and wgpu for rendering—no C++ dependencies.
+**The approach:** nannou is built entirely in Rust, using Lyon for tessellation and [wgpu](https://github.com/gfx-rs/wgpu) for rendering—no C++ dependencies.
 
 **The tessellation pipeline:**
 
@@ -531,7 +531,7 @@ impl FillGeometryBuilder for MeshBuilder {
 | OpenFrameworks | ofPath + ofPolyline | libtess2 | No | Rich path math |
 | Cinder | Shape2d/Path2d | GLU tessellator | No | SVG-compatible API |
 | openrndr | Shape/ShapeContour | kartifex | **Yes** | Boolean operations |
-| nannou | geom + lyon | Lyon | No | Pure Rust, wgpu |
+| nannou | geom + lyon | Lyon | No | Pure Rust, [wgpu](https://github.com/gfx-rs/wgpu) |
 
 ---
 

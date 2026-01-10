@@ -1,0 +1,172 @@
+{
+  "frameworks": {
+    "drawbot": {
+      "github": "https://github.com/robotools/drawbot",
+      "base_path": "drawBot",
+      "branch": "master",
+      "file_mappings": {
+        "baseContext.py": "context/baseContext.py",
+        "pdfContext.py": "context/pdfContext.py",
+        "svgContext.py": "context/svgContext.py",
+        "imageContext.py": "context/imageContext.py",
+        "gifContext.py": "context/gifContext.py",
+        "mp4Context.py": "context/mp4Context.py",
+        "drawBotDrawingTools.py": "drawBotDrawingTools.py",
+        "openType.py": "context/tools/openType.py",
+        "variation.py": "context/tools/variation.py",
+        "traceImage.py": "context/tools/traceImage.py",
+        "imageObject.py": "context/tools/imageObject.py"
+      }
+    },
+    "nannou": {
+      "github": "https://github.com/nannou-org/nannou",
+      "base_path": "nannou",
+      "branch": "master",
+      "file_mappings": {
+        "app.rs": "src/app.rs",
+        "draw.rs": "src/draw/mod.rs",
+        "window.rs": "src/window.rs",
+        "event.rs": "src/event.rs",
+        "frame.rs": "src/frame/mod.rs"
+      }
+    },
+    "processing": {
+      "github": "https://github.com/processing/processing4",
+      "base_path": "core/src/processing/core",
+      "branch": "main"
+    },
+    "p5js": {
+      "github": "https://github.com/processing/p5.js",
+      "base_path": "src",
+      "branch": "main"
+    },
+    "openframeworks": {
+      "github": "https://github.com/openframeworks/openFrameworks",
+      "base_path": "libs/openFrameworks",
+      "branch": "master"
+    },
+    "openrndr": {
+      "github": "https://github.com/openrndr/openrndr",
+      "base_path": "openrndr",
+      "branch": "master"
+    },
+    "cinder": {
+      "github": "https://github.com/cinder/Cinder",
+      "base_path": "src/cinder",
+      "branch": "master"
+    }
+  },
+  "libraries": {
+    "fontTools": {
+      "url": "https://github.com/fonttools/fonttools",
+      "pypi": "https://pypi.org/project/fonttools/",
+      "aliases": ["fonttools", "FontTools"]
+    },
+    "booleanOperations": {
+      "url": "https://github.com/robotools/booleanOperations",
+      "pypi": "https://pypi.org/project/booleanOperations/"
+    },
+    "rustybuzz": {
+      "url": "https://github.com/RazrFalcon/rustybuzz",
+      "docs": "https://docs.rs/rustybuzz"
+    },
+    "harfbuzz": {
+      "url": "https://github.com/harfbuzz/harfbuzz",
+      "aliases": ["HarfBuzz", "Harfbuzz"]
+    },
+    "kurbo": {
+      "url": "https://github.com/linebender/kurbo",
+      "docs": "https://docs.rs/kurbo"
+    },
+    "lyon": {
+      "url": "https://github.com/nical/lyon",
+      "docs": "https://docs.rs/lyon"
+    },
+    "palette": {
+      "url": "https://github.com/Ogeon/palette",
+      "docs": "https://docs.rs/palette"
+    },
+    "cosmic-text": {
+      "url": "https://github.com/pop-os/cosmic-text",
+      "docs": "https://docs.rs/cosmic-text"
+    },
+    "swash": {
+      "url": "https://github.com/dfrg/swash",
+      "docs": "https://docs.rs/swash"
+    },
+    "wgpu": {
+      "url": "https://github.com/gfx-rs/wgpu",
+      "docs": "https://docs.rs/wgpu"
+    },
+    "winit": {
+      "url": "https://github.com/rust-windowing/winit",
+      "docs": "https://docs.rs/winit"
+    },
+    "glam": {
+      "url": "https://github.com/bitshifter/glam-rs",
+      "docs": "https://docs.rs/glam"
+    },
+    "image": {
+      "url": "https://github.com/image-rs/image",
+      "docs": "https://docs.rs/image"
+    },
+    "pdf-writer": {
+      "url": "https://github.com/typst/pdf-writer",
+      "docs": "https://docs.rs/pdf-writer"
+    },
+    "lopdf": {
+      "url": "https://github.com/J-F-Liu/lopdf",
+      "docs": "https://docs.rs/lopdf"
+    },
+    "printpdf": {
+      "url": "https://github.com/fschutt/printpdf",
+      "docs": "https://docs.rs/printpdf"
+    },
+    "fontkit-rs": {
+      "url": "https://github.com/nickkraft/font-kit",
+      "docs": "https://docs.rs/font-kit",
+      "aliases": ["font-kit", "fontkit"]
+    },
+    "three.js": {
+      "url": "https://github.com/mrdoob/three.js",
+      "docs": "https://threejs.org/docs/",
+      "aliases": ["threejs", "Three.js"]
+    },
+    "opentype.js": {
+      "url": "https://github.com/opentypejs/opentype.js",
+      "aliases": ["opentypejs"]
+    },
+    "mixbox": {
+      "url": "https://github.com/scrtwpns/mixbox",
+      "aliases": ["Mixbox"]
+    }
+  },
+  "tools": {
+    "gifsicle": {
+      "url": "https://www.lcdf.org/gifsicle/",
+      "github": "https://github.com/kohler/gifsicle"
+    },
+    "ffmpeg": {
+      "url": "https://ffmpeg.org/",
+      "github": "https://github.com/FFmpeg/FFmpeg"
+    },
+    "potrace": {
+      "url": "https://potrace.sourceforge.net/"
+    },
+    "mkbitmap": {
+      "url": "https://potrace.sourceforge.net/"
+    }
+  },
+  "macos_frameworks": {
+    "CoreText": {
+      "url": "https://developer.apple.com/documentation/coretext"
+    },
+    "CoreGraphics": {
+      "url": "https://developer.apple.com/documentation/coregraphics",
+      "aliases": ["Quartz", "CGContext"]
+    },
+    "AppKit": {
+      "url": "https://developer.apple.com/documentation/appkit"
+    }
+  }
+}

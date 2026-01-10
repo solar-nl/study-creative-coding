@@ -344,9 +344,9 @@ It's like the secretary photocopying their notes, starting a new page, then tran
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
-Here's how you might implement the same encoder pattern in Rust with wgpu:
+Here's how you might implement the same encoder pattern in Rust with [wgpu](https://github.com/gfx-rs/wgpu):
 
 ```rust
 use std::collections::HashMap;
@@ -451,7 +451,7 @@ impl EncoderSystem {
 
 Key differences from JavaScript:
 
-- **Identity comparison**: wgpu objects provide `global_id()` for efficient identity checks
+- **Identity comparison**: [wgpu](https://github.com/gfx-rs/wgpu) objects provide `global_id()` for efficient identity checks
 - **Lifetime management**: Rust's borrowing rules make render pass lifetimes tricky. The render pass borrows the command encoder mutably, so you cannot call other encoder methods while a render pass is active. The simplified example above uses `Option` and dropping to manage this, but real implementations often use scoped patterns or split the encoder into separate phases.
 - **No garbage collection**: You manage resource lifetimes explicitly, so the "GC touch" pattern from PixiJS doesn't apply
 

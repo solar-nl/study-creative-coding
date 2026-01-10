@@ -313,9 +313,9 @@ The internal batching is important. A single Graphics object might have shapes w
 
 ---
 
-## wgpu Equivalent Sketch
+## [wgpu](https://github.com/gfx-rs/wgpu) Equivalent Sketch
 
-For those building a similar system in Rust with wgpu:
+For those building a similar system in Rust with [wgpu](https://github.com/gfx-rs/wgpu):
 
 ```rust
 // The instruction recording structure
@@ -396,7 +396,7 @@ struct Graphics {
 
 The key difference from PixiJS: Rust's `Arc` provides explicit shared ownership, making the context-sharing pattern type-safe. You do not need event systems for memory management since the borrow checker handles lifetimes.
 
-For tessellation, the Rust ecosystem offers the [lyon](https://github.com/nical/lyon) crate - a battle-tested library for path tessellation that handles fills, strokes, and curves. Rather than implementing your own triangle fan generation, lyon provides configurable tolerance settings and handles edge cases like self-intersecting paths. It outputs vertex and index buffers directly compatible with wgpu.
+For tessellation, the Rust ecosystem offers the [lyon](https://github.com/nical/lyon) crate - a battle-tested library for path tessellation that handles fills, strokes, and curves. Rather than implementing your own triangle fan generation, lyon provides configurable tolerance settings and handles edge cases like self-intersecting paths. It outputs vertex and index buffers directly compatible with [wgpu](https://github.com/gfx-rs/wgpu).
 
 ---
 

@@ -1,24 +1,24 @@
-# Three.js WebGPU Renderer Study
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) WebGPU Renderer Study
 
 > How a JavaScript framework manages the complexity of two GPU backends without losing its mind
 
 ---
 
-## Why Study Three.js WebGPU?
+## Why Study [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) WebGPU?
 
 The problem is not new, but the stakes are higher than ever. WebGPU is here, but WebGL is not going anywhere. Millions of devices still need the older API. If you are building a rendering engine today, you face a painful choice: maintain two separate codebases that slowly diverge, or find a way to share logic without drowning in abstraction.
 
-Three.js chose the second path. Their WebGPU renderer is not a fork or a rewrite. It shares 89KB of core rendering logic with their WebGL fallback. The same scene traversal, the same frustum culling, the same render list sorting. Only the GPU communication layer differs.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) chose the second path. Their WebGPU renderer is not a fork or a rewrite. It shares 89KB of core rendering logic with their WebGL fallback. The same scene traversal, the same frustum culling, the same render list sorting. Only the GPU communication layer differs.
 
 This is the pattern we want to extract. Not the JavaScript details, but the architecture: how do you structure a renderer so that GPU-specific code stays isolated while high-level rendering logic remains unified? How do you cache pipelines, manage bindings, and compile shaders in a way that works across backends?
 
-If you are building a wgpu-based engine that might someday target multiple backends, or if you simply want to understand how a mature production renderer handles this complexity, Three.js offers a compelling case study.
+If you are building a [wgpu](https://github.com/gfx-rs/wgpu)-based engine that might someday target multiple backends, or if you simply want to understand how a mature production renderer handles this complexity, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) offers a compelling case study.
 
 ---
 
 ## The Mental Model: A Universal Translator
 
-Think of the Three.js rendering architecture like a diplomatic corps with a universal translator.
+Think of the [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) rendering architecture like a diplomatic corps with a universal translator.
 
 The high-level renderer speaks one language. It talks about scenes, cameras, materials, and lights. It understands concepts like frustum culling, depth sorting, and render passes. This is the language of 3D graphics that applies regardless of which GPU API you target.
 
@@ -32,7 +32,7 @@ The power of this architecture is that most of your code lives at the high level
 
 ## Document Structure
 
-This documentation set traces the Three.js WebGPU renderer from high-level concepts down to GPU command generation. Each document focuses on one aspect of the architecture:
+This documentation set traces the [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) WebGPU renderer from high-level concepts down to GPU command generation. Each document focuses on one aspect of the architecture:
 
 **[Rendering Pipeline](rendering-pipeline.md)** explores how a scene graph becomes GPU draw calls. It covers the five-phase render loop, explains why opaque and transparent objects need different sorting, and introduces the RenderObject pattern that makes caching possible. Start here if you want to understand the overall flow.
 
@@ -40,13 +40,13 @@ This documentation set traces the Three.js WebGPU renderer from high-level conce
 
 **[Pipeline and Bindings](pipeline-bindings.md)** examines two of the trickiest aspects of GPU programming: pipeline caching and resource binding. Creating pipelines is expensive, so how do you cache them effectively? Bind groups are immutable, so how do you handle dynamic data? This document answers both questions.
 
-**[Node System (TSL)](node-system.md)** covers Three.js's approach to shader compilation. Instead of writing WGSL directly, you build shader graphs using a JavaScript API called TSL (Three Shading Language). The node system compiles these graphs to GPU code. This is particularly interesting for anyone considering a shader graph approach in their own engine.
+**[Node System (TSL)](node-system.md)** covers [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))'s approach to shader compilation. Instead of writing WGSL directly, you build shader graphs using a JavaScript API called TSL (Three Shading Language). The node system compiles these graphs to GPU code. This is particularly interesting for anyone considering a shader graph approach in their own engine.
 
 ---
 
 ## Architecture Overview
 
-Three.js uses a backend abstraction pattern that separates high-level rendering logic from GPU-specific code. The diagram below shows how the layers connect:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) uses a backend abstraction pattern that separates high-level rendering logic from GPU-specific code. The diagram below shows how the layers connect:
 
 ```
 +---------------------------------------------------------------------+
@@ -140,11 +140,11 @@ libraries/threejs/src/renderers/
 
 ---
 
-## wgpu Concept Mapping
+## [wgpu](https://github.com/gfx-rs/wgpu) Concept Mapping
 
-If you are coming from wgpu or Rust-based graphics programming, this table shows how Three.js concepts translate:
+If you are coming from [wgpu](https://github.com/gfx-rs/wgpu) or Rust-based graphics programming, this table shows how [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) concepts translate:
 
-| Three.js Concept | wgpu Equivalent | Notes |
+| [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Concept | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent | Notes |
 |------------------|-----------------|-------|
 | `Backend` | Trait/interface | Abstract GPU operations |
 | `WebGPUBackend` | `wgpu::Device` + helpers | WebGPU implementation |
@@ -155,7 +155,7 @@ If you are coming from wgpu or Rust-based graphics programming, this table shows
 | `RenderContext` | Render pass state | Attachments, clear values |
 | `WGSLNodeBuilder` | Shader compiler | Node graph to WGSL |
 
-The patterns are transferable even though the implementations differ. Pipeline caching in Three.js uses a string-based cache key; in wgpu you might use a hash. Bind group management in Three.js uses WeakMaps; in Rust you would use something like `Arc<BindGroup>` with explicit invalidation.
+The patterns are transferable even though the implementations differ. Pipeline caching in [Three.js](https://github.com/mrdoob/three.js)) uses a string-based cache key; in [wgpu](https://github.com/gfx-rs/wgpu) you might use a hash. Bind group management in [Three.js](https://github.com/mrdoob/three.js) uses WeakMaps; in Rust you would use something like `Arc<BindGroup>` with explicit invalidation.
 
 ---
 
@@ -198,7 +198,7 @@ Let's trace what happens when rendering a single `MeshStandardMaterial` cube. Th
 
 ## Key Patterns Worth Extracting
 
-As you read through this documentation set, watch for these architectural patterns. They appear repeatedly and translate well to wgpu:
+As you read through this documentation set, watch for these architectural patterns. They appear repeatedly and translate well to [wgpu](https://github.com/gfx-rs/wgpu):
 
 **Backend Abstraction** separates GPU-agnostic logic from backend-specific code. The shared `Renderer` class handles traversal, sorting, and caching. The backend handles command encoding and resource management. This separation means you fix bugs once for all backends.
 
@@ -210,7 +210,7 @@ As you read through this documentation set, watch for these architectural patter
 
 **Render Context Isolation** keeps render pass configuration separate from draw logic. Whether you render to the main canvas, a shadow map, or a reflection probe, the same draw loop works because the context handles the differences.
 
-**DataMap Pattern** uses WeakMap to associate Three.js objects with their GPU resources. When the source object is garbage collected, the GPU resource mapping disappears automatically. No explicit cleanup required.
+**DataMap Pattern** uses WeakMap to associate [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) objects with their GPU resources. When the source object is garbage collected, the GPU resource mapping disappears automatically. No explicit cleanup required.
 
 ---
 
@@ -221,6 +221,6 @@ If you are new to this documentation set, I recommend reading in this order:
 1. **[Rendering Pipeline](rendering-pipeline.md)** — If you are wondering how a scene becomes draw calls, start here. It covers the five phases and the RenderObject pattern.
 2. **[WebGPU Backend](webgpu-backend.md)** — If you want to understand how high-level intent becomes GPU commands, this traces the path from `draw()` to `queue.submit()`.
 3. **[Pipeline and Bindings](pipeline-bindings.md)** — If you are curious about caching strategies or how dynamic data flows to shaders, this document explains both.
-4. **[Node System (TSL)](node-system.md)** — If you are considering a shader graph approach for your own engine, this explores how Three.js compiles JavaScript nodes to WGSL.
+4. **[Node System (TSL)](node-system.md)** — If you are considering a shader graph approach for your own engine, this explores how [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) compiles JavaScript nodes to WGSL.
 
-Each document builds on the previous ones. By the end, you will have a detailed mental model of how Three.js manages the complexity of WebGPU rendering—and ideas for how to apply similar patterns in your own wgpu-based projects.
+Each document builds on the previous ones. By the end, you will have a detailed mental model of how [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) manages the complexity of WebGPU rendering—and ideas for how to apply similar patterns in your own [wgpu](https://github.com/gfx-rs/wgpu)-based projects.

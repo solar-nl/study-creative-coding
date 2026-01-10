@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **Color systems' core idea:** RGB is for displays, HSV for picking, LAB/OkLab for perceptual uniformity, and Kubelka-Munk (Mixbox) for paint-like mixing - choose the space that matches your operation.
+> **Color systems' core idea:** RGB is for displays, HSV for picking, LAB/OkLab for perceptual uniformity, and Kubelka-Munk ([Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))) for paint-like mixing - choose the space that matches your operation.
 
 ## Overview
 
@@ -36,19 +36,19 @@ This document analyzes these aspects across frameworks to inform the design of a
 
 | Library | RGB | HSV/HSB | HSL | LAB | LCH | XYZ | LUV | OkLab | CMYK |
 |---------|:---:|:-------:|:---:|:---:|:---:|:---:|:---:|:-----:|:----:|
-| **wgpu** | ✓ | - | - | - | - | - | - | - | - |
-| **three.js** | ✓ | - | ✓ | - | - | ✓ | - | - | - |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | ✓ | - | - | - | - | - | - | - | - |
+| **[three.js](https://github.com/mrdoob/three.js)** | ✓ | - | ✓ | - | - | ✓ | - | - | - |
 | **orx** | ✓ | ✓ | ✓ | - | - | - | - | - | - |
 | **toxiclibs** | ✓ | ✓ | - | ✓ | - | - | - | - | ✓ |
-| **mixbox** | ✓ | - | - | - | - | - | - | - | - |
+| **[mixbox](https://github.com/scrtwpns/mixbox)** | ✓ | - | - | - | - | - | - | - | - |
 
 **Key observations:**
 - **openrndr** has the most comprehensive color space support (16+ models)
-- **nannou** leverages the Rust `palette` crate for extensive support
+- **nannou** leverages the Rust [`palette`](https://github.com/Ogeon/palette) crate for extensive support
 - **tixl** uniquely implements **OkLab** (modern perceptual model) in GPU shaders
 - **DrawBot** and **toxiclibs** have **CMYK** support—rare in creative coding, essential for print
-- **mixbox** (library) provides pigment-based mixing, not color spaces
-- Web libraries (three.js) focus on RGB/HSL basics
+- **[mixbox](https://github.com/scrtwpns/mixbox)** (library) provides pigment-based mixing, not color spaces
+- Web libraries ([three.js](https://github.com/mrdoob/three.js)) focus on RGB/HSL basics
 
 ---
 
@@ -60,7 +60,7 @@ How frameworks and libraries store color values internally:
 
 | Framework | Storage Type | Range | Notes |
 |-----------|--------------|-------|-------|
-| **nannou** | `palette` crate types | 0.0-1.0 (f32) | Type-safe, generic over scalar |
+| **nannou** | [`palette`](https://github.com/Ogeon/palette) crate types | 0.0-1.0 (f32) | Type-safe, generic over scalar |
 | **openrndr** | `data class ColorRGBa` | 0.0-1.0 (Double) | Kotlin data classes per space |
 | **p5.js** | `levels` array | 0-255 (internal 0-1) | Normalized internally, 8-bit output |
 | **Processing** | `int` (32-bit ARGB) | 0-255 packed | Bit-shifted components |
@@ -71,10 +71,10 @@ How frameworks and libraries store color values internally:
 
 | Library | Storage Type | Range | Notes |
 |---------|--------------|-------|-------|
-| **wgpu** | `Color { r, g, b, a }` | 0.0-1.0 (f64) | Simple struct, GPU-focused |
-| **three.js** | `Color { r, g, b }` | 0.0-1.0 (Number) | No alpha in Color class |
+| **[wgpu](https://github.com/gfx-rs/wgpu)** | `Color { r, g, b, a }` | 0.0-1.0 (f64) | Simple struct, GPU-focused |
+| **[three.js](https://github.com/mrdoob/three.js)** | `Color { r, g, b }` | 0.0-1.0 (Number) | No alpha in Color class |
 | **toxiclibs** | `TColor` (float fields) | 0.0-1.0 (float) | Implicit RGB/HSV/CMYK access |
-| **mixbox** | `[u8; 3]` / `vec3` | 0-255 or 0.0-1.0 | Language-dependent |
+| **[mixbox](https://github.com/scrtwpns/mixbox)** | `[u8; 3]` / `vec3` | 0-255 or 0.0-1.0 | Language-dependent |
 
 ### Code Examples
 
@@ -300,7 +300,7 @@ Displays use **gamma-corrected sRGB**, but math operations (blending, lighting) 
 | Framework | Approach |
 |-----------|----------|
 | **nannou** | Explicit `Srgb` vs `LinSrgb` types |
-| **three.js** | `ColorManagement` system with working space |
+| **[three.js](https://github.com/mrdoob/three.js)** | `ColorManagement` system with working space |
 | **openrndr** | `Linearity` enum on `ColorRGBa` |
 | **p5.js** | No distinction (assumes sRGB) |
 | **Processing** | No distinction (assumes sRGB) |
@@ -318,7 +318,7 @@ let linear: LinSrgb<f32> = srgb.into_linear();  // Math-ready
 // let wrong = srgb + linear;  // Error: mismatched types
 ```
 
-### three.js ColorManagement
+### [three.js](https://github.com/mrdoob/three.js) ColorManagement
 
 ```javascript
 // three.js - Centralized color management
@@ -380,9 +380,9 @@ Standard RGB interpolation produces **muddy, desaturated results** when mixing c
 
 This happens because RGB is an **additive** color model (light), while artists expect **subtractive** behavior (pigments).
 
-### Mixbox: Pigment-Based Mixing
+### [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)): Pigment-Based Mixing
 
-[Mixbox](https://github.com/scrtwpns/mixbox) solves this using **Kubelka-Munk theory** - a physical model of how light interacts with pigments.
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) solves this using **Kubelka-Munk theory** - a physical model of how light interacts with pigments.
 
 **How it works:**
 1. Convert RGB to a pigment "latent space" (via LUT texture)
@@ -482,7 +482,7 @@ val lab = rgb.toLABa()
 **Pros:** Clear conversions, IDE autocomplete
 **Cons:** Many classes to learn
 
-### Pattern 4: Unified Class (toxiclibs/three.js)
+### Pattern 4: Unified Class (toxiclibs/[three.js](https://github.com/mrdoob/three.js))
 
 Single class with multiple access patterns:
 
@@ -604,7 +604,7 @@ float3 result = OklabToRgb(lab);
 
 Based on this analysis, recommendations for a new Rust creative coding framework:
 
-### 1. Use the `palette` Crate
+### 1. Use the [`palette`](https://github.com/Ogeon/palette) Crate
 
 nannou demonstrates this well. Benefits:
 - Type-safe color spaces (Srgb, Hsv, Lab, etc.)
@@ -614,7 +614,7 @@ nannou demonstrates this well. Benefits:
 
 ### 2. Provide Ergonomic Wrappers
 
-Raw `palette` types can be verbose. Add helper functions:
+Raw [`palette`](https://github.com/Ogeon/palette) types can be verbose. Add helper functions:
 
 ```rust
 // Recommended API
@@ -649,7 +649,7 @@ pub trait ColorHarmony {
 
 ### 6. Consider Pigment-Based Mixing
 
-For paint-like applications, integrate or learn from [Mixbox](https://github.com/scrtwpns/mixbox):
+For paint-like applications, integrate or learn from [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)):
 
 ```rust
 // Add as optional dependency
@@ -679,7 +679,7 @@ let linear = display_color.into_linear();
 
 ### 8. Flexible Input Parsing
 
-Support multiple formats like three.js:
+Support multiple formats like [three.js](https://github.com/mrdoob/three.js):
 
 ```rust
 impl From<u32> for Color { }           // 0xFF0000
@@ -695,7 +695,7 @@ impl From<(f32, f32, f32)> for Color { } // (1.0, 0.0, 0.0)
 2. **toxiclibs** has the best color theory - port its strategies to Rust
 3. **nannou/palette** shows idiomatic Rust color handling
 4. **OkLab** is the modern choice for perceptual color - implement in shaders
-5. **Mixbox** enables natural pigment mixing - essential for paint-like applications
+5. **[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox))** enables natural pigment mixing - essential for paint-like applications
 6. **DrawBot** demonstrates print-focused color (CMYK) with parallel API pattern
 7. **Type safety vs ergonomics** is the key tradeoff - provide both layers
 8. **Linear workflow** is essential for correct rendering - make it explicit
@@ -705,7 +705,7 @@ impl From<(f32, f32, f32)> for Color { } // (1.0, 0.0, 0.0)
 ## References
 
 - [palette crate](https://crates.io/crates/palette) - Rust color library
-- [Mixbox](https://github.com/scrtwpns/mixbox) - Pigment-based color mixing (Kubelka-Munk)
+- [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) - Pigment-based color mixing (Kubelka-Munk)
 - [OkLab by Björn Ottosson](https://bottosson.github.io/posts/oklab/) - Modern perceptual color space
 - [toxiclibs color](http://toxiclibs.org/docs/colorutils/) - Color theory reference
 - [openrndr color](https://openrndr.org/) - Kotlin color implementation

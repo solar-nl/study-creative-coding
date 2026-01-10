@@ -141,7 +141,7 @@ The `search()` method is the main entry point. It takes your query, optionally e
 
 **Step 1: Query Expansion**
 
-If you type `drawimage`, the word database can recognize this as `draw` + `image` and expand it into a multi-word query:
+If you type `drawimage`, the word database can recognize this as `draw` + [`image`](https://github.com/image-rs/image) and expand it into a multi-word query:
 
 ```javascript
 search(query, originalSearch) {

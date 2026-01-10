@@ -1,4 +1,4 @@
-# three.js - Dependencies
+# [three.js](https://github.com/mrdoob/three.js) - Dependencies
 
 ## Overview
 
@@ -40,7 +40,7 @@ threejs/
 
 ### Runtime Dependencies
 
-Like p5.js, three.js has **zero runtime dependencies**:
+Like p5.js, [three.js](https://github.com/mrdoob/three.js) has **zero runtime dependencies**:
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
@@ -81,7 +81,7 @@ Like p5.js, three.js has **zero runtime dependencies**:
 
 ## Graphics APIs
 
-three.js supports multiple rendering backends:
+[three.js](https://github.com/mrdoob/three.js) supports multiple rendering backends:
 
 | Backend | Entry Point | Status |
 |---------|-------------|--------|
@@ -90,7 +90,7 @@ three.js supports multiple rendering backends:
 
 ### WebGPU Features
 
-three.js includes a **TSL (Three Shader Language)** for WebGPU:
+[three.js](https://github.com/mrdoob/three.js) includes a **TSL (Three Shader Language)** for WebGPU:
 
 ```javascript
 import * as THREE from 'three/webgpu';
@@ -112,7 +112,7 @@ import { tslFn, vec4 } from 'three/tsl';
 
 ## Addons (examples/jsm)
 
-three.js addons are **separate imports**, not bundled:
+[three.js](https://github.com/mrdoob/three.js) addons are **separate imports**, not bundled:
 
 | Category | Examples |
 |----------|----------|
@@ -124,7 +124,7 @@ three.js addons are **separate imports**, not bundled:
 
 ## Dependency Philosophy
 
-three.js follows **zero-dependency** approach:
+[three.js](https://github.com/mrdoob/three.js) follows **zero-dependency** approach:
 
 1. **Self-contained core** - No runtime dependencies
 2. **Tree-shakeable** - ES modules for dead code elimination
@@ -133,7 +133,7 @@ three.js follows **zero-dependency** approach:
 
 ## Math Implementation
 
-three.js has **custom math classes** (not a library):
+[three.js](https://github.com/mrdoob/three.js) has **custom math classes** (not a library):
 
 | Class | Purpose |
 |-------|---------|

@@ -1,8 +1,8 @@
-# wgpu Architecture
+# [wgpu](https://github.com/gfx-rs/wgpu) Architecture
 
 > Not yet documented.
 
-This document is planned but not yet written. wgpu is a safe, portable WebGPU implementation in Rust.
+This document is planned but not yet written. [wgpu](https://github.com/gfx-rs/wgpu) is a safe, portable WebGPU implementation in Rust.
 
 ## Planned Topics
 

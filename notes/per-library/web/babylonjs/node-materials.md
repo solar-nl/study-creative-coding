@@ -512,9 +512,9 @@ The block author encoded PBR theory once; users just connect wires.
 
 ---
 
-## wgpu Implementation Considerations
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation Considerations
 
-Building a shader graph system for wgpu:
+Building a shader graph system for [wgpu](https://github.com/gfx-rs/wgpu):
 
 ### Type System
 Use Rust enums for connection types:

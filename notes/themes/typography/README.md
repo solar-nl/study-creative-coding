@@ -67,13 +67,13 @@ Different frameworks make different choices at each layer, with profound implica
 
 ### p5.js: The Dual-System Dilemma
 
-**The approach:** p5.js uses [opentype.js](https://opentype.js.org/) to parse fonts in JavaScript, then renders via Canvas 2D or WebGL.
+**The approach:** p5.js uses [opentype.js](https://github.com/opentypejs/opentype.js) to parse fonts in JavaScript, then renders via Canvas 2D or WebGL.
 
 **What makes this interesting:** p5.js faces a uniquely web-specific challenge. Browsers already have powerful text rendering built in—the Canvas API's `fillText()` handles fonts, kerning, and even complex scripts automatically. So why not just use that?
 
 The answer is: creative coders want more than just *displaying* text. They want to *manipulate* it. And here's where `fillText()` falls short—it's a black box. You can't ask "where exactly is each letter?" or "give me the outline of this character."
 
-That's why p5.js brings in opentype.js. It can parse font files directly and expose glyph data:
+That's why p5.js brings in [opentype.js](https://github.com/opentypejs/opentype.js). It can parse font files directly and expose glyph data:
 
 ```javascript
 // This is why opentype.js exists in p5.js
@@ -90,9 +90,9 @@ for (let p of points) {
 
 This enables generative typography—particles flowing along letter shapes, text that wiggles, characters that explode into fragments.
 
-**The catch:** Now p5.js has two text systems that don't quite agree. Use `text()` for basic rendering (fast, uses browser's engine). Use `textToPoints()` for creative manipulation (slower, uses opentype.js). But they can behave differently—alignment might not match perfectly, certain fonts work in one but not the other.
+**The catch:** Now p5.js has two text systems that don't quite agree. Use `text()` for basic rendering (fast, uses browser's engine). Use `textToPoints()` for creative manipulation (slower, uses [opentype.js](https://github.com/opentypejs/opentype.js)). But they can behave differently—alignment might not match perfectly, certain fonts work in one but not the other.
 
-The community has been wrestling with this tension for years. GitHub issue [#6391](https://github.com/processing/p5.js/issues/6391) is a fascinating read—it explores potential solutions like SDF fonts or unifying on opentype.js, each with trade-offs.
+The community has been wrestling with this tension for years. GitHub issue [#6391](https://github.com/processing/p5.js/issues/6391) is a fascinating read—it explores potential solutions like SDF fonts or unifying on [opentype.js](https://github.com/opentypejs/opentype.js), each with trade-offs.
 
 **Key files to study:**
 - `src/typography/p5.Font.js` — The `textToPoints()` magic lives here
@@ -319,7 +319,7 @@ draw.text("rainbow")
 
 ### DrawBot: The Typography Specialist
 
-**The approach:** DrawBot uses macOS CoreText for text shaping and rendering, with fontTools for font inspection. This is a *platform-native* approach like Cinder, but from the type design community rather than creative coding.
+**The approach:** DrawBot uses macOS CoreText for text shaping and rendering, with [fontTools](https://github.com/fonttools/fonttools) for font inspection. This is a *platform-native* approach like Cinder, but from the type design community rather than creative coding.
 
 **Why DrawBot is different:** Unlike other creative coding frameworks that add typography as a feature, DrawBot was built *by type designers for type designers*. Its heritage shows—OpenType features, variable fonts, and multi-page documents are first-class citizens, not afterthoughts.
 
@@ -412,13 +412,13 @@ Here's how the frameworks compare on key dimensions:
 
 | Framework | Font Library | What It Gets You | What You Give Up |
 |-----------|-------------|------------------|------------------|
-| p5.js | opentype.js | `textToPoints()` for generative art | Consistency (dual-system issues) |
+| p5.js | [opentype.js](https://github.com/opentypejs/opentype.js) | `textToPoints()` for generative art | Consistency (dual-system issues) |
 | Processing | Java AWT | Reliability, lazy loading | No path access |
 | OpenFrameworks | FreeType | Industry-standard rendering, full Unicode | C++ dependency complexity |
 | Cinder | Platform-native | Best OS integration, ligatures | Cross-platform consistency |
 | openrndr | STB TrueType | Pluggable architecture, token-based layout | Basic shaping only |
 | nannou | RustType | Pure Rust, clean path API | Limited feature set |
-| DrawBot | CoreText | Variable fonts, OpenType features, fontTools inspection | macOS only |
+| DrawBot | CoreText | Variable fonts, OpenType features, [fontTools](https://github.com/fonttools/fonttools) inspection | macOS only |
 
 ---
 
@@ -479,7 +479,7 @@ draw.path(&path).fill(gradient);
 
 ### Consider the Shaping Gap
 
-None of the pure-language solutions (p5.js, openrndr, nannou) properly handle complex scripts. For a Rust framework, [rustybuzz](https://github.com/RazrFalcon/rustybuzz) (a HarfBuzz port) could fill this gap:
+None of the pure-language solutions (p5.js, openrndr, nannou) properly handle complex scripts. For a Rust framework, [rustybuzz](https://github.com/RazrFalcon/rustybuzz) (a [HarfBuzz](https://github.com/harfbuzz/harfbuzz) port) could fill this gap:
 
 ```
 Font Parsing      Text Shaping         Rendering
@@ -507,11 +507,11 @@ let cache = GlyphCache::new(&device);
 
 These topics warranted their own detailed analysis:
 
-- **[Font Fallback](typography-font-fallback.md)** — What happens when a font doesn't have a glyph? How do platform APIs, HarfBuzz, and cosmic-text handle missing characters? How should a Rust framework specify fallback chains?
+- **[Font Fallback](typography-font-fallback.md)** — What happens when a font doesn't have a glyph? How do platform APIs, [HarfBuzz](https://github.com/harfbuzz/harfbuzz), and [cosmic-text](https://github.com/pop-os/cosmic-text) handle missing characters? How should a Rust framework specify fallback chains?
 
-- **[Variable Fonts](typography-variable-fonts.md)** — Modern fonts with continuous weight/width axes. How the fvar table works, what swash provides, and API design patterns for creative coding.
+- **[Variable Fonts](typography-variable-fonts.md)** — Modern fonts with continuous weight/width axes. How the fvar table works, what [swash](https://github.com/dfrg/swash) provides, and API design patterns for creative coding.
 
-- **[WebAssembly Text Shaping](typography-wasm-shaping.md)** — Should you use the browser's native text engine or bring your own (rustybuzz)? Bundle size trade-offs, the hybrid approach, and when each makes sense.
+- **[WebAssembly Text Shaping](typography-wasm-shaping.md)** — Should you use the browser's native text engine or bring your own ([rustybuzz](https://github.com/RazrFalcon/rustybuzz))? Bundle size trade-offs, the hybrid approach, and when each makes sense.
 
 - **[Layout Mutability](typography-layout-mutability.md)** — Should `TextLayout` be mutable for animation, or always rebuilt? Lessons from Android's StaticLayout/DynamicLayout, CSS FLIP technique, and Rust ownership patterns.
 
@@ -547,7 +547,7 @@ These discussions reveal real-world pain points and design debates:
 
 | Issue | Framework | What You'll Learn |
 |-------|-----------|-------------------|
-| [#6391](https://github.com/processing/p5.js/issues/6391) | p5.js | The opentype.js vs CSS @font-face architectural tension |
+| [#6391](https://github.com/processing/p5.js/issues/6391) | p5.js | The [opentype.js](https://github.com/opentypejs/opentype.js) vs CSS @font-face architectural tension |
 | [#5607](https://github.com/processing/p5.js/issues/5607) | p5.js | Why variable fonts are hard to support |
 | [#1131](https://github.com/openframeworks/openFrameworks/issues/1131) | OpenFrameworks | Feature discussion for ofTrueTypeFont redesign |
 | [#825](https://github.com/openframeworks/openFrameworks/issues/825) | OpenFrameworks | Small font rendering quality issues |

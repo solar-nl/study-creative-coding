@@ -12,7 +12,7 @@
 
 Imagine you're designing a creative coding framework. Your users are artists, students, and hobbyists who want to see circles appear on screen without learning graphics programming theory. What's the simplest mental model you can give them?
 
-One approach: build a scene graph. Users create objects (`Circle`, `Rectangle`), add them to a scene, and the system renders the scene. This is **retained mode** rendering. It's powerful -- you can query objects, animate them, remove them later. Libraries like Three.js, PixiJS, and most game engines work this way.
+One approach: build a scene graph. Users create objects (`Circle`, `Rectangle`), add them to a scene, and the system renders the scene. This is **retained mode** rendering. It's powerful -- you can query objects, animate them, remove them later. Libraries like [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)), PixiJS, and most game engines work this way.
 
 But there's a cost. Users must understand object creation, scene hierarchies, and state management. "I just want a circle" becomes "create a circle object, configure it, add it to the scene, remember to update it if you want it to move."
 
@@ -264,7 +264,7 @@ In WebGL mode, there's no equivalent built-in, so `p5.RendererGL` maintains manu
 
 Let's compare p5.js with retained-mode frameworks to understand the trade-offs:
 
-| Aspect | p5.js (Immediate) | Three.js/PixiJS (Retained) |
+| Aspect | p5.js (Immediate) | [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js))/PixiJS (Retained) |
 |--------|-------------------|----------------------------|
 | **Mental Model** | "Draw commands paint pixels" | "Scene is a tree of objects" |
 | **Object Persistence** | None -- drawing is forgotten | Objects exist, can be queried |
@@ -296,9 +296,9 @@ Let's compare p5.js with retained-mode frameworks to understand the trade-offs:
 
 ---
 
-## Rust/wgpu Considerations
+## Rust/[wgpu](https://github.com/gfx-rs/wgpu) Considerations
 
-If you're implementing an immediate-mode renderer in Rust with wgpu, here are the key mapping considerations:
+If you're implementing an immediate-mode renderer in Rust with [wgpu](https://github.com/gfx-rs/wgpu), here are the key mapping considerations:
 
 ### The Renderer Abstraction in Rust
 
@@ -331,7 +331,7 @@ struct StateStack {
 
 ### Immediate Mode in a Deferred-Rendering World
 
-Here's where it gets interesting. wgpu (and GPU APIs in general) aren't truly immediate -- they buffer commands that execute later. To implement immediate-mode semantics:
+Here's where it gets interesting. [wgpu](https://github.com/gfx-rs/wgpu) (and GPU APIs in general) aren't truly immediate -- they buffer commands that execute later. To implement immediate-mode semantics:
 
 **Option 1: True immediate submission**
 ```rust
@@ -384,9 +384,9 @@ impl Renderer for WgpuRenderer {
 
 This gives immediate-mode semantics (draws happen in order, state changes respected) with reasonable performance.
 
-### The State Stack in wgpu
+### The State Stack in [wgpu](https://github.com/gfx-rs/wgpu)
 
-wgpu has no concept of transform matrices or fill colors -- those are entirely your responsibility. You'll need:
+[wgpu](https://github.com/gfx-rs/wgpu) has no concept of transform matrices or fill colors -- those are entirely your responsibility. You'll need:
 
 ```rust
 struct WgpuRenderer {
@@ -420,7 +420,7 @@ impl WgpuRenderer {
 
 ### Shape Tessellation
 
-The Canvas 2D API has built-in primitives (`arc()`, `bezierCurveTo()`). In wgpu, you draw triangles. Every shape must be tessellated:
+The Canvas 2D API has built-in primitives (`arc()`, `bezierCurveTo()`). In [wgpu](https://github.com/gfx-rs/wgpu), you draw triangles. Every shape must be tessellated:
 
 ```rust
 fn tessellate_circle(&self, x: f32, y: f32, diameter: f32) -> Vec<Vertex> {
@@ -449,7 +449,7 @@ fn tessellate_circle(&self, x: f32, y: f32, diameter: f32) -> Vec<Vertex> {
 }
 ```
 
-Consider using a tessellation library like `lyon` for complex paths.
+Consider using a tessellation library like [`lyon`](https://github.com/nical/lyon) for complex paths.
 
 ---
 
@@ -532,6 +532,6 @@ The key concepts:
 - **`push()`/`pop()`** create isolated state contexts
 - **No object persistence** -- you can't query what's drawn, only draw again
 
-For Rust/wgpu implementations, the main challenge is mapping immediate-mode semantics onto a command-buffer architecture. Frame batching provides a practical middle ground: accumulate draws, submit once.
+For Rust/[wgpu](https://github.com/gfx-rs/wgpu) implementations, the main challenge is mapping immediate-mode semantics onto a command-buffer architecture. Frame batching provides a practical middle ground: accumulate draws, submit once.
 
 The trade-off is clear: p5.js sacrifices scene management and optimization potential for an API that lets beginners draw circles in one line of code. For creative coding education, that's often the right trade.

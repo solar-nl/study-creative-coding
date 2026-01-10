@@ -560,11 +560,11 @@ fn draw(&mut self, ctx: &mut Context) {
 
 This is more verbose but makes state explicit and eliminates the testing problems.
 
-### Immediate Mode and wgpu's Command Buffer Model
+### Immediate Mode and [wgpu](https://github.com/gfx-rs/wgpu)'s Command Buffer Model
 
 Here's where p5.js's design creates interesting challenges for GPU-based implementations. p5.js uses "immediate mode" drawing: you call `fill(255, 0, 0)` and then `circle(100, 100, 50)`, and the circle appears red. State changes apply to subsequent draw calls.
 
-wgpu (and WebGPU, and modern GPUs generally) works differently. Drawing happens through command buffers: you record a sequence of operations, then submit the entire buffer to the GPU at once. Each draw call needs a complete pipeline state — shaders, blend modes, vertex layouts — bound before issuing the draw.
+[wgpu](https://github.com/gfx-rs/wgpu) (and WebGPU, and modern GPUs generally) works differently. Drawing happens through command buffers: you record a sequence of operations, then submit the entire buffer to the GPU at once. Each draw call needs a complete pipeline state — shaders, blend modes, vertex layouts — bound before issuing the draw.
 
 How would `fill()` followed by `circle()` map to this model?
 
@@ -587,9 +587,9 @@ render_pass.set_bind_group(0, &bind_group_with_color, &[]);
 render_pass.draw(0..vertex_count, 0..1);
 ```
 
-The key insight: immediate mode is a *user-facing abstraction*. Under the hood, you're typically batching draw calls, managing pipeline state, and deferring actual GPU work until the frame ends. Libraries like nannou bridge this gap by collecting immediate mode commands and translating them to wgpu's retained mode at submission time.
+The key insight: immediate mode is a *user-facing abstraction*. Under the hood, you're typically batching draw calls, managing pipeline state, and deferring actual GPU work until the frame ends. Libraries like nannou bridge this gap by collecting immediate mode commands and translating them to [wgpu](https://github.com/gfx-rs/wgpu)'s retained mode at submission time.
 
-This is why understanding p5.js's API model matters for Rust/wgpu implementations: you need to design an abstraction layer that feels immediate to users while being efficient for the GPU's command buffer model.
+This is why understanding p5.js's API model matters for Rust/[wgpu](https://github.com/gfx-rs/wgpu) implementations: you need to design an abstraction layer that feels immediate to users while being efficient for the GPU's command buffer model.
 
 ---
 
@@ -612,7 +612,7 @@ This document focused on p5.js's *external* API — the interface users see. To 
 - **[architecture.md](./architecture.md)** explains how p5.js organizes its code internally: the module structure, addon system, and how global mode gets wired up.
 - **[rendering-pipeline.md](./rendering-pipeline.md)** traces what happens after you call `circle()` — how drawing commands become pixels on the Canvas 2D and WebGL backends.
 
-If you're building a Rust creative coding library, the sequence matters: understand the user-facing API philosophy first (this document), then study how p5.js implements it internally, then consider how those patterns translate to Rust's ownership model and wgpu's command buffer architecture.
+If you're building a Rust creative coding library, the sequence matters: understand the user-facing API philosophy first (this document), then study how p5.js implements it internally, then consider how those patterns translate to Rust's ownership model and [wgpu](https://github.com/gfx-rs/wgpu)'s command buffer architecture.
 
 ---
 

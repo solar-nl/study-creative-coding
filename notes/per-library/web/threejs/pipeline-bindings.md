@@ -1,4 +1,4 @@
-# Three.js Pipeline & Bindings
+# [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) Pipeline & Bindings
 
 > Why render the same pipeline twice when you could compile it once and remember?
 
@@ -18,7 +18,7 @@ Bind groups are cheaper to create, but they are also immutable. Change a texture
 
 The naive approach would be creating these resources fresh every draw call. Your frame rate would collapse. A slightly less naive approach would be creating them once per object. But what if two objects share the same material, geometry layout, and render state? You have created two identical pipelines.
 
-Three.js solves this through two caching systems that work together: **Pipelines** for GPU pipeline state, and **Bindings** for resource groups. Understanding how they cooperate is key to understanding why the renderer can handle complex scenes at interactive frame rates.
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) solves this through two caching systems that work together: **Pipelines** for GPU pipeline state, and **Bindings** for resource groups. Understanding how they cooperate is key to understanding why the renderer can handle complex scenes at interactive frame rates.
 
 ---
 
@@ -245,7 +245,7 @@ getForRender(renderObject, promises = null) {
 
 ### String-Based Cache Keys
 
-Three.js generates string cache keys by concatenating render state values:
+[Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) generates string cache keys by concatenating render state values:
 
 ```javascript
 return [stageVertex.id, stageFragment.id, material.transparent, ...].join(',');
@@ -290,11 +290,11 @@ When textures change (video frames, procedural generation), entire bind groups a
 
 ### Cache Key Collisions
 
-String cache keys could theoretically collide. In practice, Three.js uses unique IDs and explicit separators, making this extremely unlikely.
+String cache keys could theoretically collide. In practice, [Three.js](https://github.com/mrdoob/[three.js](https://github.com/mrdoob/three.js)) uses unique IDs and explicit separators, making this extremely unlikely.
 
 ---
 
-## wgpu Implementation
+## [wgpu](https://github.com/gfx-rs/wgpu) Implementation
 
 Here is how these concepts translate to Rust:
 
@@ -408,7 +408,7 @@ impl Bindings {
 }
 ```
 
-### Key wgpu Differences
+### Key [wgpu](https://github.com/gfx-rs/wgpu) Differences
 
 **Ownership model:** `Arc<RenderPipeline>` allows shared ownership across the cache and render objects.
 

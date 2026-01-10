@@ -4,11 +4,11 @@
 
 ## Key Insight
 
-> **Rendering Pipeline's core idea:** nannou provides an immediate-mode drawing API (queue commands each frame) that internally batches primitives and submits them to wgpu's retained-mode GPU backend for efficient rendering.
+> **Rendering Pipeline's core idea:** nannou provides an immediate-mode drawing API (queue commands each frame) that internally batches primitives and submits them to [wgpu](https://github.com/gfx-rs/wgpu)'s retained-mode GPU backend for efficient rendering.
 
 ## Overview
 
-nannou uses an **immediate-mode drawing API** backed by wgpu (retained-mode GPU).
+nannou uses an **immediate-mode drawing API** backed by [wgpu](https://github.com/gfx-rs/wgpu) (retained-mode GPU).
 
 ## From User Code to Pixels
 
@@ -44,10 +44,10 @@ Surface presented to screen
 ### Draw Renderer (`draw/renderer/`)
 - Converts Draw commands to GPU primitives
 - Manages vertex/index buffers
-- Executes wgpu render passes
+- Executes [wgpu](https://github.com/gfx-rs/wgpu) render passes
 
-### wgpu Backend (`nannou_wgpu`)
-- Thin wrapper over wgpu
+### [wgpu](https://github.com/gfx-rs/wgpu) Backend (`nannou_wgpu`)
+- Thin wrapper over [wgpu](https://github.com/gfx-rs/wgpu)
 - Pipeline builders
 - Texture and buffer management
 
@@ -87,7 +87,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
 - Commands batched per frame
 - Vertex data uploaded each frame
 - Consider `nannou_mesh` for static geometry
-- wgpu handles GPU synchronization
+- [wgpu](https://github.com/gfx-rs/wgpu) handles GPU synchronization
 
 ## Study Questions
 

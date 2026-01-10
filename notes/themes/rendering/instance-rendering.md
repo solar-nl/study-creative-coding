@@ -339,7 +339,7 @@ for (lod, instances) in lod_buckets.iter().enumerate() {
 | OpenFrameworks | 1000 draws (or manual mesh) | Yes, via ofVbo + custom shader |
 | Cinder | Manual mesh or Batch | Yes, `batch->drawInstanced()` |
 | openrndr | Batches circles (not ellipses) | Yes, custom batch builder |
-| nannou | Accumulates mesh, tessellates | Yes, via raw wgpu |
+| nannou | Accumulates mesh, tessellates | Yes, via raw [wgpu](https://github.com/gfx-rs/wgpu) |
 
 Only **Cinder** has a clean built-in API for this. Others require dropping to low-level graphics APIs.
 
@@ -444,7 +444,7 @@ This leverages GPU parallelism—the vertex shader transforms all vertices simul
 ## Sources
 
 - [OpenGL Instanced Rendering](https://www.khronos.org/opengl/wiki/Vertex_Rendering#Instancing)
-- [wgpu Instance Rendering](https://sotrh.github.io/learn-wgpu/beginner/tutorial7-instancing/)
+- [wgpu](https://github.com/gfx-rs/wgpu)
 - [Cinder gl::Batch::drawInstanced](https://libcinder.org/docs/branch/master/classcinder_1_1gl_1_1_batch.html)
 - [GPU Gems: Instancing](https://developer.nvidia.com/gpugems/gpugems2/part-i-geometric-complexity/chapter-3-inside-geometry-instancing)
 

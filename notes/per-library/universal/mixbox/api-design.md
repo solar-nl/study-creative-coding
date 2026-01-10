@@ -1,14 +1,14 @@
-# Mixbox - API Design
+# [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) - API Design
 
-> "The best API is one you don't have to think about." - Mixbox achieves this with a single function.
+> "The best API is one you don't have to think about." - [Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) achieves this with a single function.
 
 ## Key Insight
 
-> **Mixbox API's core idea:** Replace `lerp(color1, color2, t)` with `mixbox_lerp(color1, color2, t)` - same signature, physically accurate pigment mixing.
+> **[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) API's core idea:** Replace `lerp(color1, color2, t)` with `mixbox_lerp(color1, color2, t)` - same signature, physically accurate pigment mixing.
 
 ## Overview
 
-Mixbox has an extremely simple API: **one function** that replaces standard color lerp.
+[Mixbox](https://github.com/scrtwpns/[mixbox](https://github.com/scrtwpns/mixbox)) has an extremely simple API: **one function** that replaces standard color lerp.
 
 ```
 mixbox_lerp(color1, color2, t) → mixed_color

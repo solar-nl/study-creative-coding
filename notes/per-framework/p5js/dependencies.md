@@ -56,7 +56,7 @@ p5.js has **minimal runtime dependencies** - most functionality is built-in:
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| `opentype.js` | 0.9.0 | Font file parsing |
+| [`[opentype.js](https://github.com/opentypejs/opentype.js)`](https://github.com/processing/p5.js/blob/main/src/opentype.js) | 0.9.0 | Font file parsing |
 
 #### GIF Support
 
@@ -133,7 +133,7 @@ lib/
 
 - **Almost zero runtime deps** - Maximizes portability
 - **Build deps are heavy** - Complex build process
-- **opentype.js is key** - Enables custom font support
+- **[opentype.js](https://github.com/opentypejs/opentype.js) is key** - Enables custom font support
 - **libtess for WebGL** - Complex shape tessellation
 
 ## Key Files

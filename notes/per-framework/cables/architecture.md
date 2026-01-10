@@ -283,11 +283,11 @@ Understanding these platform differences helps when porting Cables concepts to o
 
 ---
 
-## Mapping to wgpu (Rust)
+## Mapping to [wgpu](https://github.com/gfx-rs/wgpu) (Rust)
 
-If you are building a similar system in Rust with wgpu, here is how the concepts translate:
+If you are building a similar system in Rust with [wgpu](https://github.com/gfx-rs/wgpu), here is how the concepts translate:
 
-| Cables Concept | wgpu Equivalent |
+| Cables Concept | [wgpu](https://github.com/gfx-rs/wgpu) Equivalent |
 |----------------|-----------------|
 | CgContext | `wgpu::Device` + `wgpu::Queue` |
 | CgShader | `wgpu::ShaderModule` + `wgpu::RenderPipeline` |
@@ -296,7 +296,7 @@ If you are building a similar system in Rust with wgpu, here is how the concepts
 | State stacks | `RenderPassDescriptor` + custom state tracking |
 | Bind groups | `wgpu::BindGroup` (already native) |
 
-The key architectural decision: wgpu does not have WebGL's global state problem, so you might not need state stacks. However, the matrix stacks pattern remains valuable for hierarchical transforms.
+The key architectural decision: [wgpu](https://github.com/gfx-rs/wgpu) does not have WebGL's global state problem, so you might not need state stacks. However, the matrix stacks pattern remains valuable for hierarchical transforms.
 
 ```rust
 // Conceptual Rust equivalent of the matrix stack

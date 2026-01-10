@@ -22,7 +22,7 @@ text("Hello", (100, 500))
 saveImage("~/Desktop/output.pdf")
 ```
 
-The magic happens in `__init__.py` via namespace injection:
+The magic happens in [`__init__.py`](https://github.com/robotools/drawbot/blob/master/drawBot/__init__.py) via namespace injection:
 
 ```python
 # drawBot/__init__.py
@@ -136,7 +136,7 @@ txt += "World"
 text(txt, (100, 100))
 ```
 
-Key features from `baseContext.py`:
+Key features from [`baseContext.py`](https://github.com/robotools/drawbot/blob/master/context/baseContext.py):
 - **Chainable setters**: `.font()`, `.fontSize()`, `.fill()`, `.tracking()`, `.lineHeight()`
 - **Concatenation**: `txt += "more text"` or `txt1 + txt2`
 - **Slicing**: `txt[5:10]` returns a new FormattedString with formatting preserved

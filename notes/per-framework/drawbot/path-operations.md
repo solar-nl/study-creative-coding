@@ -1,14 +1,14 @@
 # DrawBot Path Operations
 
-> BezierPath as a universal vector container with FontTools pen protocol and boolean operations.
+> BezierPath as a universal vector container with [FontTools](https://github.com/fonttools/fonttools) pen protocol and boolean operations.
 
 ## Key Insight
 
-> **Path Operations' core idea:** BezierPath extends FontTools' `BasePen`, enabling seamless glyph extraction from fonts and interoperability with the entire fontTools ecosystem. Boolean operations via `booleanOperations` library use Python operator overloads for expressive path combining.
+> **Path Operations' core idea:** BezierPath extends [FontTools](https://github.com/fonttools/fonttools)' `BasePen`, enabling seamless glyph extraction from fonts and interoperability with the entire [fontTools](https://github.com/fonttools/fonttools) ecosystem. Boolean operations via `booleanOperations` library use Python operator overloads for expressive path combining.
 
 ## Pen Protocol Integration
 
-BezierPath implements the FontTools pen protocol, making it a target for glyph outline extraction:
+BezierPath implements the [FontTools](https://github.com/fonttools/fonttools) pen protocol, making it a target for glyph outline extraction:
 
 ```python
 # frameworks/drawbot/drawBot/context/baseContext.py:147
@@ -136,7 +136,7 @@ The actual glyph extraction happens in `textBox()` using CoreText APIs to iterat
 
 ## Image Tracing
 
-The `traceImage()` method converts raster images to vector paths using potrace/mkbitmap:
+The `traceImage()` method converts raster images to vector paths using [potrace](https://potrace.sourceforge.net/)/[mkbitmap](https://potrace.sourceforge.net/):
 
 ```python
 # frameworks/drawbot/drawBot/context/tools/traceImage.py:275-326
@@ -191,12 +191,12 @@ class BezierContour(list):
 
 ## Recommendations for Your Framework
 
-1. **Implement pen protocols** - FontTools' pen protocol is a proven abstraction for path interchange. Consider a similar trait-based approach in Rust.
+1. **Implement pen protocols** - [FontTools](https://github.com/fonttools/fonttools)' pen protocol is a proven abstraction for path interchange. Consider a similar trait-based approach in Rust.
 
 2. **Operator overloads for booleans** - Python's `|`, `&`, `%`, `^` mapping to path operations is intuitive. Rust's `BitOr`, `BitAnd`, `Rem`, `BitXor` traits enable the same pattern.
 
 3. **Separate stroke expansion** - Converting strokes to fills is a distinct operation from drawing. Keep these as explicit path transformations.
 
-4. **External tool integration** - Potrace for image tracing is battle-tested. Consider optional feature flags for external tool dependencies.
+4. **External tool integration** - [Potrace](https://[potrace](https://potrace.sourceforge.net/).sourceforge.net/) for image tracing is battle-tested. Consider optional feature flags for external tool dependencies.
 
 5. **Contour-level access** - Exposing contours as iterables enables algorithms that need per-contour operations (winding direction, area calculation).
