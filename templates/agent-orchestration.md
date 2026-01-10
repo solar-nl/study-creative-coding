@@ -55,9 +55,52 @@ Writer → Reviewer-Editor → Final
 
 ---
 
+## Adding New Projects
+
+Before documenting a project, it must be added to the repository. Use the **Add Project Agent** (`templates/agent-add-project.md`) to:
+
+1. Add git submodule
+2. Create notes directory structure
+3. Write initial README
+4. Update registry tables
+5. Fix stale cross-references
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  ADD PROJECT AGENT                                                    │
+│  Input: Project name + URL + type + ecosystem                        │
+│  Output: Submodule + notes structure + registry updates              │
+└──────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+              ┌───────────────────────────────────────┐
+              │  Ready for Documentation Pipeline     │
+              │  (Writer → Reviewer-Editor → Final)   │
+              └───────────────────────────────────────┘
+```
+
+### Add Project Invocation
+
+```
+I need you to act as the Add Project Agent. Please read:
+templates/agent-add-project.md
+
+## Project to Add
+Name: <project name>
+URL: <repository URL>
+Type: <framework | library | tool | example>
+Ecosystem: <web | rust | universal | ...> (if library)
+
+## Options
+Description: <one-line description>
+Depth: <quick | standard | deep>
+```
+
+---
+
 ## Prerequisites
 
-Before starting, ensure you have:
+Before starting the documentation pipeline, ensure you have:
 
 1. **Style guide**: `STYLE_GUIDE.md` in repository root
 2. **Agent prompts**: All agent templates in `templates/`
@@ -374,12 +417,38 @@ Done! Document ready for publication.
 
 ## Files Reference
 
+### Core Files
 | File | Purpose |
 |------|---------|
 | `STYLE_GUIDE.md` | Quality standards and examples |
 | `.claude/settings.json` | Pre-approved tool permissions (reduces prompts) |
-| `templates/agent-writer.md` | Writer agent prompt |
-| `templates/agent-reviewer.md` | Reviewer agent prompt (standalone) |
+
+### Documentation Pipeline Agents
+| File | Purpose |
+|------|---------|
+| `templates/agent-writer.md` | Transform notes into narrative documentation |
+| `templates/agent-reviewer.md` | Evaluate document against style guide (standalone) |
 | `templates/agent-reviewer-editor.md` | Combined review + polish (fast path) |
-| `templates/agent-editor.md` | Editor agent prompt (major revisions) |
+| `templates/agent-editor.md` | Apply feedback, major revisions |
+
+### Research & Analysis Agents
+| File | Purpose |
+|------|---------|
+| `templates/agent-theme-comparison.md` | Cross-framework topic analysis |
+| `templates/agent-code-trace.md` | Deep dive code path tracing |
+| `templates/agent-dependencies.md` | Project dependency analysis |
+
+### Repository Management Agents
+| File | Purpose |
+|------|---------|
+| `templates/agent-add-project.md` | Add new libraries/frameworks to study |
+| `templates/agent-audit.md` | Find and fix documentation inconsistencies |
+
+### Templates & References
+| File | Purpose |
+|------|---------|
+| `templates/theme-comparison.md` | Output template for theme comparisons |
+| `templates/code-trace.md` | Output template for code traces |
+| `templates/framework-overview.md` | Output template for framework summaries |
+| `templates/add-library-checklist.md` | Manual checklist (reference for agent) |
 | `templates/agent-orchestration.md` | This file — how to use them together |
