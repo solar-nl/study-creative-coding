@@ -8,9 +8,9 @@
 
 Moving from V2's C++ patterns to idiomatic Rust resembles translating between spoken languages. The source language—V2's C++ with inline assembly—prizes compactness and raw performance. The target language—Rust with safe abstractions—values memory safety and explicit ownership. Neither approach is superior; each reflects its era's constraints and priorities. The translator's job: finding equivalent expressions that preserve intent while respecting the target language's idioms.
 
-This document serves as a phrasebook for that translation. Each entry identifies a problem V2 solved, shows how V2's source language expressed the solution, then provides the equivalent Rust expression. The goal is not to transliterate C++ into Rust syntax. The goal is to capture the pattern's essence in Rust's native voice. A direct word-for-word translation sounds stilted in any language; an idiomatic translation flows naturally while preserving meaning.
+This document serves as a phrasebook for that translation. Each entry identifies a problem V2 solved, shows how V2 expressed the solution, then provides the equivalent Rust expression. The goal is not to transliterate C++ into Rust syntax but to capture each pattern's essence in Rust's native voice. A direct word-for-word translation sounds stilted in any language; an idiomatic translation flows naturally while preserving meaning.
 
-The patterns collected here emerged from V2's constraints: sixty-four simultaneous voices, real-time audio deadlines, and the demoscene's obsession with fitting functionality into kilobytes. These constraints forced elegant solutions. Rust's different constraints, ownership, lifetimes, and safe concurrency, force different expressions of those solutions. The underlying wisdom transfers; the surface syntax transforms.
+The patterns here emerged from V2's constraints: sixty-four simultaneous voices, real-time audio deadlines, and the demoscene's obsession with fitting functionality into kilobytes. These constraints forced elegant solutions. Rust's different constraints—ownership, lifetimes, safe concurrency—force different expressions of those same solutions. The underlying wisdom transfers; the surface syntax transforms.
 
 ---
 
@@ -18,7 +18,7 @@ The patterns collected here emerged from V2's constraints: sixty-four simultaneo
 
 **The problem:** A polyphonic synthesizer needs to manage a fixed number of voices without dynamic allocation. When all voices are active and a new note arrives, the system must decide which voice to steal. This decision should minimize audible artifacts by preferring voices that have already begun their release phase over those still actively sounding.
 
-**V2's approach:** The [voice architecture](../synthesis-engine/voice-architecture.md) document details V2's solution. A fixed array of 64 voices pairs with a parallel allocation map. The map tracks which MIDI channel owns each voice (-1 for free), plus an allocation timestamp for LRU stealing. Voice allocation searches in priority order: free voices first, then released voices (gate off), then oldest active voices. The key insight is separating voice state from allocation metadata. The voice itself knows nothing about the pool; the pool knows everything about voice lifetimes.
+**V2's approach:** The [voice architecture](../synthesis-engine/voice-architecture.md) document details V2's solution. A fixed array of 64 voices pairs with a parallel allocation map tracking which MIDI channel owns each voice (-1 for free), plus an allocation timestamp for LRU stealing. Voice allocation searches in priority order: free voices first, then released voices (gate off), then oldest active voices. The key insight: separating voice state from allocation metadata. The voice knows nothing about the pool; the pool knows everything about voice lifetimes.
 
 **Rust translation:** Replace the magic -1 sentinel with `Option`, making the free/allocated distinction type-safe. The allocation logic translates naturally using iterator methods, expressing the priority search declaratively.
 
@@ -62,7 +62,7 @@ impl VoicePool {
 }
 ```
 
-**Key insight:** Rust's `Option` eliminates sentinel value bugs while iterator chains express allocation priority in readable, declarative style.
+**Key insight:** Rust's `Option` eliminates sentinel value bugs. Iterator chains express allocation priority in readable, declarative style.
 
 ---
 
@@ -70,7 +70,7 @@ impl VoicePool {
 
 **The problem:** Audio synthesis at sample rate (44,100 Hz) cannot afford per-sample calculations for slowly-changing values like envelope levels or filter coefficients. Control-rate calculations should happen less frequently without introducing audible stepping artifacts. The solution must also enable SIMD optimization of the inner audio loops.
 
-**V2's approach:** The [architecture document](../architecture.md) explains V2's frame-based model. Processing divides into frames of 128 samples (approximately 2.9ms at 44.1kHz). Each frame begins with a "tick" that updates all modulators at control rate, then renders audio at sample rate. This 128x reduction in control calculations leaves CPU cycles for audio rendering. Volume ramping prevents clicks from control-rate stepping by interpolating between old and new envelope values across the frame.
+**V2's approach:** The [architecture document](../architecture.md) explains V2's frame-based model. Processing divides into frames of 128 samples (roughly 2.9ms at 44.1kHz). Each frame begins with a "tick" updating all modulators at control rate, then renders audio at sample rate. This 128x reduction in control calculations leaves CPU cycles for audio rendering. Volume ramping prevents clicks from control-rate stepping by interpolating between old and new envelope values across the frame.
 
 **Rust translation:** Frame-based processing maps naturally to Rust's slice-oriented API. A buffer of samples becomes a mutable slice that processing functions fill. The frame size provides natural boundaries for both control updates and SIMD vectorization.
 
@@ -105,7 +105,7 @@ For SIMD optimization, Rust's `std::simd` provides portable vectorization. The f
 
 **The problem:** A synthesizer needs flexible routing between modulation sources (envelopes, LFOs, velocity) and destinations (filter cutoff, pitch, amplitude). Artists expect to route multiple sources to the same destination with different amounts, and the results should sum additively. The routing should be data-driven, not hardcoded.
 
-**V2's approach:** The [modulation document](../synthesis-engine/modulation.md) covers V2's solution. Each routing occupies three bytes: source index, amount (with 64 as zero for bipolar modulation), and destination parameter index. During each frame, the system copies base parameter values from the patch, then iterates through all routings, adding scaled source outputs to destinations. The modulation sources are heterogeneous: velocity is fixed per note, envelopes evolve over time, LFOs cycle continuously, MIDI controllers arrive externally. A unified interface makes the routing code oblivious to source type.
+**V2's approach:** The [modulation document](../synthesis-engine/modulation.md) covers V2's solution. Each routing occupies three bytes: source index, amount (with 64 as zero for bipolar modulation), and destination parameter index. During each frame, the system copies base parameter values from the patch, then iterates through all routings, adding scaled source outputs to destinations. Modulation sources are heterogeneous: velocity is fixed per note, envelopes evolve over time, LFOs cycle continuously, MIDI controllers arrive externally. A unified interface makes routing code oblivious to source type.
 
 **Rust translation:** Traits provide a unified interface for heterogeneous modulation sources. Each source implements a common trait, enabling polymorphic routing without dynamic dispatch in the hot path.
 
@@ -136,7 +136,7 @@ impl ModulationMatrix {
 
 **The problem:** The audio thread must never block. Memory allocation can acquire locks. File I/O waits on disk. Even logging can contend for buffers. Any operation that might block risks audio dropout. Meanwhile, other threads need to send MIDI events and query playback position without corrupting shared state.
 
-**V2's approach:** The [audio I/O document](../integration/audio-io.md) details V2's strategy. The core synthesis engine assumes single-threaded access and performs no allocation during rendering. The DirectSound layer provides explicit lock/unlock functions for cross-thread communication. Static allocation at initialization time eliminates runtime allocation in the audio path. Every buffer, every voice, every delay line exists before the first sample renders.
+**V2's approach:** The [audio I/O document](../integration/audio-io.md) details V2's strategy. The core synthesis engine assumes single-threaded access and performs no allocation during rendering. The DirectSound layer provides explicit lock/unlock for cross-thread communication. Static allocation at initialization time eliminates runtime allocation in the audio path. Every buffer, every voice, every delay line exists before the first sample renders.
 
 **Rust translation:** Rust's ownership system makes real-time constraints explicit. Types that might allocate or block simply cannot be passed to the audio callback. Lock-free communication replaces mutex-protected regions. The `ringbuf` crate provides wait-free MIDI event delivery.
 
@@ -158,7 +158,7 @@ fn audio_callback(synth: &mut Synth, midi: &mut Consumer<MidiEvent>, out: &mut [
 }
 ```
 
-**Key insight:** Rust's type system enforces real-time constraints at compile time. Lock-free structures eliminate blocking that V2 avoided through discipline; Rust prevents it through design.
+**Key insight:** Rust's type system enforces real-time constraints at compile time. V2 avoided blocking through discipline; Rust prevents it through design.
 
 ---
 
@@ -166,7 +166,7 @@ fn audio_callback(synth: &mut Synth, midi: &mut Consumer<MidiEvent>, out: &mut [
 
 **The problem:** A synthesizer filter should produce multiple outputs (low-pass, band-pass, high-pass, notch) simultaneously from the same computation. This enables morphing between filter types without recalculating. The filter must remain stable at all cutoff frequencies and support modulation without zipper noise.
 
-**V2's approach:** The [filters document](../synthesis-engine/filters.md) explains V2's state variable filter. Two integrators in feedback produce the classic topology. Internal state variables `l` (low) and `b` (band) generate all outputs through combination: low-pass directly, high-pass by subtraction, band-pass directly, notch by summing low and high. Running at 2x oversampling prevents instability at high frequencies. The resonance parameter controls feedback from the band-pass output, creating the characteristic squelch as it approaches self-oscillation.
+**V2's approach:** The [filters document](../synthesis-engine/filters.md) explains V2's state variable filter. Two integrators in feedback produce the classic topology. Internal state variables `l` (low) and `b` (band) generate all outputs through combination: low-pass directly, high-pass by subtraction, band-pass directly, notch by summing low and high. Running at 2x oversampling prevents instability at high frequencies. Resonance controls feedback from band-pass output, creating the characteristic squelch as it approaches self-oscillation.
 
 **Rust translation:** The filter returns all outputs simultaneously, enabling the caller to select or blend without recomputing. This design separates computation from selection.
 
@@ -208,7 +208,7 @@ impl StateVariableFilter {
 
 **The problem:** A synthesizer should work across multiple host environments: standalone applications, VST plugins, tracker software, web audio. Each host has different callback signatures, buffer formats, and lifecycle expectations. The core synthesis code should remain ignorant of these differences.
 
-**V2's approach:** The [architecture document](../architecture.md) describes V2's three-tier separation. The core synthesis lives in tier one, accepting opaque pointers and raw buffer arrays. The C API in tier two provides stable function signatures that any host can call. Plugin wrappers in tier three adapt host-specific conventions to the C API. This layering means adding a new host requires only writing a new wrapper. The synthesis code never changes.
+**V2's approach:** The [architecture document](../architecture.md) describes V2's three-tier separation. Core synthesis lives in tier one, accepting opaque pointers and raw buffer arrays. The C API in tier two provides stable function signatures any host can call. Plugin wrappers in tier three adapt host-specific conventions to the C API. Adding a new host requires only writing a new wrapper; synthesis code never changes.
 
 **Rust translation:** Traits define the abstraction boundary between the synthesizer and its hosts. The synthesizer implements a core trait; adapters implement host-specific interfaces by delegating to the core.
 
@@ -236,7 +236,7 @@ fn build_cpal_stream(proc: Arc<Mutex<impl AudioProcessor>>) -> cpal::Stream {
 }
 ```
 
-**Key insight:** The trait boundary isolates host-specific concerns from synthesis logic. Adding new hosts requires only implementing adapters; the core remains untouched.
+**Key insight:** The trait boundary isolates host-specific concerns from synthesis logic. New hosts require only implementing adapters; the core remains untouched.
 
 ---
 
@@ -255,7 +255,7 @@ fn build_cpal_stream(proc: Arc<Mutex<impl AudioProcessor>>) -> cpal::Stream {
 
 ## Implementation Order
 
-These patterns have dependencies. Implementing them in the wrong order creates rework.
+These patterns have dependencies. Wrong order means rework.
 
 1. **Start with frame-based processing.** The frame concept underlies everything else. Define frame size constants and slice-based APIs first.
 
