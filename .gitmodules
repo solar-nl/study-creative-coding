@@ -50,7 +50,7 @@
 	path = libraries/web/babylonjs
 	url = https://github.com/BabylonJS/Babylon.js.git
 [submodule "libraries/controlp5"]
-	path = libraries/controlp5
+	path = libraries/processing-ecosystem/controlp5
 	url = https://github.com/sojamo/controlp5.git
 [submodule "frameworks/drawbot"]
 	path = frameworks/drawbot
@@ -58,3 +58,6 @@
 [submodule "demoscene/fr_public"]
 	path = demoscene/fr_public
 	url = https://github.com/farbrausch/fr_public.git
+[submodule "libraries/processing-ecosystem/controlp5"]
+	path = libraries/processing-ecosystem/controlp5
+	url = https://github.com/sojamo/controlp5.git
