@@ -1,449 +1,139 @@
-# Node Graph Systems: Cross-Framework Comparison
+# Node-Based Systems: A Comparative Overview
 
-> How three visual programming frameworks approach the same fundamental challenge
-
----
-
-## Overview
-
-This document compares node-based procedural content systems across three frameworks:
-
-| Framework | Language | Era | Focus |
-|-----------|----------|-----|-------|
-| **Werkkzeug4** (fr_public) | C++ | 2004-2011 | Demoscene, size-coded demos, procedural 3D |
-| **cables.gl** | JavaScript | 2015-present | Web-based, WebGL/WebGPU, real-time visuals |
-| **tixl** | C#/.NET | 2020-present | Desktop, modern GPU, VJ/live performance |
-
-Each framework solves the same core problem: how to let artists create complex procedural content by connecting visual nodes, while managing the complexity of GPU rendering underneath.
+> Three dialects of the same language - Werkkzeug4 (2004), cables.gl (2015), tixl (2020)
 
 ---
 
-## Architectural Comparison
+## The Visual Programming Challenge
 
-### Data Structure Philosophy
+Node-based visual programming occupies a unique position in creative tooling. It transforms the abstract process of procedural content creation into something tangible - boxes connected by wires, data flowing visibly from source to destination. The appeal is obvious: artists see their logic, debug by following paths, experiment by rerouting connections. No syntax errors, no invisible state, no compile-run-crash cycles.
 
-| Aspect | Werkkzeug4 | cables.gl | tixl |
-|--------|------------|-----------|------|
-| **Node representation** | `wOp` (editor) + `wCommand` (runtime) | `Op` with ports | `Symbol` (definition) + `Instance` (runtime) |
-| **Connection model** | Links with type checking | Ports with type-restricted links | Slots with dirty flags |
-| **Execution model** | Compile then execute | Dual: values (pull) + triggers (push) | Pull-based lazy evaluation |
-| **Type system** | Hierarchical with conversions | Port types (value/trigger/object) | Strongly typed slots with generics |
+The user base spans a spectrum: motion graphics artists who have never written code, technical directors bridging art and engineering, and programmers who prefer visual debugging. Each group brings different expectations. Artists want intuitive discovery. Technical directors want predictable performance. Programmers want the power they are accustomed to in text-based languages.
 
-### Two-Tier vs. Single-Tier
+But this visual simplicity conceals genuine architectural complexity. A node graph must simultaneously serve two masters with opposing needs. The artist editing the graph wants instant feedback, flexible connections, rich metadata for display, and seamless undo/redo. The runtime executing the graph wants linear memory access, minimal branching, and predictable performance. These requirements pull in different directions.
 
-**Werkkzeug4** separates editor and execution completely:
-
-```
-wOp (editor)          wCommand (runtime)
-- Rich metadata       - Minimal, flat
-- Pointer graph       - Array of commands
-- Live editing        - Snapshot copy
-- Undo/redo state     - No metadata
-```
-
-**cables.gl** uses a single structure with dual execution modes:
-
-```
-Op (single tier)
-- Values propagate on change (lazy)
-- Triggers fire every frame (eager)
-- Same structure serves both modes
-```
-
-**tixl** separates definition from instance but not editor from runtime:
-
-```
-Symbol (definition)   Instance (runtime)
-- Input/output defs   - Actual slot values
-- Shared template     - Per-instance state
-- Connections         - Dirty flags
-```
-
-### Insight: Compilation vs. Live Execution
-
-Werkkzeug4's compilation step was necessary for demoscene's extreme size constraints. Compiling to a flat command buffer enabled aggressive optimizations and tiny executables.
-
-cables.gl and tixl prioritize live iteration. Changes take effect immediately without a compilation step. The tradeoff: less aggressive optimization, but faster creative feedback.
+The challenge deepens when graphs grow. Ten nodes feel snappy with any architecture. A hundred nodes expose weak caching strategies. A thousand nodes with nested subroutines and loops reveal whether the foundational abstractions will scale. The frameworks that survive real production use have discovered patterns that address these scaling challenges - patterns worth studying regardless of implementation language.
 
 ---
 
-## Execution Models
+## Three Frameworks, Three Eras
 
-### Werkkzeug4: Compile-Execute
+### Werkkzeug4: The Demoscene Dialect
 
-```
-Edit graph → Compile → Execute commands → Display
-                ↓
-         (parameters copied,
-          caches checked,
-          types verified)
-```
+Werkkzeug4 emerged from the demoscene, where 64-kilobyte executables must generate entire audiovisual experiences procedurally. This extreme constraint shaped its dialect. Every byte matters. Runtime efficiency trumps development convenience. The framework speaks in compile-then-execute: transform the visual graph into a flat command buffer, then blast through that buffer without interpretation.
 
-Six-phase pipeline:
-1. **Parse**: Build intermediate node tree
-2. **Optimize**: Insert caches, conversions
-3. **TypeCheck**: Verify compatibility
-4. **SkipToSlow**: Handle expensive ops
-5. **Output**: Generate command buffer
-6. **Execute**: Run commands sequentially
+The vocabulary includes CallIds for context-aware caching, type hierarchies with automatic conversion operators, and a DSL that generates C++ boilerplate from compact declarations. Subroutines and loops exist as visual operators that the compiler unrolls. The wBuilder class acts as a "head chef" - parsing the recipe book of operators, checking the cache cooler for pre-made results, and writing prep cards (commands) that line cooks (the executor) can follow without consulting the original recipes.
 
-Changes during execution are ignored until next compile.
+The result is an architecture optimized for shipping - once the graph compiles, execution is predictable and fast. This is the dialect of the demoscene: terse, efficient, oriented toward final output rather than iterative exploration.
 
-### cables.gl: Dual Execution
+### cables.gl: The Web Dialect
 
-```
-Every frame:
-  MainLoop fires trigger → cascade through trigger ports
+cables.gl speaks the web's native tongue. JavaScript enables instant iteration - change an operator, see the result immediately. WebGL and WebGPU provide cross-platform GPU access. The browser's event loop becomes the animation heartbeat. A three-layer architecture separates concerns: the Patch layer orchestrates node execution, the CgContext layer provides API-agnostic graphics abstractions, and platform implementations (CglContext for WebGL, CgpContext for WebGPU) handle the specifics.
 
-On value change:
-  Source port updates → propagate to connected inputs
-```
+The distinctive feature of this dialect is dual execution. Some data flows continuously every frame through trigger connections - the animation clock, the render cascade. Other data flows only when it changes through value propagation - parameters, colors, dimensions. This duality lets artists build efficient patches where static values cache automatically while animations update continuously. A trigger stack prevents infinite recursion when cyclic connections exist.
 
-Two complementary modes:
-- **Triggers** (push): Fire every frame for animation
-- **Values** (pull): Propagate on change for efficiency
+State stacks manage GPU complexity. Push blend mode, render, pop blend mode. The theater analogy runs deep: stage setup (renderStart), performance (trigger cascade), curtain call (renderEnd safety cleanup). Operators need not know what state their neighbors set - each push/pop pair creates an isolated scope that automatically restores previous state.
 
-Cycle prevention via trigger stack tracking.
+This is the dialect of creative technologists: expressive, immediate, optimized for exploration.
 
-### tixl: Pull-Based Lazy
+### tixl: The Modern Dialect
 
-```
-Output requested → check dirty flag → evaluate if dirty → cache result
-                          ↓
-                   (clean: return cached)
-```
+tixl speaks with the precision of modern typed languages. C# generics enforce slot types at compile time - an `InputSlot<float>` cannot accidentally receive a texture. The Symbol-Instance separation distinguishes what an operator is (its definition template) from what it does (its runtime state). Multiple instances can share a single symbol, enabling efficient memory use when the same operator appears many times in a graph.
 
-Dirty flags propagate invalidation:
-- Input changes → mark dependents dirty
-- Evaluation only happens when output is requested
-- Natural fit for incremental updates
+Dirty flags propagate invalidation through the graph, enabling pull-based lazy evaluation - compute only what the current output actually needs. When an input changes, dependent outputs are marked dirty but not immediately recomputed. Evaluation happens on demand when something requests the output value.
 
-### Comparison Table
+The EvaluationContext pattern carries frame state (timing, transform matrices, material properties) through the graph without global variables. Stride integration provides access to modern GPU pipelines through Vulkan. The operator library spans over 800 nodes covering rendering, particles, mesh generation, and real-time I/O.
 
-| Aspect | Werkkzeug4 | cables.gl | tixl |
-|--------|------------|-----------|------|
-| **When does execution happen?** | On explicit request | Every frame (triggers) + on change (values) | On output request |
-| **Caching strategy** | Explicit Store/Load ops + context-aware cache | Dirty flags + cached values | Dirty flags + slot caching |
-| **Cycle handling** | Compile-time detection | Runtime trigger stack | Dirty flag propagation stops |
-| **Change propagation** | Next compile | Immediate | Marked dirty, evaluated on demand |
+This is the dialect of live performance: type-safe, responsive, designed for real-time VJ workflows where stability matters as much as flexibility.
 
 ---
 
-## Type Systems
+## Quick Comparison
 
-### Werkkzeug4: Hierarchical with Conversions
-
-Types form an inheritance tree with `AnyType` at the root.
-
-```
-AnyType
-├── Wz4Mesh
-│   └── Wz4MeshInstance
-├── Texture2D
-│   └── TextureAtlas
-└── GroupType
-```
-
-Type checking walks up the parent chain. Automatic conversion operators bridge incompatible types.
-
-```c
-// Type check: walks inheritance
-sBool wType::IsType(wType *type) {
-  do {
-    if(type == this) return 1;
-    this = this->Parent;
-  } while(this);
-  return 0;
-}
-
-// Conversion: automatic insertion
-operator Wz4Mtrl FromTexture(Texture2D) {
-  flags = conversion;
-  // ...
-}
-```
-
-### cables.gl: Port Types
-
-Three port categories with type restrictions:
-
-| Port Type | What It Carries | Connection Rules |
-|-----------|-----------------|------------------|
-| **Value** | Number, string, color | Same type only |
-| **Trigger** | Execution signal | Trigger to trigger only |
-| **Object** | Texture, mesh, context | Compatible types |
-
-Type checking happens at connection time in the editor.
-
-### tixl: Generic Slots
-
-Strongly typed with C# generics:
-
-```csharp
-public class InputSlot<T> : Slot<T>, IInputSlot {
-    public T GetValue(EvaluationContext context);
-}
-
-// Usage in operator
-[Input(Guid = "...")]
-public readonly InputSlot<float> Scale = new();
-
-[Output(Guid = "...")]
-public readonly Slot<Mesh> Result = new();
-```
-
-Compile-time type safety via generics. No runtime type checking needed.
-
-### Comparison
-
-| Aspect | Werkkzeug4 | cables.gl | tixl |
-|--------|------------|-----------|------|
-| **Type checking timing** | Compile phase | Connection time | Compile time (C#) |
-| **Polymorphism** | Inheritance hierarchy | Port categories | Generics + interfaces |
-| **Automatic conversion** | Conversion operators | Manual | Type coercion where possible |
-| **Type definition** | .ops DSL | JavaScript objects | C# attributes |
+| Dimension | Werkkzeug4 | cables.gl | tixl |
+|-----------|------------|-----------|------|
+| Language | C++ | JavaScript | C#/.NET |
+| Era | 2004-2011 | 2015-present | 2020-present |
+| Execution | Compile-then-execute | Trigger (push) + value (pull) | Pull-based lazy evaluation |
+| Type System | Hierarchical + auto-conversions | Port categories (value/trigger/object) | Generic slots with compile-time safety |
+| GPU API | DirectX 9/11 | WebGL / WebGPU | Stride (Vulkan/DirectX) |
+| Caching | Context-aware (CallId) | Dirty flags per port | Dirty flag propagation |
+| Definition Style | .ops DSL + code generation | JavaScript functions + runtime registration | C# attributes + CRTP |
+| Primary Use | Size-coded demos, installations | Web visuals, interactive art | Live performance, VJ tools |
 
 ---
 
-## Operator Definition
+## The Dialect Analogy Extended
 
-### Werkkzeug4: DSL with Code Generation
+Just as Spanish, Italian, and Portuguese evolved from Latin with regional influences, these three frameworks evolved from shared roots - the fundamental concept of dataflow programming - shaped by their environments. Werkkzeug4 developed under the selective pressure of demoscene size constraints, evolving terse syntax and aggressive optimization. cables.gl adapted to the web's dynamic ecosystem, becoming flexible and instantly responsive. tixl emerged in the modern typed-language era, inheriting strong static guarantees.
 
-```c
-// In .ops file
-operator Wz4Mesh Torus()
-{
-  parameter
-  {
-    int Slices(3..4096)=12;
-    float InnerRadius(0..1024 step 0.01)=0.25;
-  }
-  code
-  {
-    out->MakeTorus(para->Slices, para->InnerRadius, ...);
-  }
-}
-```
+The parallels run deeper than surface similarity. Each dialect has its own idioms:
 
-External tool generates C++ structs, GUI, registration.
+| Concept | Werkkzeug4 Idiom | cables.gl Idiom | tixl Idiom |
+|---------|------------------|-----------------|------------|
+| "Create an operator" | Write .ops declaration | Define JavaScript function | Create attributed C# class |
+| "Cache a result" | Store op + CallId key | Set port dirty flag false | Slot caches until marked dirty |
+| "Handle a loop" | Compiler unrolls iterations | Trigger feedback with stack check | Loop operator with dirty propagation |
+| "Convert types" | Automatic conversion operator | Manual port type matching | Compile-time generic constraints |
 
-### cables.gl: JavaScript Functions
+Understanding one dialect makes learning another easier. The vocabulary differs, but the grammar shares structure: nodes produce outputs, connections carry data, execution propagates through the graph. A developer fluent in cables.gl will recognize tixl's slot system as a typed variant of port connections. Someone who understands Werkkzeug4's compile-execute separation will see its influence in any system that separates editing from rendering.
 
-```javascript
-// In op.js file
-const Ops = Ops || {};
-Ops.MyOp = function() {
-    const inTrigger = this.inTrigger("Trigger");
-    const inRadius = this.inFloat("Radius", 1.0);
-    const outMesh = this.outObject("Mesh");
-
-    inTrigger.onTriggered = () => {
-        const mesh = generateTorus(inRadius.get());
-        outMesh.setRef(mesh);
-    };
-};
-```
-
-Runtime registration, dynamic port creation.
-
-### tixl: Attributes with CRTP
-
-```csharp
-[Guid("...")]
-public class TorusOp : Instance<TorusOp>
-{
-    [Input(Guid = "...")]
-    public readonly InputSlot<int> Slices = new(12);
-
-    [Input(Guid = "...")]
-    public readonly InputSlot<float> InnerRadius = new(0.25f);
-
-    [Output(Guid = "...")]
-    public readonly Slot<Mesh> Result = new();
-
-    public TorusOp()
-    {
-        Result.UpdateAction = ctx => {
-            Result.Value = GenerateTorus(Slices.GetValue(ctx), InnerRadius.GetValue(ctx));
-        };
-    }
-}
-```
-
-Reflection at load time, compile-time type safety.
-
-### Comparison
-
-| Aspect | Werkkzeug4 | cables.gl | tixl |
-|--------|------------|-----------|------|
-| **Definition syntax** | Custom DSL | JavaScript | C# with attributes |
-| **Generation timing** | Build tool (offline) | Runtime | Load time (reflection) |
-| **Type safety** | Generated code | Runtime checks | Compile-time generics |
-| **Registration** | AddOps_* functions | Patch.addOp() | Assembly scanning |
-| **GUI generation** | Code-generated functions | Op template | Reflection + ImGui |
+The deep insight is that these are not competing approaches but complementary solutions to different constraints. The demoscene needed minimal runtime overhead. The web needed instant feedback. Modern desktop applications need type safety. Each framework optimized for its environment while solving the same fundamental challenge.
 
 ---
 
-## Caching Strategies
+## Deep Dive Documents
 
-### Werkkzeug4: Context-Aware Caching
-
-Cache key = operator ID + CallId (context identifier).
-
-```cpp
-// Same operator, different contexts = different cache entries
-if(op->Cache && op->Cache->CallId == node->CallId)
-{
-    // Cache hit: operator AND context match
-}
-```
-
-Subroutines and loops get unique CallIds, preventing cache pollution.
-
-### cables.gl: Dirty Flags + Cached Values
-
-Each port caches its value. Dirty flags track when re-evaluation is needed.
-
-```javascript
-// Conceptual dirty flag pattern
-port.get = () => {
-    if (this.dirty) {
-        this.cachedValue = this.computeValue();
-        this.dirty = false;
-    }
-    return this.cachedValue;
-};
-```
-
-No context isolation - same operator always returns same cached value.
-
-### tixl: Dirty Flag Propagation
-
-Dirty flags propagate through the graph on input changes.
-
-```csharp
-// When input changes
-inputSlot.SetDirty();
-
-// Propagates to dependent outputs
-foreach (var dependent in inputSlot.Dependents)
-    dependent.MarkDirty();
-
-// Evaluation clears dirty flag
-T value = slot.GetValue(context);  // Evaluates if dirty
-```
-
-Context via `EvaluationContext` parameter, not cache isolation.
-
-### Comparison
-
-| Aspect | Werkkzeug4 | cables.gl | tixl |
-|--------|------------|-----------|------|
-| **Cache key** | OpId + CallId | Port identity | Slot identity |
-| **Context isolation** | Yes (CallId) | No | Via EvaluationContext |
-| **Invalidation** | On compile | On value change | Dirty flag propagation |
-| **Memory management** | LRU eviction | Garbage collection | .NET GC |
+| Document | Focus |
+|----------|-------|
+| [Architecture](./node-graph-architecture.md) | Node representation, execution models, type systems, caching strategies |
+| [Editor UX](./node-graph-editor-ux.md) | Canvas rendering, connection drawing, operator search, undo/redo |
+| [Rendering Integration](./node-graph-rendering.md) | GPU pipelines, resource management, frame timing, state isolation |
 
 ---
 
-## Flow Control
+## Key Insight for Rust
 
-### Werkkzeug4: Flow as Operators
+The three dialects converge on a principle directly applicable to Rust: separate what changes frequently from what executes frequently. Editor state should be rich and flexible; execution state should be lean and predictable. Rust's ownership system makes this separation explicit through move semantics - the graph compiles by moving parameter data into an arena-allocated command buffer that the executor then consumes.
 
-Special operators with compiler support:
+Each dialect contributes a pattern worth adopting:
 
-| Operator | Behavior |
-|----------|----------|
-| `Call` | Invoke subroutine with injected inputs |
-| `Loop` | Unroll N iterations at compile time |
-| `Input` | Access call arguments |
-| `ShellSwitch` | Runtime conditional |
+- **From Werkkzeug4**: Context-aware caching with composite keys `(OpId, CallContext)` prevents the subtle bug where shared subroutines return stale cached results. Reference stealing via `Arc::try_unwrap()` enables in-place modification when the executor is the sole owner.
 
-Flow control is visual - appears as nodes in the graph.
+- **From cables.gl**: Dual execution modes let different kinds of data flow at different rates. Trigger ports (fire every frame) and value ports (propagate on change) map naturally to distinct Rust types with different update semantics.
 
-### cables.gl: Trigger-Based Flow
+- **From tixl**: Dirty flag propagation enables efficient incremental updates. When inputs change, mark dependents dirty rather than immediately recomputing. Evaluate on demand using the EvaluationContext pattern.
 
-Flow control through trigger connections:
+A Rust implementation can combine these patterns, using the type system to enforce correct usage at compile time. Procedural macros can generate boilerplate from declarative operator definitions, achieving Werkkzeug4's single-source-of-truth benefit without external code generators.
 
-```javascript
-// Counter op
-const inTrigger = this.inTrigger("In");
-const inReset = this.inTrigger("Reset");
-const outTrigger = this.outTrigger("Out");
-const outCount = this.outNumber("Count");
-
-let count = 0;
-inTrigger.onTriggered = () => {
-    count++;
-    outCount.set(count);
-    outTrigger.trigger();
-};
-inReset.onTriggered = () => { count = 0; };
-```
-
-Loops via trigger feedback (with cycle prevention).
-
-### tixl: Flow Operators
-
-Dedicated flow control operators:
-
-- `Loop` - Iterate N times
-- `Time.Ramp` - Time-based sequencing
-- `List.GetItem` - Iteration over collections
-
-Flow is part of the operator library, not special-cased.
+The dialects teach that there is no single correct approach - only tradeoffs appropriate to constraints. Understanding all three prepares the designer to make informed choices.
 
 ---
 
-## Key Insights for Rust Framework
+## Related Documents
 
-### What to Adopt
+### Per-Framework Deep Dives
 
-| Pattern | From | Why |
-|---------|------|-----|
-| Declarative operators | All three | Single source of truth eliminates sync bugs |
-| Two-tier runtime | Werkkzeug4 | Editor flexibility + execution performance |
-| Dirty flag propagation | tixl, cables | Efficient incremental updates |
-| Context-aware caching | Werkkzeug4 | Correct subroutine/loop handling |
-| Pull-based evaluation | tixl | Only compute what's needed |
+**Werkkzeug4 (Demoscene)**
+- [Operator System](../../per-demoscene/fr_public/werkkzeug4/operator-system.md) - DSL-based operator definition and code generation
+- [Graph Execution](../../per-demoscene/fr_public/werkkzeug4/graph-execution.md) - Compile-then-execute pipeline with the kitchen brigade analogy
+- [Type System](../../per-demoscene/fr_public/werkkzeug4/type-system.md) - Hierarchical types with automatic conversions
 
-### What to Combine
+**cables.gl (Web)**
+- [Architecture](../../per-framework/cables/architecture.md) - Three-layer abstraction (Patch, CgContext, Platform)
+- [Rendering Pipeline](../../per-framework/cables/rendering-pipeline.md) - Frame lifecycle, state stacks, shader module injection
 
-- **Werkkzeug4's compilation model** with **tixl's dirty flags**: Compile for execution, but track invalidation for selective recompilation.
-- **cables' dual execution** with **Rust's type system**: Trigger ports as a distinct type, value ports as generic `Slot<T>`.
-- **Werkkzeug4's DSL approach** via **Rust proc-macros**: Get the same benefits without external tools.
+**tixl (Desktop)**
+- [Architecture](../../per-framework/tixl/architecture.md) - Symbol-Instance-Slot model with CRTP generics
+- [Editor Architecture](../../per-framework/tixl/editor/00-architecture.md) - MagGraph canvas, OutputUI system, symbol browser
 
-### What to Avoid
+### Cross-Cutting Patterns
 
-| Anti-pattern | Why |
-|--------------|-----|
-| Runtime type checking via strings | Rust's type system is stronger |
-| Global document/context pointers | Ownership makes this unnecessary |
-| Manual reference counting | Use `Arc<T>` |
-| External code generators | Proc-macros integrate better |
+- [Node Graph Patterns](../../per-demoscene/fr_public/patterns/node-graph-patterns.md) - Six patterns from Werkkzeug4 applicable to Rust
+- [Transform Stacks](./transform-stacks.md) - Matrix stack patterns across frameworks
+- [API Ergonomics](./api-ergonomics.md) - Builder patterns and method chaining
+- [Color Systems](./color-systems.md) - Color representation across visual programming tools
 
 ---
 
-## Summary
-
-Three successful approaches to the same problem:
-
-1. **Werkkzeug4**: Compile-execute with extreme optimization for demoscene constraints
-2. **cables.gl**: Live execution with dual modes for creative iteration
-3. **tixl**: Pull-based lazy evaluation with modern language features
-
-A Rust framework can learn from all three:
-- Use proc-macros for declarative operator definitions (Werkkzeug4's insight)
-- Support both immediate and deferred execution (cables' insight)
-- Leverage the type system for safety without runtime overhead (tixl's insight)
-- Add context-aware caching for correct subroutine behavior (Werkkzeug4's unique contribution)
-
----
-
-## Files Referenced
-
-| Source | Key Documents |
-|--------|---------------|
-| Werkkzeug4 | `per-demoscene/fr_public/werkkzeug4/operator-system.md`, `graph-execution.md`, `type-system.md` |
-| cables.gl | `per-framework/cables/architecture.md`, `rendering-pipeline.md` |
-| tixl | `per-framework/tixl/architecture.md`, `editor/maggraph/` |
+*Three dialects of the same language, spoken across two decades of creative tooling. Each refined by its era, each teaching lessons that transcend its implementation.*
