@@ -1,6 +1,6 @@
-# Node Graph Rendering: Three Bridges to the GPU
+# Node Graph Rendering: Four Bridges to the GPU
 
-> How Werkkzeug4, cables.gl, and tixl translate operators to pixels
+> How Werkkzeug4, cables.gl, vvvv gamma, and tixl translate operators to pixels
 
 ---
 
@@ -10,7 +10,7 @@ Every visual programming system faces a fundamental gap. Artists work with boxes
 
 The translation is not straightforward. A node graph represents potential computation, a declaration of what could happen given certain inputs. The GPU demands imperative commands, explicit sequences of state changes and draw operations executed in precise order. The graph is a plan; the GPU wants actions.
 
-Three frameworks have built three distinct bridges across this gap. Each bridge reflects its era's constraints and priorities. Werkkzeug4, emerging from the demoscene's obsession with minimal runtime overhead, constructs a highway: wide lanes, high speed, but requiring significant construction time before the first car can cross. cables.gl, born for the web's demand for immediate feedback, builds a cable car: continuous flow, responsive to changes mid-journey, but with limited throughput per trip. tixl, designed for live performance where stability meets flexibility, builds a drawbridge: efficient when stable, with controlled overhead for changes.
+Four frameworks have built four distinct bridges across this gap. Each bridge reflects its era's constraints and priorities. Werkkzeug4, emerging from the demoscene's obsession with minimal runtime overhead, constructs a highway: wide lanes, high speed, but requiring significant construction time before the first car can cross. cables.gl, born for the web's demand for immediate feedback, builds a cable car: continuous flow, responsive to changes mid-journey, but with limited throughput per trip. vvvv gamma, designed for live visuals with explicit control, builds a railway: scheduled stops at region boundaries, predictable execution order, hot-swappable cars. tixl, designed for live performance where stability meets flexibility, builds a drawbridge: efficient when stable, with controlled overhead for changes.
 
 ---
 
@@ -113,12 +113,23 @@ public void Update(EvaluationContext context)
 
 The drawbridge rises only when something needs to cross. Stable portions of the graph skip evaluation entirely.
 
+### vvvv gamma: The Railway
+
+The railway model integrates with Stride, a modern game engine with Vulkan/DirectX 12 backends. vvvv gamma patches compile to .NET IL, which then interacts with Stride's rendering pipeline through the VL.Stride library.
+
+Stride uses an entity-component-system architecture. Rendering operators in vvvv gamma create or modify Stride entities, attach components (meshes, materials, transforms), and register them with Stride's scene. Stride handles the actual GPU command buffer construction, draw call batching, and state management.
+
+This delegation model means vvvv gamma inherits Stride's optimizations: automatic instancing, frustum culling, deferred rendering, PBR materials, and post-processing chains. The trade-off is that vvvv gamma artists work one layer above raw GPU access. Direct GPU manipulation happens through Stride's APIs rather than raw command buffers.
+
+Cache regions affect the rendering flow. When a Cache region wraps rendering operators, its content executes only when inputs change. Stride's scene graph receives updates only when the cache invalidates. This creates efficient steady-state rendering where unchanged portions of the scene incur no update cost.
+
 **Trade-off Table**
 
 | Bridge Type | Compilation Cost | Runtime Cost | Flexibility |
 |-------------|------------------|--------------|-------------|
 | Highway (Wz4) | High once | Very low | Low during render |
 | Cable car (cables) | None | Per-operator | High |
+| Railway (vvvv gamma) | Medium (JIT) | Low (Stride-managed) | High (hot reload) |
 | Drawbridge (tixl) | Medium | Low | Medium |
 
 ---
@@ -162,6 +173,14 @@ The state stack inherently prevents resource leaks for per-frame resources. Fram
 
 Longer-lived resources like compiled shaders persist in caches keyed by configuration hash. The WebGL context manages GPU memory directly, garbage collecting unused resources. This simplifies operator implementation at the cost of less predictable memory usage.
 
+### vvvv gamma: Stride-Managed Resources
+
+vvvv gamma delegates GPU resource management to Stride. Textures, meshes, shaders, and render targets are Stride objects with Stride-managed lifetimes. When vvvv gamma operators create resources, they instantiate Stride types that participate in Stride's resource tracking and disposal.
+
+This delegation simplifies operator implementation. Artists creating rendering operators work with high-level Stride APIs rather than raw GPU resources. Stride handles buffer allocation, texture streaming, shader compilation, and memory management.
+
+The trade-off is less fine-grained control. vvvv gamma cannot implement Werkkzeug4-style reference stealing because Stride owns the resources. However, Stride's own optimizations (resource pooling, deferred disposal, automatic batching) provide competitive performance without manual optimization.
+
 ### tixl: Format-Aware Pools
 
 tixl classifies GPU buffers by intended usage. The system distinguishes static buffers (geometry that rarely changes), dynamic buffers (particle data updated each frame), and render targets (framebuffer attachments for post-processing chains).
@@ -174,6 +193,7 @@ Shader management uses compiled bytecode caching. When an operator requests a sh
 |----------|-------------------|------------|----------------|
 | Reference stealing | Excellent | Medium | High |
 | WebGL managed | Good | Low | Medium |
+| Stride-managed | Good | Low | High |
 | Format-aware pools | Good | High | High |
 
 ---
@@ -240,12 +260,21 @@ public bool IsDirty => TriggerIsEnabled || Reference != Target;
 
 The system distinguishes triggered slots (always dirty, for animation) from value slots (dirty only when input changes). Commands always re-execute because their GPU effects are temporal, but pure computation skips work when inputs are stable.
 
+### vvvv gamma: Hot-Reloadable Loop
+
+vvvv gamma runs a game-style loop integrated with Stride's runtime. Each frame, the VL runtime evaluates the patch, updating Stride's scene graph as needed. Live recompilation happens transparently: edit a patch, and the VL compiler generates new IL that replaces the previous version without restart.
+
+This hot-reload capability makes vvvv gamma particularly suited for live performance. Artists can modify patches during a show. The Stride rendering loop continues uninterrupted while the VL runtime swaps in new logic.
+
+Frame timing follows Stride's synchronization: typically vsync-locked at 60Hz, configurable for higher refresh rates or fixed timesteps. Cache regions provide frame-to-frame optimization, skipping evaluation of stable subgraphs.
+
 **Trade-off Table**
 
 | Timing Model | Latency | Resource Usage | Predictability |
 |--------------|---------|----------------|----------------|
 | Highway (Wz4) | High (explicit compile) | Low | High |
 | Cable car (cables) | Low (next frame) | High | Medium |
+| Railway (vvvv gamma) | Low (hot reload) | Medium | High |
 | Drawbridge (tixl) | Medium (dirty-driven) | Medium | High |
 
 ---
@@ -254,15 +283,16 @@ The system distinguishes triggered slots (always dirty, for animation) from valu
 
 ### The Portability Problem
 
-The three frameworks target different platforms with different GPU APIs. Werkkzeug4 speaks DirectX 9 and 11, rooted in the Windows demoscene. cables.gl speaks WebGL and emerging WebGPU, targeting browsers everywhere. tixl speaks DirectX 11 through SharpDX, designed for Windows desktop performance.
+The four frameworks target different platforms with different GPU APIs. Werkkzeug4 speaks DirectX 9 and 11, rooted in the Windows demoscene. cables.gl speaks WebGL and emerging WebGPU, targeting browsers everywhere. vvvv gamma speaks through Stride, gaining cross-platform through Stride's Vulkan/DirectX backends. tixl speaks DirectX 11 through SharpDX, designed for Windows desktop performance.
 
 | Framework | WebGL | DirectX | Vulkan |
 |-----------|-------|---------|--------|
 | Werkkzeug4 | No | DX9, DX11 | Planned (never shipped) |
 | cables.gl | Primary | Via WebGL2 | Via WebGPU |
+| vvvv gamma | No | DX11/12 (via Stride) | Via Stride |
 | tixl | No | DX11 | Via Stride (planned) |
 
-Each framework optimized for its primary target. Werkkzeug4's reference stealing and compile-time loop unrolling assume consistent driver behavior available on Windows but less guaranteed elsewhere. cables.gl's state stacks abstract WebGL's quirks. tixl's typed shaders wrap SharpDX's DirectX bindings.
+Each framework optimized for its primary target. Werkkzeug4's reference stealing and compile-time loop unrolling assume consistent driver behavior available on Windows but less guaranteed elsewhere. cables.gl's state stacks abstract WebGL's quirks. vvvv gamma's Stride integration provides cross-platform through Stride's abstraction layer. tixl's typed shaders wrap SharpDX's DirectX bindings.
 
 ### The wgpu Opportunity
 
@@ -276,11 +306,15 @@ wgpu's explicit resource management aligns with Werkkzeug4's reference-counted o
 
 ## Key Insight for Rust
 
-The three bridges suggest a hybrid architecture for Rust with wgpu.
+The four bridges suggest a hybrid architecture for Rust with wgpu.
 
 **Adopt Werkkzeug4's compilation phase.** Translate the visual graph into a flat command buffer before rendering. Use arena allocation (perhaps `bumpalo`) for commands. Snapshot parameters at compile time, enabling editing during render. Implement reference stealing through `Arc::try_unwrap()` for chains of in-place operations.
 
 **Adopt cables.gl's state stacks.** Wrap wgpu pipeline state in push-pop abstractions. Let operators modify state within scoped guards that automatically restore on drop. Rust's `Drop` trait makes this pattern safe and automatic.
+
+**Adopt vvvv gamma's hot-reload philosophy.** Design the architecture to support live code updates without restart. Separate the graph representation from execution so new compiled graphs can swap in seamlessly. Cache regions provide natural boundaries for incremental updates.
+
+**Adopt vvvv gamma's engine integration pattern.** Rather than implementing raw GPU access everywhere, consider delegating to a game engine or renderer (like Stride or bevy) for complex rendering. Operators manipulate high-level scene graph objects; the engine handles command buffer construction.
 
 **Adopt tixl's dirty flags.** Track which operators need recomputation. Skip work for stable portions of the graph. Distinguish always-dirty commands from conditionally-dirty data. Let the type system enforce correct flag propagation.
 
@@ -290,18 +324,19 @@ The three bridges suggest a hybrid architecture for Rust with wgpu.
 
 **Enable shader module injection for composition.** Like cables.gl's shader modules, design shaders with injection points where additional code can be inserted. Pre-compile multiple variants for common combinations. Cache the compiled variants by configuration hash.
 
-The resulting architecture takes the best of each bridge: highway-speed execution, cable-car responsiveness to changes, and drawbridge efficiency for stable graphs.
+The resulting architecture takes the best of each bridge: highway-speed execution, cable-car responsiveness to changes, railway-style hot-reloading, and drawbridge efficiency for stable graphs.
 
 ---
 
 ## Related Documents
 
-- [Node Graph Systems](./node-graph-systems.md) - Overview of visual programming across three eras
+- [Node Graph Systems](./node-graph-systems.md) - Overview of visual programming across four eras
 - [Werkkzeug4: Graph Execution](../../per-demoscene/fr_public/werkkzeug4/graph-execution.md) - Detailed trace of compile-then-execute
 - [cables.gl: Rendering Pipeline](../../per-framework/cables/rendering-pipeline.md) - Frame lifecycle and state management
+- [vvvv gamma: Gray Book - Rendering](../../../references/the-gray-book/reference/libraries/3d/rendering.md) - Stride integration and render pipeline
 - [Transform Stacks](./transform-stacks.md) - Matrix stack patterns across frameworks
 - [Shader Abstractions](../rendering/shader-abstractions.md) - Shader management strategies
 
 ---
 
-*Three bridges to the GPU, each shaped by the terrain it crosses. The highway for speed, the cable car for responsiveness, the drawbridge for efficiency. A fourth bridge, built with Rust and wgpu, can learn from all three.*
+*Four bridges to the GPU, each shaped by the terrain it crosses. The highway for speed, the cable car for responsiveness, the railway for explicit control, the drawbridge for efficiency. A fifth bridge, built with Rust and wgpu, can learn from all four.*

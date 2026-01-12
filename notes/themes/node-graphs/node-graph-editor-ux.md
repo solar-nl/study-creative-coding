@@ -1,6 +1,6 @@
-# Node Graph Editor UX: Three Instruments
+# Node Graph Editor UX: Four Instruments
 
-> How cables.gl, tixl, and Werkkzeug4 approach user interaction
+> How cables.gl, vvvv gamma, tixl, and Werkkzeug4 approach user interaction
 
 ---
 
@@ -10,9 +10,9 @@ A node graph editor must accomplish something deceptively difficult: it must fee
 
 Yet behind this immediacy lies substantial complexity. The canvas might hold hundreds of nodes, each with dozens of ports, all connected by bezier curves that must update sixty times per second as the user pans and zooms. Hit testing must determine exactly which element lives under the cursor. Type checking must validate connections without blocking the drag. Undo must capture compound operations as single steps.
 
-Think of a node graph editor like a musical instrument. cables.gl is like a synthesizer with knobs everywhere: immediately responsive, with every parameter visible, but potentially overwhelming for newcomers. tixl is like a piano with pedals: the primary interface is clear and focused, but hidden depth lies beneath for those who know to look. Werkkzeug4 is like an organ: cathedral-scale power requiring deliberate setup, built for those who will invest the time to master its capabilities.
+Think of a node graph editor like a musical instrument. cables.gl is like a synthesizer with knobs everywhere: immediately responsive, with every parameter visible, but potentially overwhelming for newcomers. vvvv gamma is like a modular synthesizer with patch cables: highly configurable regions and explicit routing, rewarding those who master its organizational vocabulary. tixl is like a piano with pedals: the primary interface is clear and focused, but hidden depth lies beneath for those who know to look. Werkkzeug4 is like an organ: cathedral-scale power requiring deliberate setup, built for those who will invest the time to master its capabilities.
 
-Each instrument serves different performers and performances. The synthesizer thrives in improvisation. The piano excels at both accessibility and virtuosity. The organ commands attention when the composition demands it. Understanding these different approaches illuminates what makes node graph interaction feel good or frustrating.
+Each instrument serves different performers and performances. The synthesizer thrives in improvisation. The modular rewards systematic thinking. The piano excels at both accessibility and virtuosity. The organ commands attention when the composition demands it. Understanding these different approaches illuminates what makes node graph interaction feel good or frustrating.
 
 ---
 
@@ -44,6 +44,16 @@ The `ScalableCanvas` class provides the coordinate transformation layer. Every d
 
 Performance comes from visibility culling. Before drawing any element, MagGraph checks whether it intersects the visible viewport. An operator off-screen costs nothing to draw. This makes tixl scale well with graph size: doubling the operators does not double the rendering cost if most remain outside the viewport.
 
+### vvvv gamma: The Modular Patchbay
+
+vvvv gamma—the modular synthesizer—renders patches using SkiaSharp, a cross-platform 2D graphics library. The canvas emphasizes visual organization through type-colored links, region boundaries, and clear hierarchical structure.
+
+Links between nodes are color-coded by type. Each data type (Float, String, Spread, etc.) has a distinct color, making the flow of different data types visible at a glance. This visual language helps artists trace data flow without inspecting individual connections.
+
+Regions render as bordered rectangles containing their operations. ForEach regions, Cache regions, and If regions have distinct visual treatments, making control flow structure visible. The splicer bars at region boundaries provide clear entry/exit points for iteration.
+
+Pan and zoom follow standard conventions. The canvas supports arbitrary zoom levels, and nodes maintain crisp rendering through SkiaSharp's vector-based drawing.
+
 ### Werkkzeug4: The Custom Craftsman
 
 Werkkzeug4—the cathedral organ—predates modern GPU instancing APIs. Its approach relies on OpenGL with implicit matrix transforms and focuses on semantic organization rather than raw batching. The editor prioritizes demoscene workflows: keyboard-driven operator creation, page-based organization, and tight integration with the type system.
@@ -55,6 +65,7 @@ The rendering architecture reflects its era. Operators draw with immediate-mode 
 | Approach | Technology | Performance | Portability |
 |----------|------------|-------------|-------------|
 | GPU instancing | WebGL 2.0 | Excellent at scale | Browser only |
+| SkiaSharp | Cross-platform 2D | Good | Desktop + mobile |
 | ImGui batching | Native | Good with culling | Desktop (Win/Mac/Linux) |
 | Custom OpenGL | Native | Good | Desktop (Windows-focused) |
 
@@ -115,6 +126,20 @@ internal static State<GraphUiContext> DragConnectionEnd = new(
 
 This is the piano revealing its hidden pedals. The basic workflow is click-and-drag. But artists who discover wire-ripping gain substantial productivity, much like pianists who master the sustain pedal transform simple melodies into resonant soundscapes.
 
+### vvvv gamma: Splicer-Aware Connections
+
+vvvv gamma adds a unique dimension to connection interaction: the splicer. When dragging a connection into a ForEach or Repeat region, holding Ctrl+Shift creates a splicer entry point rather than a direct connection. The splicer bar appears at the region boundary, indicating that this spread will iterate.
+
+Standard connections validate types using the .NET type system. Type colors provide immediate feedback: a pink Float link won't connect to a blue String input. The visual mismatch is obvious before you release.
+
+Pin configuration adds another layer. Middle-clicking a pin opens a configuration menu where you can:
+- Annotate the type explicitly
+- Set default values for inputs
+- Change visibility (shown, optional, hidden)
+- Convert to a pin group for variadic inputs
+
+The accumulator pattern uses a similar boundary-crossing mechanism. Ctrl+click in a region creates an accumulator input/output pair that carries state between iterations.
+
 ### Werkkzeug4: Type-Enforced
 
 Werkkzeug4 approaches connections from the type system first. The `.ops` declaration language specifies input types precisely:
@@ -132,6 +157,7 @@ This structural approach trades runtime flexibility for reliability. The organ d
 | Approach | Feedback Speed | Error Prevention | Flexibility |
 |----------|----------------|------------------|-------------|
 | Direct drag | Immediate | At release | High |
+| Splicer-aware | Immediate | Type-colored | High (with iteration) |
 | State machine | Immediate | Throughout | Very high |
 | Type-enforced | At definition | At compile | Medium |
 
@@ -196,6 +222,16 @@ Multiple trigger methods exist:
 - Click on output: Opens filtered to compatible types
 - Drop on empty space: Opens with connection preview
 
+### vvvv gamma: NodeBrowser with Categories
+
+vvvv gamma's NodeBrowser combines search with hierarchical categorization. Double-click the canvas or press Tab to open the browser. Type to filter; categories collapse and expand based on matches.
+
+The browser distinguishes between node types visually. Primitive nodes (ForEach, Repeat, If) appear in italics. Process nodes (stateful) appear differently from operations (stateless). This helps artists understand what kind of node they're creating.
+
+Type filtering happens automatically when opening from a dragged connection. Starting a link from an output and opening the browser shows only nodes whose inputs accept that type. The .NET type system powers the filtering, including inheritance-aware matching.
+
+Categories organize nodes by function: Animation, Collections, Control, IO, Math, etc. Artists can navigate by typing category names or by clicking the hierarchy. The search supports partial matching: typing "clamp" finds "Clamp" in Math, "ClampInterpolation" in Animation, etc.
+
 ### Werkkzeug4: Categorical Palette
 
 Werkkzeug4—staying true to its organ heritage—uses keyboard shortcuts for common operators (the letter 'o' creates a Torus) and a categorical palette for browsing. Just as an organist memorizes stop combinations, demoscene artists memorize operator shortcuts for their frequently-used tools.
@@ -208,6 +244,7 @@ The palette organizes operators by type and function. Mesh generators in one sec
 |----------|-----------|-------|----------------|
 | Scoring | Excellent | Fast | Medium |
 | Type-filtered | Good | Fast | Low |
+| NodeBrowser | Good | Fast | Low |
 | Categorical | Fair | Medium | Low |
 
 ---
@@ -293,7 +330,7 @@ Werkkzeug4 tracks structural changes at the graph level. The document maintains 
 
 ## Key Insight for Rust
 
-These three instruments teach complementary lessons for building a Rust-based node graph editor.
+These four instruments teach complementary lessons for building a Rust-based node graph editor.
 
 **From tixl, adopt the state machine.** Explicit states eliminate the boolean flag nightmares that plague naive implementations. In Rust, this translates to an enum-based state machine:
 
@@ -369,6 +406,21 @@ fn score_operator(op: &Operator, query: &str, context: Option<TypeId>) -> f32 {
 }
 ```
 
+**From vvvv gamma, adopt type-colored links.** Visual type feedback through color makes data flow readable at a glance. In Rust, define a color map:
+
+```rust
+fn type_color(type_id: TypeId) -> Color {
+    match type_id {
+        t if t == TypeId::of::<f32>() => Color::PINK,
+        t if t == TypeId::of::<String>() => Color::CYAN,
+        t if t == TypeId::of::<Vec<_>>() => Color::ORANGE,
+        _ => Color::GRAY,
+    }
+}
+```
+
+**From vvvv gamma, adopt region boundaries as visual constructs.** Rendering regions with clear borders makes control flow structure visible. Splicer bars at boundaries communicate iteration entry/exit points.
+
 **From Werkkzeug4, adopt type safety.** Connections should validate at creation time, not render time. Rust's type system can enforce this:
 
 ```rust
@@ -381,7 +433,7 @@ struct Connection<T: NodeType> {
 // Attempting to connect incompatible types fails at compile time
 ```
 
-The three instruments play different music. A Rust framework can learn their best techniques and compose something new.
+The four instruments play different music. A Rust framework can learn their best techniques and compose something new.
 
 ---
 
@@ -390,5 +442,7 @@ The three instruments play different music. A Rust framework can learn their bes
 - [Node Graph Systems](./node-graph-systems.md) - Execution models and type systems
 - [Node Graph Patterns](../../per-demoscene/fr_public/patterns/node-graph-patterns.md) - Six patterns from Werkkzeug4
 - [cables.gl Patch Canvas](../../per-framework/cables/editor/glpatch/01-patch-canvas.md) - GPU rendering details
+- [Gray Book: NodeBrowser](../../../references/the-gray-book/reference/hde/the_nodebrowser.md) - vvvv gamma operator search
+- [Gray Book: Keyboard Shortcuts](../../../references/the-gray-book/reference/hde/keyboard-shortcuts.md) - vvvv gamma interaction patterns
 - [tixl MagGraph Architecture](../../per-framework/tixl/editor/maggraph/01-architecture-overview.md) - Four-layer design
 - [tixl State Machine](../../per-framework/tixl/editor/maggraph/07-state-machine.md) - Explicit state transitions
