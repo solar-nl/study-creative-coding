@@ -89,3 +89,7 @@ Symbol (Definition)
 | Flexibility | Constrained to operators | Unlimited (code) |
 | Live coding | Excellent | Good |
 | Cross-platform | Yes (Silk.NET) | Yes ([wgpu](https://github.com/gfx-rs/wgpu)) |
+
+## Related Resources
+
+- **[The Gray Book](../../per-reference/the-gray-book/)** — Reference manual for vvvv gamma and VL. Explains the conceptual model behind visual programming that tixl implements. Essential for understanding *why* the node-graph works the way it does.

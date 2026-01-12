@@ -187,7 +187,7 @@ fr_public/
 
 ### Cross-References
 
-- **Theme**: [Node Graph Systems](../../themes/core/node-graph-systems.md) — Comparison with cables.gl and tixl
+- **Theme**: [Node Graph Systems](../../themes/node-graphs/node-graph-systems.md) — Comparison with cables.gl and tixl
 
 ---
 
