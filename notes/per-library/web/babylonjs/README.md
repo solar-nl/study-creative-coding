@@ -101,6 +101,8 @@ This documentation traces Babylon.js from high-level concepts to GPU command gen
 
 **[Rendering Pipeline](rendering-pipeline.md)** — From `scene.render()` to GPU draw calls. Covers mesh collection, frustum culling, rendering groups, and the five-stage render loop. Essential for understanding frame flow.
 
+**[Frame Graph](frame-graph.md)** — Declarative render pipeline composition introduced in v7.0. Tasks define passes as a DAG; the engine handles texture allocation, pass ordering, and resource aliasing. Modern alternative to imperative rendering.
+
 **[WebGPU Engine](webgpu-engine.md)** — How Babylon wraps WebGPU's explicit API. Command encoding, render pass management, pipeline caching, and bind group caching. Deep dive into GPU abstraction.
 
 **[Node Materials](node-materials.md)** — Visual shader programming. How node graphs become GLSL/WGSL, the 124 block types, and the compilation pipeline. Valuable for shader graph system design.
