@@ -15,7 +15,7 @@ You are a project onboarding agent. Your task is to add new libraries, framework
 You will receive:
 
 1. **Project to add** — Name and repository URL
-2. **Project type** — One of: framework, library, tool, example, demoscene
+2. **Project type** — One of: framework, library, tool, example, demoscene, reference
 3. **Ecosystem** (for libraries) — One of: web, rust, universal, openrndr-ecosystem, processing-ecosystem
 
 Optional:
@@ -53,6 +53,7 @@ Based on project type, determine paths:
 | Tool | `tools/<name>/` | `notes/per-tool/<name>/` |
 | Example | `examples/<name>/` | `notes/per-example/<name>/` |
 | Demoscene | `demoscene/<name>/` | `notes/per-demoscene/<name>/` |
+| Reference | `references/<name>/` | `notes/per-reference/<name>/` |
 
 ### Phase 2: Add Submodule
 
@@ -131,6 +132,53 @@ Create `<notes-path>/README.md` with this structure:
 - [ ] <Feature-specific docs as needed>
 ```
 
+#### For Reference Projects (Documentation-Only)
+
+For projects that contain documentation rather than source code (manuals, guides, specifications), use this alternative template:
+
+```markdown
+# <Project Name> Reference Study
+
+> <One-line description of what this documentation covers>
+
+---
+
+## Why Study <Project Name>?
+
+<2-3 paragraphs explaining:>
+- What concepts or systems does this documentation explain?
+- Why is it relevant to the Rust creative coding framework goal?
+- What unique insights does it provide that code alone doesn't?
+
+---
+
+## Key Topics Covered
+
+<Bullet list of main documentation areas:>
+- <Topic 1> — Brief description
+- <Topic 2> — Brief description
+
+**Documentation structure:**
+- `<section>` — What it covers
+
+---
+
+## Concepts to Extract
+
+| Concept | Relevance | Our Approach |
+|---------|-----------|--------------|
+| ... | Why it matters | How we might adapt it |
+
+---
+
+## Documents to Create
+
+- [ ] `concepts.md` — Core concepts and mental models
+- [ ] `patterns.md` — Design patterns explained in the docs
+- [ ] `api-insights.md` — API design decisions documented
+- [ ] `extracts/` — Key quoted sections with analysis
+```
+
 ### Phase 5: Update Registries
 
 Identify the correct registry file:
@@ -142,6 +190,7 @@ Identify the correct registry file:
 | Tool | `notes/per-tool/README.md` |
 | Example | `notes/per-example/README.md` |
 | Demoscene | `notes/per-demoscene/README.md` |
+| Reference | `notes/per-reference/README.md` |
 
 Add or update the entry in the appropriate table:
 
@@ -185,6 +234,13 @@ For **deep** depth, create full documentation set:
 - `rendering-pipeline.md`
 - `api-design.md`
 - Feature-specific docs as needed
+
+For **reference** projects (documentation-only), focus on:
+- `concepts.md` — Extract and explain key mental models and terminology
+- `patterns.md` — Document design patterns described (not implemented) in the docs
+- `api-insights.md` — Capture API design decisions and rationale explained
+- `extracts/` — Create excerpts of key sections with analysis notes
+- Cross-references to related frameworks/libraries studied elsewhere
 
 Follow the style guide (STYLE_GUIDE.md) for all documentation.
 
@@ -373,6 +429,26 @@ Depth: standard
 6. Create architecture.md
 7. Verify
 
+### Adding a Reference
+
+**Input:**
+```
+Project: The-Gray-Book
+URL: https://github.com/vvvv/The-Gray-Book
+Type: reference
+Description: Reference manual for vvvv gamma and VL visual programming
+Depth: standard
+```
+
+**Actions:**
+1. `git submodule add https://github.com/vvvv/The-Gray-Book.git references/the-gray-book`
+2. `mkdir -p notes/per-reference/the-gray-book`
+3. Create README.md with concept-focused template
+4. Create `notes/per-reference/README.md` if it doesn't exist
+5. Update registry table
+6. Create concepts.md (documenting key mental models from the reference)
+7. Verify all checks pass
+
 ---
 
 ## Invocation
@@ -383,7 +459,7 @@ When invoking this agent, provide:
 ## Project to Add
 Name: <project name>
 URL: <repository URL>
-Type: <framework | library | tool | example>
+Type: <framework | library | tool | example | demoscene | reference>
 Ecosystem: <web | rust | universal | openrndr-ecosystem | processing-ecosystem> (if library)
 
 ## Options
