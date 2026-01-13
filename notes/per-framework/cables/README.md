@@ -129,6 +129,7 @@ With the core concepts in place, let us explore the details. This documentation 
 | [architecture.md](architecture.md) | How the system is composed: Patch, Ops, Ports, Links, and the execution model |
 | [rendering-pipeline.md](rendering-pipeline.md) | The frame lifecycle, state stacks, and how rendering actually happens |
 | [api-design.md](api-design.md) | How operators are defined, shader module injection, and extension points |
+| [trigger-system.md](trigger-system.md) | Deep dive into triggers, trigger-pumped iteration, and error handling |
 
 Each document answers the question: "What patterns here could improve a Rust creative coding framework?"
 

@@ -271,3 +271,4 @@ The result: a material that has concrete's execution speed, scaffolding's live-e
 - `node-graph-systems.md` - Higher-level comparison
 - `architecture-patterns.md` - Cross-cutting patterns
 - `api-ergonomics.md` - API design considerations
+- [cables.gl: Trigger System](../../per-framework/cables/trigger-system.md) - Deep dive into trigger-pumped execution

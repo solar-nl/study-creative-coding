@@ -347,6 +347,7 @@ impl<T: Copy + Pod> SpreadBuilder<T> {
 
 - [Node Graph Systems](./node-graph-systems.md) — Execution models comparison
 - [Node Graph Architecture](./node-graph-architecture.md) — Node representation patterns
+- [cables.gl: Trigger System](../../per-framework/cables/trigger-system.md) — Trigger-pumped iteration deep dive
 - [Rust Specific Patterns](../../insights/rust-specific.md) — Rust idiom mappings
 
 ---
