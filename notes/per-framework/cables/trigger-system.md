@@ -1,589 +1,254 @@
-# cables.gl Trigger System: Deep Dive
+# Cables Trigger System
 
-> How cables.gl uses triggers for execution control and array iteration
+> How does a visual programming system implement loops without loop nodes?
 
----
+## Key Insight
 
-## Overview
-
-Cables.gl uses a **dual execution model** where two distinct mechanisms control how data flows through the patch:
-
-1. **Value ports** (pull-like): Data propagates when it changes, like a spreadsheet. Values prepare state.
-2. **Trigger ports** (push-like): Explicit execution signals that cascade through connected operators. Triggers execute work.
-
-This document focuses on the trigger system: how triggers propagate, how iteration works via "trigger pumping," and what happens when things go wrong.
+> **Trigger pumping:** Instead of passing data into callbacks, cables sets output values *before* firing triggers. Downstream operators pull the current value when they execute. This inverts the typical iteration pattern and enables visual iteration through the node graph.
 
 ---
 
-## Port Types and Triggers
+## The Iteration Problem
 
-Trigger ports are defined as `TYPE_FUNCTION = 1` in `core_port.js:69-77`:
+Most programming languages have explicit loop constructs: `for`, `while`, `forEach`. But visual programming presents a challenge. How do you draw a box that means "do this N times" when the "this" is a subgraph of connected nodes?
 
-```javascript
-static TYPE_VALUE = 0;
-static TYPE_NUMBER = 0;
-static TYPE_FUNCTION = 1;      // Trigger port
-static TYPE_TRIGGER = 1;       // Alias for TYPE_FUNCTION
-static TYPE_OBJECT = 2;
-static TYPE_TEXTURE = 2;
-static TYPE_ARRAY = 3;
-static TYPE_DYNAMIC = 4;
-static TYPE_STRING = 5;
-```
+Some systems use special "loop regions" that visually contain the repeated portion (vvvv gamma does this). Cables takes a different approach: iteration happens by firing the same trigger repeatedly with different values. No special regions needed.
 
-**Key insight**: `TYPE_FUNCTION` and `TYPE_TRIGGER` are the same value (1). They are aliases, not distinct types. The name "function" comes from JavaScript's function type - triggers are essentially deferred function calls.
-
-Operators create trigger ports using convenience methods in `core_op.js`:
-
-```javascript
-// Input trigger - receives trigger signals
-const exe = op.inTrigger("Execute");
-
-// Input trigger as button - same as inTrigger, but displayed as a button
-const btn = op.inTriggerButton("Reset");
-
-// Output trigger - fires trigger signals downstream
-const next = op.outTrigger("Next");
-```
+The question that guides this document: *how does trigger-based iteration actually work, and what are its implications?*
 
 ---
 
-## The trigger() Method
+## Triggers vs Values: A Quick Refresher
 
-The core execution mechanism lives in `core_port.js:764-811`. When an output trigger port calls `trigger()`, it iterates through all linked input ports and invokes their handlers:
+Before diving into iteration, recall that Cables has two port types for data flow:
 
-```javascript
-trigger()
-{
-    const linksLength = this.links.length;
+**Value ports** hold data and propagate changes automatically. When a slider moves, connected operators see the new value immediately.
 
-    this._activity();                          // Track activity for debugging
-    if (linksLength === 0) return;             // Early exit if no connections
-    if (!this.#op.enabled) return;             // Skip if op is disabled
+**Trigger ports** fire explicit signals. When a trigger fires, connected operators execute in sequence. This controls *when* things happen.
 
-    let portTriggered = null;
-    try
-    {
-        for (let i = 0; i < linksLength; ++i)  // Iterate ALL links
-        {
-            if (this.links[i].portIn)
-            {
-                portTriggered = this.links[i].portIn;
-
-                // Track execution depth for debugging
-                portTriggered.op.patch.pushTriggerStack(portTriggered);
-
-                // Call the handler - THIS IS SYNCHRONOUS
-                portTriggered._onTriggered();
-
-                // Pop from stack after handler completes
-                portTriggered.op.patch.popTriggerStack();
-            }
-            if (this.links[i]) this.links[i].activity();
-        }
-    }
-    catch (ex)
-    {
-        // On error: disable the crashed op
-        portTriggered.op.enabled = false;
-        portTriggered.op.setUiError("crash", "op crashed, port exception");
-        this.#log.error("exception in port: ", portTriggered.name);
-    }
-}
-```
-
-### Propagation Order: Depth-First
-
-The `for` loop iterates links sequentially, but each `_onTriggered()` call is **synchronous**. If the triggered op fires its own output triggers, those cascade immediately before the next link is processed.
-
-**Example**: If Op A has trigger output linked to both Op B and Op C, and Op B triggers Op D:
-
-```
-A.trigger()
-  → B._onTriggered()    ← B runs first
-    → D._onTriggered()  ← D runs immediately (depth-first)
-  → C._onTriggered()    ← C runs after B's entire chain completes
-```
-
-This is depth-first, not breadth-first. The order depends on link iteration order, which may depend on connection order in the UI.
-
-### The _onTriggered() Handler
-
-When a trigger port receives a signal, `_onTriggered()` is called (`core_port.js:1037-1044`):
-
-```javascript
-_onTriggered(name)
-{
-    this._activity();                                    // Track activity
-    this.#op.updateAnims();                              // Update any animated ports on this op
-    if (this.#op.enabled && this.onTriggered)
-        this.onTriggered();                              // Call user-defined handler
-    if (this.#op.enabled)
-        this.emitEvent("trigger", name);                 // Emit event for multi-port buttons
-}
-```
-
-The `name` parameter is used for multi-port trigger buttons, allowing a single handler to know which button was pressed.
+The architecture document covers this dual model in depth. Here we focus on how triggers enable iteration.
 
 ---
 
-## The Trigger Stack
+## The Trigger Pumping Pattern
 
-The trigger stack in `core_patch.js:105, 1345-1377` tracks execution depth:
+The `Repeat` operator demonstrates the core pattern. When triggered, it fires its output trigger N times, setting an index value before each:
 
-```javascript
-_triggerStack = [];
-
-pushTriggerStack(p)
-{
-    this._triggerStack.push(p);
-}
-
-popTriggerStack()
-{
-    this._triggerStack.pop();
-}
-
-printTriggerStack()
-{
-    if (this._triggerStack.length == 0) return;
-
-    console.groupCollapsed(
-        "trigger port stack " +
-        this._triggerStack[this._triggerStack.length - 1].op.objName +
-        "." + this._triggerStack[this._triggerStack.length - 1].name
-    );
-
-    const rows = [];
-    for (let i = 0; i < this._triggerStack.length; i++)
-    {
-        rows.push(i + ". " + this._triggerStack[i].op.objName + " " + this._triggerStack[i].name);
-    }
-    console.table(rows);
-    console.groupEnd();
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Repeat Op                                │
+│                                                                 │
+│   IN                              OUT                           │
+│   ○ Execute (trigger)             ○ Next (trigger)              │
+│   ○ Count (5)                     ○ Index (0, 1, 2, 3, 4)       │
+│                                                                 │
+│   When Execute fires:                                           │
+│     for i = 0 to Count-1:                                       │
+│       Index.set(i)      ← Set value FIRST                       │
+│       Next.trigger()    ← Fire trigger SECOND                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### What the Trigger Stack Does (and Does Not Do)
+The order matters: value first, trigger second. When the downstream operator runs, it reads the current index value. This inverts the callback pattern where you pass data *into* the callback.
 
-**The trigger stack is purely for debugging.** It does NOT:
-- Prevent infinite loops (no cycle detection)
-- Limit recursion depth (no max depth check)
-- Block re-entrancy (same port can appear multiple times)
+A concrete example: drawing 10 circles at different positions.
 
-Protection against runaway execution comes from:
-1. **`op.enabled` checks** - Disabled ops skip execution
-2. **Exception handling** - Crashed ops are disabled automatically
-3. **JavaScript call stack** - Eventually overflows on deep recursion
+```
+MainLoop → Repeat(10) → Transform(x=Index*0.1) → Circle
+```
 
-The `printTriggerStack()` method is invaluable for debugging complex patches. It shows the current execution chain when called from within an operator.
+Each trigger from `Repeat` causes `Transform` to read the current index, compute a position, and draw. No loops visible in the graph - just connections.
 
 ---
 
-## Trigger-Pumped Iteration
+## How trigger() Works
 
-Cables does not have built-in loop constructs like `for` or `forEach`. Instead, iteration happens by **firing triggers repeatedly with different values** - a pattern we call "trigger pumping."
+The `trigger()` method in `core_port.js` iterates through linked ports and calls each handler:
 
-### The Core Pattern
-
-The `Repeat` operator (`Ops.Trigger.Repeat.js`) demonstrates the pattern:
-
-```javascript
-const
-    exe = op.inTrigger("exe"),
-    num = op.inValueInt("num", 5),
-    trigger = op.outTrigger("trigger"),
-    idx = op.addOutPort(new CABLES.Port(op, "index"));
-
-exe.onTriggered = function()
-{
-    for (var i = Math.round(num.get()) - 1; i > -1; i--)
-    {
-        idx.set(i);          // 1. Set the current index VALUE
-        trigger.trigger();   // 2. Fire the trigger
-    }
-};
 ```
-
-Each iteration:
-1. Set the output value (index, current element, etc.)
-2. Fire the output trigger
-3. Downstream ops read the current value when triggered
-
-This inverts the typical callback pattern. Instead of passing data *into* a callback, you set data *before* triggering. Downstream ops pull the current value when they execute.
-
-### Repeat Variants
-
-**Repeat_v2** adds directional iteration:
-
-```javascript
-function forward()
-{
-    const max = Math.floor(num.get());
-    for (let i = 0; i < max; i++)
-    {
-        idx.set(i);
-        next.trigger();
-    }
-}
-
-function backward()
-{
-    const numi = Math.floor(num.get());
-    for (let i = numi - 1; i > -1; i--)
-    {
-        idx.set(i);
-        next.trigger();
-    }
+trigger() {
+    for each linked input port:
+        push onto trigger stack (for debugging)
+        call port._onTriggered()
+        pop from trigger stack
 }
 ```
 
-**Repeat2d** iterates a 2D grid:
+Two details matter for understanding iteration:
 
-```javascript
-exe.onTriggered = function ()
-{
-    for (let y = 0; y < ny; y++)
-    {
-        outY.set((y * m) - subY);
-        for (let x = 0; x < nx; x++)
-        {
-            outX.set((x * m) - subX);
-            idx.set(x + y * nx);
-            trigger.trigger();
-        }
-    }
-    total.set(numx.get() * numy.get());
-};
-```
+**Synchronous execution.** Each `_onTriggered()` call completes before the next link is processed. If the triggered operator fires its own triggers, those cascade immediately. This is depth-first, not breadth-first.
 
-### Array Iteration
-
-`ArrayIteratorNumbers` iterates over array elements:
-
-```javascript
-exe.onTriggered = function ()
-{
-    if (!arr.get()) return;  // Empty array check
-
-    for (let i = 0; i < arr.get().length; i++)
-    {
-        idx.set(i);
-        val.set(arr.get()[i]);
-        trigger.trigger();
-    }
-};
-```
-
-`Array3Iterator` handles strided arrays (e.g., XYZ triplets):
-
-```javascript
-exe.onTriggered = function ()
-{
-    count = 0;
-    for (let i = 0, len = ar.length; i < len; i += vstep)
-    {
-        idx.set(count);         // Logical index
-        valX.set(ar[i + 0]);    // X component
-        valY.set(ar[i + 1]);    // Y component
-        valZ.set(ar[i + 2]);    // Z component
-        trigger.trigger();
-        count++;
-    }
-};
-```
-
-The `vstep` defaults to 3 (for XYZ) but can be configured for other structured data.
-
-### Stateful Iteration: TriggerCounterLoop
-
-For state that persists across frames, `TriggerCounterLoop` maintains a counter:
-
-```javascript
-let n = Math.floor(inMinLoopValue.get());
-
-exe.onTriggered = function ()
-{
-    let inMin = Math.floor(inMinLoopValue.get());
-    let inMax = Math.floor(inMaxLoopValue.get());
-
-    if (inMin < inMax)
-    {
-        if (n >= inMax) n = inMin;  // Wrap around
-        else n++;
-    }
-    // ... handle reverse direction
-
-    num.set(n);
-    trigger.trigger();
-};
-```
-
-Each trigger increments the counter and wraps at bounds. This enables sequential iteration across multiple frames.
+**Link iteration order.** Multiple links from one output are processed in array order. This order may depend on when links were created in the UI. Patches should not rely on a specific order.
 
 ---
 
-## Nested Iteration
+## Depth-First Cascading
 
-Nested iteration works naturally due to depth-first execution. An outer `Repeat` can trigger an inner `Repeat`:
+Because trigger calls are synchronous, nested iteration works naturally. Consider:
 
 ```
-MainLoop → Repeat(3) → Repeat(4) → DrawCircle
+MainLoop → Repeat(3) → Repeat(4) → Draw
 ```
 
-Execution order:
+The outer `Repeat` fires trigger #1, which enters the inner `Repeat`, which fires 4 triggers (draw, draw, draw, draw). Only then does outer `Repeat` fire trigger #2, entering inner `Repeat` again.
+
 ```
-outer i=0
-  inner j=0 → draw
-  inner j=1 → draw
-  inner j=2 → draw
-  inner j=3 → draw
-outer i=1
-  inner j=0 → draw
-  inner j=1 → draw
+outer=0
+  inner=0 → draw
+  inner=1 → draw
+  inner=2 → draw
+  inner=3 → draw
+outer=1
+  inner=0 → draw
+  inner=1 → draw
   ...
 ```
 
-The inner loop completes entirely before the outer loop advances.
-
-**Index shadowing**: If both loops output an `index` port, and you need both indices, you must route them through different paths or store them. The inner loop's index will be "current" when drawing occurs.
+This mirrors how nested `for` loops work in text code. The inner loop completes before the outer loop advances.
 
 ---
 
-## Value-Trigger Interaction
+## Array Iteration
 
-Values and triggers work in tandem but follow different rules:
+Iterating over arrays follows the same pattern. `ArrayIteratorNumbers` sets both an index and the current element value before each trigger:
 
-### Execution Order Within a Frame
-
-1. **Value changes propagate first** - When a value port changes, the change flows downstream immediately via `setValue()` → `forceChange()` → linked ports
-2. **Triggers fire second** - Trigger handlers execute with values already updated
-3. **Animation updates** - `_onTriggered()` calls `op.updateAnims()` before the handler, ensuring animated values are current
-
-### onChange vs onTriggered
-
-Value ports can have `onChange` callbacks:
-
-```javascript
-const color = op.inValueColor("Color", [1, 0, 0, 1]);
-color.onChange = function() {
-    // Called when color value changes
-    updateMaterial();
-};
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ArrayIteratorNumbers                          │
+│                                                                 │
+│   IN                              OUT                           │
+│   ○ Execute (trigger)             ○ Next (trigger)              │
+│   ○ Array ([10, 20, 30])          ○ Index (0, 1, 2)             │
+│                                   ○ Value (10, 20, 30)          │
+│                                                                 │
+│   When Execute fires:                                           │
+│     for i = 0 to Array.length-1:                                │
+│       Index.set(i)                                              │
+│       Value.set(Array[i])                                       │
+│       Next.trigger()                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Trigger ports have `onTriggered` callbacks:
-
-```javascript
-const exe = op.inTrigger("Render");
-exe.onTriggered = function() {
-    // Called when trigger fires
-    draw();
-};
-```
-
-**Key difference**: `onChange` fires when the value changes (may be multiple times per frame). `onTriggered` fires when explicitly triggered (controlled by the graph structure).
-
-### Gating Execution
-
-A common pattern uses value ports to gate trigger execution:
-
-```javascript
-const exe = op.inTrigger("Execute");
-const enabled = op.inValueBool("Enabled", true);
-const next = op.outTrigger("Next");
-
-exe.onTriggered = function() {
-    if (enabled.get()) {
-        // Only pass through trigger if enabled
-        next.trigger();
-    }
-};
-```
+For structured data like XYZ coordinates, `Array3Iterator` processes elements in groups of three, outputting separate X, Y, Z values per iteration.
 
 ---
 
-## Error Handling
+## Empty Arrays and Edge Cases
 
-### Exception in onTriggered
+What happens when you iterate an empty array? The iterator simply fires zero triggers. Downstream operators never execute. This is usually the desired behavior, but can be surprising if you expect "at least once" semantics.
 
-When an exception occurs inside a trigger handler (`core_port.js:794-810`):
+What about negative counts? `Repeat` uses `Math.floor()` and clamps to zero - you cannot iterate backwards by passing -5.
 
-```javascript
-catch (ex)
-{
-    if (!portTriggered) return this.#log.error("unknown port error");
-
-    // Disable the crashed op
-    portTriggered.op.enabled = false;
-    portTriggered.op.setUiError("crash", "op crashed, port exception");
-
-    // Notify if in editor mode
-    if (this.#op.patch.isEditorMode())
-    {
-        if (portTriggered.op.onError) portTriggered.op.onError(ex);
-    }
-
-    // Log the error with context
-    this.#log.error("exception in port: ", portTriggered.name,
-                    portTriggered.op.name, portTriggered.op.id);
-    this.#log.error(ex);
-}
-```
-
-**Consequences of an exception**:
-1. The crashed op is **disabled** (`op.enabled = false`)
-2. A UI error is set (visible in editor)
-3. The exception **breaks the for loop** - remaining links from the triggering port are NOT processed
-4. The trigger stack shows the execution path up to the crash
-
-### Recovery
-
-To recover from a crash:
-1. Fix the issue in the crashed op
-2. Re-enable the op (in editor: right-click → Enable)
-3. The op will resume receiving triggers
-
-### State Consistency
-
-After a partial execution (crash mid-loop):
-- Values set before the crash remain set
-- Downstream ops triggered before the crash have executed
-- Downstream ops after the crash point have not executed
-
-This can leave the patch in an inconsistent state. Cache regions and explicit reset triggers help manage state recovery.
+What about very large counts? All iterations run synchronously within a single frame. Ten thousand iterations will block until complete, potentially causing frame drops. Cables artists typically limit iteration counts or use GPU instancing for large batches.
 
 ---
 
-## Performance Considerations
+## The Trigger Stack Revisited
 
-### Trigger Overhead
+The trigger stack (covered in architecture.md) tracks which operators are currently executing. For iteration, two implications matter:
 
-Each `trigger()` call:
-1. Iterates the links array
-2. Pushes/pops the trigger stack
-3. Calls `_activity()` for debugging
-4. Invokes the handler function
+**Debugging.** You can call `patch.printTriggerStack()` from within an operator to see the current execution chain. Useful for understanding why an operator is running.
 
-For simple operations, this overhead is negligible. For tight loops with thousands of iterations, the overhead can become noticeable.
-
-### Large Iteration Counts
-
-Deeply nested or large iterations can cause:
-- **JavaScript call stack overflow** - Deep recursion eventually fails
-- **Frame drops** - All iterations run synchronously within one frame
-- **Memory pressure** - No garbage collection during execution
-
-Cables patches typically work around this by:
-- Breaking large iterations across multiple frames
-- Using GPU instancing instead of CPU iteration
-- Limiting visible iteration counts in the UI
-
-### The `changeAlways` Flag
-
-Array iterator ops often set `changeAlways = true`:
-
-```javascript
-val.changeAlways = true;
-```
-
-This ensures the value port triggers downstream updates even if the value is the same as before. Without this, repeated identical values would be silently dropped.
+**No cycle protection during iteration.** The trigger stack prevents A→B→A infinite loops, but iteration *intentionally* calls the same downstream path multiple times. The stack grows with each nested level. Very deep nesting (hundreds of levels) could cause JavaScript stack overflow.
 
 ---
 
-## Comparison with Other Systems
+## Stateful Iteration Across Frames
 
-### vs vvvv gamma's ForEach Regions
+Sometimes you want state that persists across frames. `TriggerCounterLoop` demonstrates this pattern:
 
-| Aspect | cables.gl | vvvv gamma |
-|--------|-----------|------------|
-| Iteration visibility | Implicit (trigger cascade) | Explicit (ForEach region) |
-| Iteration count | First connected array's length | Splicer determines count (zip-shortest) |
-| State between iterations | Explicit wiring | Accumulators (reduce/fold pattern) |
-| Nested iteration | Natural (depth-first) | Nested regions |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TriggerCounterLoop                            │
+│                                                                 │
+│   IN                              OUT                           │
+│   ○ Trigger (fires each frame)    ○ Next (trigger)              │
+│   ○ Reset                         ○ Count (0, 1, 2, 0, 1, 2...) │
+│   ○ Min (0)                                                      │
+│   ○ Max (3)                                                      │
+│                                                                 │
+│   Each trigger:                                                 │
+│     Increment Count (wrap at Max)                               │
+│     Output current Count                                        │
+│     Fire Next                                                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-vvvv gamma's explicit regions make iteration boundaries visible. Cables' trigger pumping is more implicit but integrates seamlessly with the dual execution model.
-
-### vs tixl's Pull-Based Evaluation
-
-| Aspect | cables.gl | tixl |
-|--------|-----------|------|
-| Execution model | Push (triggers) + pull (values) | Pull-only (lazy evaluation) |
-| Dirty tracking | Per-port with `changeAlways` option | Per-slot with dirty flags |
-| Iteration | Trigger pumping | Explicit loop operators |
-
-Tixl's pure pull model skips unchanged nodes automatically. Cables' trigger model provides explicit control over execution order, important for rendering pipelines.
+Connected to `MainLoop`, this cycles through 0, 1, 2, 0, 1, 2... one value per frame. Combined with arrays, you can step through elements over time rather than all at once.
 
 ---
 
-## Rust Implementation Insights
+## Error Handling During Iteration
 
-For a Rust-based visual programming system:
+What happens if an operator crashes mid-iteration?
 
-### Adopt the Dual Model
+1. The crashed operator is **disabled** (`op.enabled = false`)
+2. The exception **breaks the loop** - remaining iterations do not run
+3. The trigger stack shows where the crash occurred
 
-Separate value propagation from trigger execution:
+This can leave state inconsistent. If iterations 0-5 set values but iteration 6 crashes, those values remain set. Recovery typically requires a reset trigger or patch reload.
 
-```rust
-enum Port<T> {
-    Value(T),                    // Pull-based, cached
-    Trigger(Box<dyn Fn(&mut Context)>), // Push-based, immediate
-}
-```
+---
 
-### Use Type-Safe Trigger Chains
+## Performance Implications
 
-Rust's ownership can enforce that triggers don't outlive their context:
+Trigger pumping has overhead compared to a simple `for` loop:
+- Each trigger call traverses the links array
+- The trigger stack is modified (push/pop)
+- Activity counters are updated for debugging
 
-```rust
-impl OutputTrigger {
-    fn trigger(&self, ctx: &mut EvaluationContext) {
-        for link in &self.links {
-            link.borrow_mut().on_triggered(ctx);
-        }
-    }
-}
-```
+For most patches, this overhead is negligible. For tight loops with thousands of iterations, consider:
+- GPU instancing (render many objects in one draw call)
+- Breaking iteration across multiple frames
+- Moving hot paths to custom JavaScript
 
-### Consider Async for Large Iterations
+---
 
-Unlike JavaScript's synchronous execution, Rust could use async to spread iterations across frames:
+## Why This Pattern?
 
-```rust
-async fn repeat(count: usize, next: &OutputTrigger, ctx: &mut Context) {
-    for i in 0..count {
-        ctx.set_index(i);
-        next.trigger(ctx).await;  // Could yield between iterations
-    }
-}
-```
+Trigger pumping may seem roundabout compared to explicit loops. Why does Cables use it?
 
-### Debug Stack as First-Class Feature
+**Visual consistency.** All data flow looks the same - boxes connected by wires. No special "loop region" visual syntax needed.
 
-The trigger stack pattern is valuable for debugging. Consider building it into the execution model from the start.
+**Composability.** Any subgraph can be iterated. Connect `Repeat` upstream, and everything downstream repeats.
+
+**Incremental adoption.** Artists start with single-element patches, then add `Repeat` when they want multiples. The learning curve is gradual.
+
+The trade-off is that iteration is implicit. Looking at a patch, you cannot immediately see "this runs 100 times" without tracing the trigger connections upstream.
+
+---
+
+## Summary
+
+| Concept | Implementation |
+|---------|----------------|
+| Iteration | Fire triggers N times, setting value before each |
+| Execution order | Depth-first, synchronous |
+| Nested loops | Natural from trigger cascading |
+| Array iteration | Value + Index outputs, one per element |
+| State across frames | Counter operators with persistent variables |
+| Error handling | Crash disables operator, breaks remaining iterations |
 
 ---
 
 ## Related Documents
 
-- [architecture.md](architecture.md) - Overall system structure
-- [rendering-pipeline.md](rendering-pipeline.md) - Frame lifecycle and state stacks
-- [api-design.md](api-design.md) - Operator definition patterns
-- [list-handling-patterns.md](../../themes/node-graphs/list-handling-patterns.md) - Array handling comparison
+- [architecture.md](architecture.md) - Dual execution model and trigger stack basics
+- [rendering-pipeline.md](rendering-pipeline.md) - How triggers drive the render loop
+- [api-design.md](api-design.md) - Writing custom operators with triggers
 
 ---
 
-## Source File Reference
+## Source Files
 
-| File | Key Code |
-|------|----------|
-| `src/core/core_port.js:764-811` | `trigger()` method |
-| `src/core/core_port.js:1037-1044` | `_onTriggered()` handler |
-| `src/core/core_patch.js:1345-1377` | Trigger stack implementation |
-| `src/ops/base/Ops.Trigger.Repeat/` | Basic trigger pumping |
-| `src/ops/base/Ops.Array.ArrayIteratorNumbers/` | Array iteration |
-| `src/ops/base/Ops.Array.Array3Iterator/` | Strided iteration |
-
----
-
-*Triggers are the heartbeat of a cables patch. Values set the scene; triggers make things happen.*
+| File | Purpose |
+|------|---------|
+| `core_port.js:764-811` | `trigger()` method |
+| `Ops.Trigger.Repeat/` | Basic N-times iteration |
+| `Ops.Trigger.Repeat2d/` | 2D grid iteration |
+| `Ops.Array.ArrayIteratorNumbers/` | Array element iteration |
+| `Ops.Array.Array3Iterator/` | Strided (XYZ) iteration |
+| `Ops.Trigger.TriggerCounterLoop/` | Stateful frame-by-frame counter |
