@@ -19,6 +19,7 @@ Unlike code studies which analyze source implementations, **reference studies** 
 
 | Reference | Status | Description |
 |-----------|--------|-------------|
+| [Houdini](./houdini/) | Active | SideFX Houdini docs — VEX, SOPs, node graphs for procedural thinking |
 | [The-Gray-Book](./the-gray-book/) | Partial | Reference manual for vvvv gamma and VL visual programming |
 
 ---
