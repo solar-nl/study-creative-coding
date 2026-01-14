@@ -75,13 +75,13 @@ Understanding both reveals *why* the API is designed this way.
 
 ---
 
-## Documents to Create
+## Documents
 
-- [ ] `vex-language.md` — VEX concepts → shader patterns
-- [ ] `procedural-modeling.md` — SOP paradigm → procedural generation
-- [ ] `node-graph-design.md` — Network patterns → visual programming
-- [ ] `visual-shaders.md` — VOP patterns → node-based materials
-- [ ] `api-design.md` — HOM patterns → API ergonomics
+- [x] `vex-language.md` — VEX concepts → shader patterns
+- [x] `procedural-modeling.md` — SOP paradigm → procedural generation
+- [x] `node-graph-design.md` — Network patterns → visual programming
+- [x] `visual-shaders.md` — VOP patterns → node-based materials
+- [x] `api-design.md` — HOM patterns → API ergonomics
 
 ---
 
