@@ -145,6 +145,8 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [tixl.md](per-framework/tixl.md) | Dirty flag system, shader caching, node graph integration |
 | [openrndr.md](per-framework/openrndr.md) | LRU caching, shadow buffers, session-based cleanup |
 | [threejs.md](per-framework/threejs.md) | Update ranges, version tracking, backend abstraction |
+| [cinder.md](per-framework/cinder.md) | RAII patterns, scoped bindings, texture pooling |
+| [processing.md](per-framework/processing.md) | Context tracking, exponential growth, mobile resilience |
 
 ### Cross-Cutting Topics
 
