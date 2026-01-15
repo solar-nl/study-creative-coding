@@ -44,6 +44,7 @@ Native Rust graphics libraries.
 | Library | Status | Description |
 |---------|--------|-------------|
 | [wgpu](https://github.com/gfx-rs/wgpu) | Planned | Cross-platform WebGPU implementation |
+| [rend3](./rust/rend3/) | Planned | High-level rendering framework on wgpu |
 
 ## Status Legend
 
