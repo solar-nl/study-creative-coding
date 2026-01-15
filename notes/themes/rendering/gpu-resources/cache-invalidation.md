@@ -1,22 +1,28 @@
-# Cache Invalidation Patterns
+# Cache Invalidation: Knowing What Changed
 
-> How frameworks track when GPU data needs updating
-
----
-
-## The Problem
-
-GPU resources shouldn't be re-uploaded every frame. But when do they need updating? This is cache invalidation - knowing when cached GPU state is stale.
+> There are only two hard things in Computer Science: cache invalidation and naming things.
 
 ---
 
-## Pattern Catalog
+## The Staleness Problem
 
-### 1. Boolean Dirty Flag (Simple)
+GPU resources shouldn't be re-uploaded every frame. A texture that hasn't changed since last frame doesn't need to consume bandwidth again. But how do you know it hasn't changed? The GPU doesn't tell you; you have to track it yourself.
+
+This is cache invalidation—knowing when cached GPU state has become stale. Get it wrong in one direction, and you waste bandwidth uploading unchanged data. Get it wrong in the other direction, and you render with outdated data, producing visual artifacts that may be subtle or catastrophic.
+
+For a node graph like Flux, cache invalidation becomes even more critical. When an upstream node changes, how do you know which downstream nodes need recomputation? Propagate too eagerly, and you recompute everything unnecessarily. Propagate too conservatively, and you miss updates.
+
+The question guiding this exploration: *what mechanisms track staleness efficiently?*
+
+---
+
+## Boolean Flags: Simple But Brittle
+
+The simplest approach: a boolean flag.
 
 ```javascript
-// Three.js simplified
-texture.needsUpdate = true;  // Mark dirty
+texture.needsUpdate = true;
+
 // During render:
 if (texture.needsUpdate) {
     uploadTexture(texture);
@@ -24,42 +30,46 @@ if (texture.needsUpdate) {
 }
 ```
 
-**Characteristics:**
-- O(1) check and set
-- Binary: dirty or clean
-- No history
+Set the flag when something changes. Check the flag before using the resource. Clear the flag after processing.
 
-**Problem**: If two systems check the flag, only one sees it dirty.
+This works, but it has a fundamental flaw. If two systems both need to respond to changes, only one sees the flag as dirty. The first system to check it clears it, stealing the signal from the second.
 
-### 2. Version Counter (Three.js)
+For single-consumer scenarios—one renderer, one resource—boolean flags suffice. For anything more complex, they break down.
+
+---
+
+## Version Counters: Independent Tracking
+
+Three.js evolved past boolean flags to version counters:
 
 ```javascript
-// Three.js actual pattern
 set needsUpdate(value) {
     if (value === true) this.version++;
 }
 
-// Renderer caches version:
+// Renderer caches its view of the version
 if (cachedVersion !== texture.version) {
     uploadTexture(texture);
     cachedVersion = texture.version;
 }
 ```
 
-**Characteristics:**
-- Multiple consumers can independently track
-- Never decreases → always know if changed since last check
-- Monotonically increasing
+Setting `needsUpdate = true` doesn't flip a flag; it increments a counter. Each consumer maintains its own cache of the last version it saw. If the resource's current version exceeds the cached version, the consumer knows something changed since it last processed the resource.
 
-**Trade-off**: Integer overflow (unlikely in practice).
+Multiple systems can independently track staleness. Renderer A and Renderer B each maintain their own `cachedVersion`. When the texture changes, both detect it independently. Neither steals the signal from the other.
 
-### 3. Reference/Target (tixl)
+The counter only increases, never decreases. This provides a clear semantic: "has this changed since version N?" is always answerable with a single comparison.
+
+---
+
+## Reference/Target: The tixl Pattern
+
+tixl's dirty flag system separates "current state" from "last processed state" more explicitly:
 
 ```csharp
-// tixl pattern
 public class DirtyFlag {
-    public int Reference;  // Last clean state
-    public int Target = 1; // Current state
+    public int Reference;  // Last known clean state
+    public int Target = 1; // Current dirty state
 
     public bool IsDirty => Reference != Target;
 
@@ -73,18 +83,32 @@ public class DirtyFlag {
 }
 ```
 
-**Characteristics:**
-- Like version counter but with explicit clean state
-- `IsDirty` is a comparison, not a flag read
-- Can detect "changed N times" (if needed)
+`Target` increments on each invalidation. `Reference` records the `Target` value when you last processed the resource. The flag is dirty when they differ.
 
-**Key insight**: Separating "what we've processed" (Reference) from "current state" (Target) enables clean semantics.
+This is functionally equivalent to Three.js's version counters, but the naming is more explicit. "Reference" and "Target" make it clear that you're comparing two distinct concepts: what you've processed versus what currently exists.
 
-### 4. Frame-Based Deduplication (tixl)
+The pattern also enables a subtle feature: you could detect how many times something was invalidated since you last processed it (the difference between `Target` and `Reference`). tixl doesn't use this capability, but it's there if needed.
+
+---
+
+## Frame Deduplication: Preventing Redundant Work
+
+In a node graph, multiple paths may lead to the same downstream node. When upstream node A changes, it invalidates downstream node C. When upstream node B also changes in the same frame, it tries to invalidate C again.
+
+```
+    A
+   / \
+  B   C
+   \ /
+    D
+```
+
+If A changes, D gets invalidated through B and through C. Without protection, D's dirty counter increments twice unnecessarily.
+
+tixl solves this with frame-based deduplication:
 
 ```csharp
-// tixl enhancement
-public int InvalidatedWithRefFrame;  // Last frame invalidated
+public int InvalidatedWithRefFrame;
 
 public int Invalidate() {
     if (InvalidatedWithRefFrame == _globalTickCount)
@@ -96,162 +120,105 @@ public int Invalidate() {
 }
 ```
 
-**Characteristics:**
-- Prevents double-invalidation in same frame
-- Global tick counter advances per frame
-- Multiple invalidation paths converge
+A global tick counter advances each frame. Each dirty flag remembers the frame when it was last invalidated. If you try to invalidate twice in the same frame, the second call is a no-op.
 
-**This solves**: Node A and B both connect to C. If A changes, C is invalidated. If B also changes same frame, C shouldn't invalidate again.
+This elegantly handles diamond dependencies. Multiple invalidation paths converge without multiplying the work.
 
-### 5. Update Ranges (Three.js)
+---
+
+## Update Ranges: Byte-Level Granularity
+
+For large buffers, "this buffer changed" is too coarse. A 10,000-vertex buffer where only 100 vertices moved shouldn't upload all 10,000.
+
+Three.js tracks update ranges:
 
 ```javascript
-// For large buffers
-buffer.addUpdateRange(100, 50);  // Start: 100, Count: 50
-buffer.addUpdateRange(5000, 100);
+buffer.addUpdateRange(100, 50);   // Vertices 100-149 changed
+buffer.addUpdateRange(5000, 100); // Vertices 5000-5099 changed
 
 // During upload:
-for (range of buffer.updateRanges) {
-    uploadSubBuffer(range.start, range.count);
+for (const range of buffer.updateRanges) {
+    uploadPartialBuffer(range.start, range.count);
 }
 buffer.clearUpdateRanges();
 ```
 
-**Characteristics:**
-- Sub-resource granularity
-- Multiple disjoint regions
-- Cleared after processing
+Instead of a binary dirty flag, you accumulate a list of byte ranges that changed. The renderer uploads only those ranges.
 
-**Use case**: 10,000 vertex buffer, only vertices 100-150 changed.
+This is fine-grained invalidation. The overhead is tracking the ranges, but the savings in bandwidth often dwarf the tracking cost—especially for large, sparsely-updated buffers.
 
-### 6. LRU with Force (OpenRNDR)
+---
+
+## LRU with Force: Caching Meets Invalidation
+
+OpenRNDR combines caching with dirty flags in its shader system:
 
 ```kotlin
-// OpenRNDR pattern
 cache.getOrSet(key, forceSet = shadeStyle?.dirty ?: false) {
     shadeStyle?.dirty = false
-    // ... compute value
+    computeValue()
 }
 ```
 
-**Characteristics:**
-- Cache lookup first
-- `forceSet` bypasses cache when dirty
-- Combines caching with invalidation
+Normally, `getOrSet` returns the cached value if present. But when `forceSet` is true, it bypasses the cache and computes a fresh value.
+
+The `forceSet` parameter hooks into the dirty flag system. When a material's dirty flag is set, its shader recompiles regardless of cache state. The cache enables efficiency; the dirty flag enables correctness.
+
+This pattern elegantly bridges two concerns: "reuse expensive computations" and "respect changes." The same mechanism handles both.
 
 ---
 
-## Comparison Matrix
+## Propagation: Push, Pull, or Both
 
-| Pattern | Granularity | Multiple Consumers | Deduplication | Complexity |
-|---------|-------------|-------------------|---------------|------------|
-| Boolean | Resource | No | No | Simple |
-| Version | Resource | Yes | No | Simple |
-| Ref/Target | Resource | Yes | Per-frame | Medium |
-| Update Ranges | Byte ranges | N/A | No | Medium |
-| LRU + Force | Cache entry | N/A | N/A | Medium |
+How do dirty signals flow through a system?
+
+**Push propagation**: When an input changes, immediately mark all downstream dependents dirty.
+
+```
+A changes → mark B dirty → mark C dirty → mark D dirty
+```
+
+This is eager. You pay the propagation cost upfront, even if you never use the downstream values.
+
+**Pull propagation**: When you need a value, check whether its inputs are dirty.
+
+```
+Request D → is C dirty? → is B dirty? → is A dirty?
+```
+
+This is lazy. You only check what you actually need. But you might check the same node multiple times through different paths.
+
+**Hybrid (tixl's approach)**: Push invalidation, pull values.
+
+```
+A changes → mark B, C, D dirty (push)
+Request D → if dirty, compute (pull)
+```
+
+Invalidation signals propagate eagerly, but computation happens lazily. You know what might need updating, but you only update what you actually use.
+
+For a node graph, the hybrid approach usually wins. Propagating dirty flags is cheap; recomputing values is expensive. Push the cheap part, pull the expensive part.
 
 ---
 
-## Integration with Node Graphs
+## Lessons for Flux
 
-### Propagation Strategies
+The cache invalidation research points to a clear recommendation:
 
-**Push**: When input changes, immediately mark downstream dirty
-```
-A changes → mark B dirty → mark C dirty → ...
-```
+**Reference/Target with frame deduplication for the node graph.** tixl's pattern handles diamond dependencies gracefully and provides clear semantics for tracking what's been processed.
 
-**Pull**: Check upstream when accessed
-```
-Request C → is B dirty? → is A dirty? → ...
-```
+**Update ranges for large buffers.** If Flux supports dynamic geometry or particle systems, tracking which bytes changed enables efficient partial uploads.
 
-**Hybrid (tixl)**: Push invalidation, pull values
-```
-A changes → mark B, C dirty (push)
-Request C → if dirty, compute (pull)
-```
+**Version counters for multi-consumer resources.** If the same resource feeds multiple systems (multiple render passes, editor previews, etc.), version counters let each track staleness independently.
 
-### Deduplication Matters
+**Integrate caching with dirty flags.** Use the `forceSet` pattern to let dirty flags bypass caches. One mechanism handles both concerns.
 
-In a diamond dependency:
-```
-    A
-   / \
-  B   C
-   \ /
-    D
-```
-
-When A changes:
-1. B invalidates D
-2. C invalidates D (again?)
-
-With frame-based deduplication, D only invalidates once.
-
----
-
-## Flux Recommendation
-
-### Primary: Reference/Target with Frame Dedup
-
-```rust
-pub struct DirtyFlag {
-    reference: u32,
-    target: u32,
-    invalidated_frame: u64,
-}
-
-impl DirtyFlag {
-    pub fn is_dirty(&self) -> bool {
-        self.reference != self.target
-    }
-
-    pub fn invalidate(&mut self, frame: u64) -> u32 {
-        if self.invalidated_frame == frame {
-            return self.target;
-        }
-        self.invalidated_frame = frame;
-        self.target = self.target.wrapping_add(1);
-        self.target
-    }
-
-    pub fn clear(&mut self) {
-        self.reference = self.target;
-    }
-}
-```
-
-### Secondary: Update Ranges for Large Buffers
-
-```rust
-pub struct TrackedBuffer {
-    buffer: wgpu::Buffer,
-    data: Vec<u8>,
-    dirty_ranges: Vec<Range<u64>>,
-}
-
-impl TrackedBuffer {
-    pub fn write(&mut self, offset: u64, data: &[u8]) {
-        let range = offset..offset + data.len() as u64;
-        self.data[range.clone()].copy_from_slice(data);
-        self.dirty_ranges.push(range);
-    }
-
-    pub fn flush(&mut self, queue: &wgpu::Queue) {
-        // Optionally merge adjacent ranges
-        for range in self.dirty_ranges.drain(..) {
-            queue.write_buffer(&self.buffer, range.start, &self.data[range]);
-        }
-    }
-}
-```
+**Propagate dirtiness, not values.** Push the cheap signal (is this dirty?), pull the expensive computation (what's the value?). This minimizes wasted work while ensuring correctness.
 
 ---
 
 ## Related Documents
 
-- [per-framework/tixl.md](per-framework/tixl.md) - Reference/Target deep dive
-- [per-framework/threejs.md](per-framework/threejs.md) - Update ranges deep dive
-- [per-framework/openrndr.md](per-framework/openrndr.md) - LRU with dirty integration
+- [per-framework/tixl.md](per-framework/tixl.md) — Reference/Target deep dive
+- [per-framework/threejs.md](per-framework/threejs.md) — Update ranges deep dive
+- [per-framework/openrndr.md](per-framework/openrndr.md) — LRU with dirty integration

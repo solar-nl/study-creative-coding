@@ -1,33 +1,26 @@
-# nannou_wgpu: Device Pooling for Creative Coding
+# nannou: Device Pooling for Creative Coding
 
-> How nannou manages GPU resources across multiple windows
-
----
-
-## Overview
-
-nannou_wgpu is a thin wrapper over wgpu designed for creative coding applications. Its primary contribution to resource management is **device pooling** - sharing GPU devices across multiple windows to enable resource sharing and reduce overhead.
-
-The key insight: **use `Weak` references for automatic cleanup when resources are no longer needed**. When a window closes, its device reference drops, and if no other windows share that device, the device is automatically removed from the pool.
+> What happens when multiple windows need to share GPU resources?
 
 ---
 
-## Device Pooling: Two-Level HashMap
+## The Multi-Window Problem
 
-### The Problem
+Picture a creative coding setup: a main window showing your visualization, a second window for controls, maybe a third for a different view. Each window needs to render. Each window needs a GPU device.
 
-A creative coding application might have multiple windows - perhaps one for the main visualization and another for controls or secondary views. Each window needs a GPU device. Without pooling:
+The naive approach—one device per window—works but wastes resources. GPU devices are heavyweight. Creating them takes time. Buffers and textures can't be shared across devices. If your control window and visualization window could share a device, they could share textures too.
 
-- Each window creates its own device (wasteful)
-- Resources can't be shared between windows
-- Synchronization becomes more complex
+nannou solves this with device pooling. It's a small feature, easily overlooked, but it reveals a pattern worth understanding: using Weak references for automatic cleanup without ownership burden.
 
-### nannou's Solution
+---
 
-nannou uses a two-level HashMap structure:
+## Two-Level Pooling
+
+### The Structure
+
+Open `nannou_wgpu/src/device_map.rs` and you'll find a two-tier HashMap:
 
 ```rust
-// From nannou_wgpu/src/device_map.rs:16-19, 44-47
 pub struct AdapterMap {
     map: Mutex<HashMap<AdapterMapKey, Arc<ActiveAdapter>>>,
 }
@@ -37,15 +30,29 @@ pub struct DeviceMap {
 }
 ```
 
-Level 1: `AdapterMap` pools physical GPU adapters by power preference
-Level 2: `DeviceMap` pools logical devices by their descriptor
+Level one pools physical adapters (GPUs) by power preference. Level two pools logical devices (connections to a GPU) by their configuration.
 
-### The Weak Reference Pattern
+Why two levels? Because one physical GPU can support multiple logical devices with different feature sets. You might want one device with all features enabled for your main visualization, and a minimal device for a simple preview window.
 
-The crucial detail is in `DeviceMap` - it stores `Weak<DeviceQueuePair>`, not `Arc`:
+### The Weak Reference Insight
+
+Notice that `DeviceMap` stores `Weak<DeviceQueuePair>`, not `Arc`. This is the clever part.
+
+Windows hold `Arc<DeviceQueuePair>`—strong references. When you create a window, nannou checks the pool for an existing device with matching configuration. If found, it upgrades the Weak to Arc and returns it. If not found (or if the Weak can't upgrade because all strong references are gone), it creates a new device.
+
+When a window closes, its Arc drops. If that was the last strong reference, the device becomes unreachable. The pool's Weak reference can no longer upgrade. On the next cleanup pass, nannou removes the dead entry.
+
+The pool never prevents cleanup. It only enables sharing while resources are alive.
+
+---
+
+## The Device Lookup Dance
+
+### Getting or Creating a Device
+
+Here's the core logic from `device_map.rs:205-227`:
 
 ```rust
-// From device_map.rs:205-227
 pub async fn get_or_request_device_async(
     &self,
     descriptor: wgpu::DeviceDescriptor<'static>,
@@ -54,274 +61,163 @@ pub async fn get_or_request_device_async(
     let mut map = self.device_map.map.lock()
         .expect("failed to acquire lock");
 
-    // Try to upgrade existing weak reference
+    // Try to reuse an existing device
     if let Some(device_ref) = map.get(&key) {
         if let Some(device) = device_ref.upgrade() {
-            return device;  // Reuse existing device
+            return device;  // Existing device still alive, share it
         }
     }
 
-    // Create new device
+    // No existing device, create a new one
     let (device, queue) = self.adapter
         .request_device(&key.descriptor, None)
         .await
         .expect("could not get or request device");
 
     let device = Arc::new(DeviceQueuePair { device, queue });
-    map.insert(key, Arc::downgrade(&device));  // Store weak reference
+    map.insert(key, Arc::downgrade(&device));  // Store Weak, return Arc
     device
 }
 ```
 
-### Why Weak Works Here
+The flow:
+1. Lock the map
+2. Try to find an existing device with matching config
+3. If found, try to upgrade the Weak to Arc
+4. If upgrade succeeds, return the shared device
+5. Otherwise, create a new device, store a Weak reference, return Arc
 
-1. Windows hold `Arc<DeviceQueuePair>` - strong references
-2. Pool holds `Weak<DeviceQueuePair>` - doesn't prevent cleanup
-3. When all windows close, the `Arc` drops, device is freed
-4. Next lookup sees `Weak::upgrade()` returns `None`, creates new device
+### The Cleanup Pass
 
-### Cleanup Logic
-
-nannou cleans up at the end of each frame:
+At the end of each frame, nannou cleans up dead entries:
 
 ```rust
-// From device_map.rs:147-159
-pub fn clear_inactive_adapters_and_devices(&self) {
-    let mut map = self.map.lock()
-        .expect("failed to acquire lock");
-
-    map.retain(|_, adapter| {
-        adapter.clear_inactive_devices();
-        adapter.device_count() > 0
-    });
-}
-
-// From device_map.rs:266-272
 pub fn clear_inactive_devices(&self) {
     let mut map = self.device_map.map.lock()
         .expect("failed to acquire lock");
-
     map.retain(|_, pair| pair.upgrade().is_some());
 }
 ```
 
+Any Weak that can't upgrade (because all Arcs dropped) gets removed. The pool stays clean without explicit delete calls.
+
 ---
 
-## Map Key Design
+## The Key Problem
 
-### The Problem
+### Why Custom Hash and Eq?
 
-`wgpu::DeviceDescriptor` doesn't implement `Hash` or `Eq`. nannou needs these for HashMap keys.
-
-### The Solution
-
-Wrapper types with manual implementations:
+wgpu's `DeviceDescriptor` doesn't implement `Hash` or `Eq`. HashMap needs both. nannou wraps the descriptor in a newtype with manual implementations:
 
 ```rust
-// From device_map.rs:53-56
 pub struct DeviceMapKey {
     descriptor: wgpu::DeviceDescriptor<'static>,
 }
 
-// From device_map.rs:312-324
 impl Hash for DeviceMapKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         hash_device_descriptor(&self.descriptor, state);
     }
 }
 
-impl PartialEq for DeviceMapKey {
-    fn eq(&self, other: &Self) -> bool {
-        eq_device_descriptor(&self.descriptor, &other.descriptor)
-    }
-}
-
-// From device_map.rs:327-332
 fn eq_device_descriptor(a: &DeviceDescriptor, b: &DeviceDescriptor) -> bool {
     a.label == b.label && a.features == b.features && a.limits == b.limits
 }
 ```
 
-Note the comment: "This should be updated as fields are added to the descriptor type." This is a maintenance burden - if wgpu adds fields, nannou must update these functions.
+The comment in the code is telling: "This should be updated as fields are added to the descriptor type." This is a maintenance burden. If wgpu adds a field to `DeviceDescriptor`, nannou's equality check becomes incomplete.
 
-### Flux Implications
-
-For Flux's resource caching:
-- **Consider typed wrapper keys** - newtype pattern for HashMap compatibility
-- **Document maintenance requirements** - upstream changes may require updates
-- **Derive when possible** - but wgpu types don't always support this
-
----
-
-## DeviceQueuePair: Unified Handle
-
-### The Pattern
-
-nannou bundles device and queue together:
-
-```rust
-// From device_map.rs:59-63
-pub struct DeviceQueuePair {
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-}
-
-impl DeviceQueuePair {
-    pub fn device(&self) -> &wgpu::Device {
-        &self.device
-    }
-
-    pub fn queue(&self) -> &wgpu::Queue {
-        &self.queue
-    }
-}
-```
-
-This makes sense for nannou's use case - you always need both to do anything useful, and they share a lifetime.
-
-### Flux Implications
-
-Consider whether to bundle:
-- **Pro**: Single handle simplifies API
-- **Con**: Sometimes you only need device (for creation)
-- **Flux decision**: Likely bundle in the resource pool context
+This pattern is common when wrapping types you don't control. It works, but requires vigilance.
 
 ---
 
 ## What nannou Doesn't Do
 
-Studying what nannou *doesn't* implement is as instructive as what it does:
+Studying what nannou *omits* is as instructive as what it includes.
 
-### No Texture Caching
+**No texture caching.** Load an image twice? Two GPU textures. This is fine for creative coding—you rarely load the same image multiple times—but a game engine would want deduplication.
 
-nannou doesn't cache textures. Each `Texture::from_path()` creates a new GPU texture. This is fine for creative coding where texture reuse is rare, but not ideal for a game engine.
+**No buffer pooling.** Every buffer is fresh. No staging belt, no suballocation. Simple, but not optimal for particle systems or dynamic geometry.
 
-### No Buffer Pooling
+**No bind group caching.** Create a new bind group each time you need one. For creative coding's typical complexity, this is fine. For complex scenes, it's wasteful.
 
-Buffers are created fresh each time. There's no staging belt or buffer suballocation. Again, appropriate for creative coding where per-frame allocations are acceptable.
-
-### No Bind Group Caching
-
-nannou has a `BindGroupBuilder` helper, but it creates new bind groups each time. No deduplication.
-
-### Flux Implications
-
-nannou's minimalism is intentional - it serves creative coding where simplicity trumps optimization. Flux may need:
-- **Texture caching** - if the same image is loaded multiple times
-- **Buffer pooling** - for frequently updated geometry
-- **Bind group deduplication** - if bind groups are recreated per-frame
+nannou optimized for simplicity and rapid iteration, not raw performance. This is appropriate for its audience. But it means Flux, targeting broader use cases, will need patterns nannou doesn't provide.
 
 ---
 
-## Row-Padded Buffer: GPU Alignment
+## The DeviceQueuePair Bundle
+
+### Bundling Related Resources
+
+nannou pairs device and queue in one struct:
+
+```rust
+pub struct DeviceQueuePair {
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+}
+```
+
+This makes sense: you almost always need both. Creating a buffer requires the device. Uploading data requires the queue. Submitting commands requires the queue. Bundling them reduces API surface.
+
+The tradeoff: occasionally you only need one. Device for introspection, queue for a quick upload. But passing the pair is cheap, so the ergonomic benefit outweighs the occasional redundancy.
+
+---
+
+## Row-Padded Buffers: A GPU Alignment Detail
 
 ### The Problem
 
-When uploading texture data, GPU APIs require rows to be aligned to specific byte boundaries (often 256 bytes). Image libraries produce packed data without padding.
+GPU APIs require texture rows to be aligned—often to 256 bytes. Image libraries produce packed data without padding. Upload packed data, and you get garbage textures.
 
 ### nannou's Solution
 
 A helper buffer that handles padding:
 
 ```rust
-// From nannou_wgpu/src/texture/row_padded_buffer.rs (structure)
 pub struct RowPaddedBuffer {
     data: Vec<u8>,
-    row_bytes: u32,
-    padded_row_bytes: u32,
+    row_bytes: u32,        // Original row size
+    padded_row_bytes: u32, // Aligned row size
 }
 ```
 
-This encapsulates the padding math that would otherwise be scattered through texture upload code.
+This encapsulates the fiddly alignment math. User code works with logical pixel data; the helper manages the physical layout.
 
-### Flux Implications
-
-For Flux's texture uploads:
-- **Encapsulate alignment requirements** - don't leak padding to user code
-- **Consider format-aware helpers** - different formats have different alignment needs
+This is the kind of "quality of life" utility creative coding frameworks need. The underlying problem isn't hard, but having a tested solution saves debugging time.
 
 ---
 
-## Threading: Per-Adapter Polling
+## Lessons for Flux
 
-### The Pattern
+nannou's patterns suggest several approaches:
 
-nannou can poll all devices across all adapters:
+**Weak references for pools.** If you want sharing without ownership burden, store Weak references. The pool enables sharing while resources live; cleanup happens automatically when they die.
 
-```rust
-// From device_map.rs:161-170
-pub(crate) fn _poll_all_devices(&self, maintain: wgpu::Maintain) {
-    let map = self.map.lock()
-        .expect("failed to acquire lock");
+**Bundle related resources.** Device + queue, texture + sampler—if they're always used together, bundle them. API simplicity beats theoretical flexibility.
 
-    for adapter in map.values() {
-        adapter._poll_all_devices(maintain.clone());
-    }
-}
+**Newtype wrappers for Hash/Eq.** When wrapping external types, manual trait implementations are sometimes necessary. Document the maintenance burden.
 
-// From device_map.rs:276-287
-fn _poll_all_devices(&self, maintain: wgpu::Maintain) {
-    let map = self.device_map.map.lock()
-        .expect("failed to acquire lock");
+**Start without caching.** nannou's lack of texture caching and buffer pooling is deliberate simplicity. Start simple; add optimization when profiling shows the need.
 
-    for weak in map.values() {
-        if let Some(pair) = weak.upgrade() {
-            pair.device().poll(maintain.clone());
-        }
-    }
-}
-```
-
-Note the `_` prefix - this is internal API, suggesting nannou handles polling automatically so users don't have to think about it.
-
-### Flux Implications
-
-For Flux's polling:
-- **Automatic polling** - hide this from users when possible
-- **Centralized control** - poll from one place, not scattered
-
----
-
-## Summary: Key Patterns for Flux
-
-| Pattern | nannou Approach | Flux Application |
-|---------|-----------------|------------------|
-| **Device sharing** | Two-level HashMap | Consider for multi-window support |
-| **Automatic cleanup** | Weak references | Use for pool entries that should auto-cleanup |
-| **Key types** | Manual Hash/Eq impl | Derive when possible, document when not |
-| **Device+Queue bundling** | Single struct | Bundle in resource context |
-| **Texture caching** | None | Add if reuse is common |
-| **Buffer pooling** | None | Add for dynamic geometry |
-| **Row padding** | Helper struct | Encapsulate alignment |
-
----
-
-## Design Insight: Simplicity vs Optimization
-
-nannou's device pooling is its most sophisticated resource management feature, and it's relatively simple. This reflects nannou's design philosophy: creative coding values simplicity and rapid iteration over maximum performance.
-
-For Flux, the question is where on this spectrum to land. The device pooling pattern is worth adopting. The lack of texture/buffer caching might be fine initially but could become a bottleneck for complex applications.
-
-`★ Insight ─────────────────────────────────────`
-nannou's `Weak` reference pattern for device pooling is elegant: the pool doesn't keep resources alive, but it does allow sharing while resources exist. This inverts the typical cache pattern where the cache owns entries.
-`─────────────────────────────────────────────────`
+**Encapsulate GPU quirks.** Alignment requirements, format conversions, driver workarounds—wrap these in utilities. Don't leak them to user code.
 
 ---
 
 ## Source Files
 
-| File | Purpose |
-|------|---------|
-| `nannou_wgpu/src/device_map.rs:16-47` | AdapterMap and DeviceMap definitions |
-| `nannou_wgpu/src/device_map.rs:205-227` | get_or_request_device_async with Weak upgrade |
-| `nannou_wgpu/src/device_map.rs:266-272` | Cleanup via retain + upgrade |
-| `nannou_wgpu/src/device_map.rs:312-332` | Manual Hash/Eq implementations |
-| `nannou_wgpu/src/texture/row_padded_buffer.rs` | GPU alignment helper |
+| File | Key Lines | Purpose |
+|------|-----------|---------|
+| `nannou_wgpu/src/device_map.rs` | 16-47 | AdapterMap and DeviceMap structs |
+| `nannou_wgpu/src/device_map.rs` | 205-227 | get_or_request_device_async |
+| `nannou_wgpu/src/device_map.rs` | 266-272 | clear_inactive_devices |
+| `nannou_wgpu/src/device_map.rs` | 312-332 | Manual Hash/Eq implementations |
+| `nannou_wgpu/src/texture/row_padded_buffer.rs` | — | GPU alignment helper |
 
 ---
 
 ## Related Documents
 
-- [wgpu.md](wgpu.md) - The underlying API
-- [rend3.md](rend3.md) - More aggressive pooling
-- [../reclamation-timing.md](../reclamation-timing.md) - When to free resources
+- [wgpu.md](wgpu.md) — The underlying API nannou builds on
+- [rend3.md](rend3.md) — A more aggressive approach to pooling
+- [../reclamation-timing.md](../reclamation-timing.md) — When to free resources

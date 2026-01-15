@@ -1,25 +1,100 @@
-# OpenRNDR: LRU Caching and Shadow Buffers
+# OpenRNDR: Lazy Shadows and Bounded Caches
 
-> How a Kotlin creative coding framework manages GPU resources
-
----
-
-## Overview
-
-OpenRNDR is a Kotlin-based creative coding framework with a sophisticated approach to GPU resource management. Two patterns stand out: **LRU caching for compiled shaders** and **shadow buffers for CPU-GPU synchronization**.
-
-The key insight: **lazy shadow buffers provide efficient CPU access to GPU data without the overhead of always maintaining a CPU copy**.
+> When should the CPU know what the GPU knows?
 
 ---
 
-## LRU Cache: Capacity-Based Eviction
+## A Different Ownership Model
 
-### The Pattern
+Most CPU-GPU programming starts from a CPU-centric worldview: you have data on the CPU, and you upload it to the GPU for rendering. The CPU is the source of truth; the GPU is a rendering servant.
 
-OpenRNDR uses a simple LRU cache for shader structures:
+OpenRNDR inverts this. GPU buffers are the primary owners of their data. The CPU can *optionally* maintain a shadow copy—a mirror of the GPU data—but only when needed. Most buffers never need CPU access after initial upload. Why pay the memory cost for mirrors you'll never use?
+
+The question guiding this exploration: *how do you provide CPU access to GPU data without paying for it universally?*
+
+---
+
+## Shadow Buffers: Mirrors on Demand
+
+### The Problem
+
+GPU buffers aren't directly accessible from CPU code. To read vertex positions back from the GPU, you must map the buffer, copy data, and unmap. This is expensive—it blocks the GPU, waits for pending work to complete, and involves driver overhead.
+
+Doing this every frame for every buffer is wasteful. Most buffers are write-once; you set them up, send them to the GPU, and never look at them again. But some buffers need frequent CPU access: dynamic geometry, procedurally animated meshes, readback for collision detection.
+
+### OpenRNDR's Solution
+
+Each buffer *can* have a shadow, but doesn't by default:
 
 ```kotlin
-// From openrndr-gl-common/src/commonMain/kotlin/Cache.kt:1-29
+override val shadow: ColorBufferShadow
+    get() {
+        if (multisample == Disabled) {
+            if (realShadow == null) {
+                realShadow = ColorBufferShadowGL3(this)
+            }
+            return realShadow!!
+        } else {
+            throw IllegalArgumentException("multisample targets cannot be shadowed")
+        }
+    }
+```
+
+The first time you access `buffer.shadow`, it allocates a CPU-side ByteBuffer matching the GPU buffer's size. Subsequent accesses return the cached shadow. If you never access the shadow, you never pay for it.
+
+The shadow itself is straightforward:
+
+```kotlin
+class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBufferShadow {
+    val size = colorBuffer.effectiveWidth * colorBuffer.effectiveHeight
+    val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
+    override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
+
+    override fun download() {
+        colorBuffer.read(buffer)  // GPU → CPU
+    }
+
+    override fun upload() {
+        colorBuffer.write(buffer)  // CPU → GPU
+    }
+}
+```
+
+Two explicit operations: `download()` pulls GPU data to the CPU shadow; `upload()` pushes CPU changes to the GPU. The sync is manual, which means you control when the expensive operations happen.
+
+### Partial Uploads
+
+For vertex buffers, OpenRNDR supports partial synchronization:
+
+```kotlin
+override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
+    // Upload only a portion of the shadow to GPU
+}
+```
+
+If you modify vertices 100-200 in a 10,000-vertex buffer, you can upload just those 400 bytes instead of the entire buffer. This matters for dynamic geometry where small regions change frequently.
+
+### The Memory Tradeoff
+
+Shadows double memory usage for the buffers that use them. A 4K RGBA texture takes 33MB on the GPU; with a shadow, it takes another 33MB on the CPU. For render targets that never need CPU access, that's pure waste.
+
+The lazy allocation solves this: most buffers have `realShadow == null` and consume no extra memory. Only the buffers that actually need CPU access pay the cost.
+
+---
+
+## LRU Caching: Bounded Growth
+
+### The Problem
+
+Creative coding applications compile shaders dynamically—different blend modes, different vertex formats, different material parameters. Each combination might produce a different compiled shader. Without caching, you'd recompile the same shader every frame.
+
+But unbounded caching has its own problem: memory grows without limit. Run the application long enough with enough shader variations, and you exhaust memory.
+
+### OpenRNDR's Solution
+
+A simple LRU (Least Recently Used) cache with fixed capacity:
+
+```kotlin
 class LRUCache<K, V>(val capacity: Int = 1_000) {
     val map = mutableMapOf<K, V>()
     val order = ArrayDeque<K>()
@@ -41,148 +116,59 @@ class LRUCache<K, V>(val capacity: Int = 1_000) {
         order.addLast(key)
         map[key] = value
     }
-
-    fun getOrSet(key: K, forceSet: Boolean, valueFunction: () -> V): V {
-        if (!forceSet) {
-            get(key)?.let { return it }
-        }
-        val v = valueFunction()
-        set(key, v)
-        return v
-    }
 }
 ```
 
-### Why 1,000 Capacity?
+The cache holds at most 1,000 entries. When you exceed capacity, the least-recently-used entries get evicted. The working set of "shaders you're actively using" stays cached; obscure combinations eventually fall out.
 
-The default capacity of 1,000 is tuned for shader structures. A typical creative coding application might have:
-- 50-100 unique shaders
+### Why 1,000?
+
+The default capacity is tuned for typical creative coding workloads:
+- 50-100 unique base shaders
 - Each with multiple parameter combinations
-- Maybe 5-10x variants for different blend modes, etc.
+- Maybe 5-10x variants for different blend modes, vertex formats, etc.
 
-1,000 entries provides headroom without unbounded memory growth.
+1,000 entries provides comfortable headroom without unbounded growth. For unusual workloads, the capacity is configurable.
 
 ### Dirty Flag Integration
 
-The cache integrates with dirty flags via `forceSet`:
+The cache integrates with dirty flags via a `forceSet` parameter:
 
 ```kotlin
-// From ShadeStructureGLCommon.kt:22
+fun getOrSet(key: K, forceSet: Boolean, valueFunction: () -> V): V {
+    if (!forceSet) {
+        get(key)?.let { return it }
+    }
+    val v = valueFunction()
+    set(key, v)
+    return v
+}
+```
+
+When `forceSet` is true, the cache is bypassed—the value function runs unconditionally and replaces any cached entry. This hooks into OpenRNDR's material system:
+
+```kotlin
 shadeStyleCache.getOrSet(cacheEntry, shadeStyle?.dirty ?: false) {
     shadeStyle?.dirty = false
     // ... generate shader structure
 }
 ```
 
-When `shadeStyle.dirty` is true, the cache is bypassed and a fresh value is computed.
-
-### Flux Implications
-
-For Flux's caching:
-- **Bounded caches** - prevent unbounded growth
-- **LRU eviction** - simple, effective for temporal locality
-- **Force-invalidation** - integrate with dirty flags
-
----
-
-## Shadow Buffers: CPU-GPU Synchronization
-
-### The Problem
-
-GPU buffers aren't directly accessible from CPU code. To read or modify GPU data, you need to:
-1. Map the buffer (expensive, blocks GPU)
-2. Copy data
-3. Unmap the buffer
-
-Doing this per-frame for every buffer is wasteful.
-
-### OpenRNDR's Solution
-
-Shadow buffers provide a CPU-side mirror that syncs on demand:
-
-```kotlin
-// From ColorBufferShadowGL3.kt:1-129
-class ColorBufferShadowGL3(override val colorBuffer: ColorBufferGL3) : ColorBufferShadow {
-    val size = colorBuffer.effectiveWidth * colorBuffer.effectiveHeight
-    val elementSize = colorBuffer.format.componentCount * colorBuffer.type.componentSize
-    override val buffer: ByteBuffer = BufferUtils.createByteBuffer(elementSize * size)
-
-    override fun download() {
-        colorBuffer.read(buffer)  // GPU → CPU
-    }
-
-    override fun upload() {
-        colorBuffer.write(buffer)  // CPU → GPU
-    }
-
-    override fun destroy() {
-        // Cleanup...
-    }
-}
-```
-
-### Lazy Shadow Creation
-
-Shadows aren't created until first access:
-
-```kotlin
-// From ColorBufferGL3.kt:712-722
-override val shadow: ColorBufferShadow
-    get() {
-        if (multisample == Disabled) {
-            if (realShadow == null) {
-                realShadow = ColorBufferShadowGL3(this)
-            }
-            return realShadow!!
-        } else {
-            throw IllegalArgumentException("multisample targets cannot be shadowed")
-        }
-    }
-```
-
-This is important because:
-- Most buffers never need CPU access
-- Shadows double memory usage
-- Creating shadows is cheap but uses memory
-
-### VertexBuffer Shadow
-
-```kotlin
-// From VertexBufferGL3.kt:26-60
-class VertexBufferShadowGL3(override val vertexBuffer: VertexBufferGL3) : VertexBufferShadow {
-    val buffer: ByteBuffer = ByteBuffer.allocateDirect(
-        vertexBuffer.vertexCount * vertexBuffer.vertexFormat.size
-    ).apply { order(ByteOrder.nativeOrder()) }
-
-    override fun upload(offsetInBytes: Int, sizeInBytes: Int) {
-        // Partial upload support
-    }
-
-    override fun download() {
-        // Full download
-    }
-}
-```
-
-Note the partial upload support - you can sync just a portion of the buffer.
-
-### Flux Implications
-
-For Flux's CPU-GPU synchronization:
-- **Lazy shadows** - don't create until needed
-- **Explicit sync direction** - download vs upload
-- **Partial sync** - for large buffers with small changes
+When a material's dirty flag is set, its shader recompiles regardless of cache state. The dirty flag integrates seamlessly with the caching layer.
 
 ---
 
 ## Session-Based Resource Tracking
 
-### The Pattern
+### The Problem
 
-OpenRNDR uses sessions to track GPU resources:
+GPU resources must be cleaned up eventually. In OpenGL or Vulkan, forgetting to delete a buffer leaks memory. But tracking every resource individually is tedious and error-prone.
+
+### OpenRNDR's Solution: Sessions
+
+A session is a scope that owns resources:
 
 ```kotlin
-// From Session.kt:99-112
 val renderTargets: Set<RenderTarget> = mutableSetOf()
 val colorBuffers: Set<ColorBuffer> = mutableSetOf()
 val depthBuffers: Set<DepthBuffer> = mutableSetOf()
@@ -192,12 +178,9 @@ val shaders: Set<Shader> = mutableSetOf()
 // ... 10+ more resource types
 ```
 
-### Automatic Tracking
-
-Resources are registered on creation:
+When you create a resource, it registers with the current session:
 
 ```kotlin
-// From DriverGL3.kt:517
 override fun createColorBuffer(...): ColorBuffer {
     synchronized(this) {
         val colorBuffer = ColorBufferGL3.create(...)
@@ -207,12 +190,9 @@ override fun createColorBuffer(...): ColorBuffer {
 }
 ```
 
-### Batch Cleanup
-
-When a session ends, all its resources are destroyed:
+When a session ends, all its resources clean up together:
 
 ```kotlin
-// From Session.kt:206-210
 colorBuffers as MutableSet<ColorBuffer>
 colorBuffers.map { it }.forEach {
     it.destroy()
@@ -222,10 +202,9 @@ colorBuffers.clear()
 
 ### Hierarchical Sessions
 
-Sessions can have parent-child relationships:
+Sessions can nest. A root session owns application-lifetime resources. A child session owns per-scene resources. A grandchild owns per-frame temporaries:
 
 ```kotlin
-// From Session.kt (conceptual)
 class Session {
     val parent: Session?
     val children: MutableList<Session>
@@ -237,28 +216,17 @@ class Session {
 }
 ```
 
-This enables patterns like:
-- Root session for application-lifetime resources
-- Child sessions for per-scene resources
-- Grandchild sessions for per-frame temporaries
-
-### Flux Implications
-
-For Flux's resource lifetime:
-- **Session-based grouping** - resources belong to a scope
-- **Automatic cleanup** - session end cleans its resources
-- **Hierarchical ownership** - parent-child for nested scopes
+End the parent, and all descendants clean up automatically. This matches the natural hierarchy of creative coding applications: application → scene → frame → effect.
 
 ---
 
-## Resource Destruction
+## Destruction Guards
 
-### The Pattern
+### Double-Free Prevention
 
-Resources track their own destruction state:
+GPU resource destruction needs care. Delete a buffer twice, and you get undefined behavior—usually a crash, sometimes silent corruption. OpenRNDR guards against this:
 
 ```kotlin
-// From VertexBufferGL3.kt:204-217
 override fun destroy() {
     if (!isDestroyed) {
         logger.debug { "destroying vertex buffer with id $buffer" }
@@ -273,35 +241,45 @@ override fun destroy() {
 }
 ```
 
-Key details:
-- `isDestroyed` flag prevents double-destroy
-- Session untrack happens before GL deletion
-- Shadow is nulled (allows GC)
-- VAOs referencing this buffer are cleaned up
+The `isDestroyed` flag ensures the cleanup code runs exactly once. Subsequent calls are no-ops.
+
+Notice the order: session untrack happens *before* the GL deletion. This prevents the session from holding a reference to a destroyed resource. The shadow is nulled, allowing garbage collection of the CPU-side memory.
 
 ### Shadow Cleanup
 
-Shadows can be destroyed independently:
+Sometimes you want to free the CPU shadow while keeping the GPU resource:
 
 ```kotlin
-// From ColorBufferGL3.kt:296-298
 fun destroyShadow() {
     realShadow = null
 }
 ```
 
-This frees CPU memory while keeping the GPU resource.
+After initial upload, you might not need CPU access anymore. Destroying the shadow reclaims CPU memory while the GPU resource continues working.
 
 ---
 
 ## Shader Dirty Tracking
 
-### The Pattern
+### Cache Keys That Capture Everything
 
-ShadeStyle (OpenRNDR's material equivalent) has a dirty flag:
+The shader cache needs keys that uniquely identify each shader variant:
 
 ```kotlin
-// From ShadeStyle.kt (conceptual)
+private data class CacheEntry(
+    val shadeStyle: ShadeStyle?,
+    val vertexFormats: List<VertexFormat>,
+    val instanceAttributeFormats: List<VertexFormat>
+)
+```
+
+The key includes everything that affects compilation: the material, the vertex format, the instance attributes. Different vertex formats might enable different shader code paths, so they're part of the key.
+
+### Integration with Materials
+
+Materials track their own dirtiness:
+
+```kotlin
 class ShadeStyle {
     var dirty = true
 
@@ -312,80 +290,43 @@ class ShadeStyle {
 }
 ```
 
-The shader cache checks this flag:
-
-```kotlin
-// From ShadeStructureGLCommon.kt:22
-shadeStyleCache.getOrSet(cacheEntry, shadeStyle?.dirty ?: false) {
-    shadeStyle?.dirty = false  // Clear after recompile
-    // ... compile shader
-}
-```
-
-### Cache Key Design
-
-The cache key includes all factors that affect compilation:
-
-```kotlin
-// From ShadeStructureGLCommon.kt:8-12
-private data class CacheEntry(
-    val shadeStyle: ShadeStyle?,
-    val vertexFormats: List<VertexFormat>,
-    val instanceAttributeFormats: List<VertexFormat>
-)
-```
-
-Different vertex formats produce different shaders, so they're part of the key.
+Change a material parameter, and its shader needs recompilation. The dirty flag propagates through the cache's `forceSet` mechanism.
 
 ---
 
-## Summary: Key Patterns for Flux
+## Lessons for Flux
 
-| Pattern | OpenRNDR Approach | Flux Application |
-|---------|-------------------|------------------|
-| **Shader caching** | LRU with 1K capacity | Bounded cache, evict old entries |
-| **Dirty integration** | `forceSet` parameter | Bypass cache when dirty |
-| **CPU-GPU sync** | Shadow buffers | Lazy CPU mirror on demand |
-| **Lazy creation** | Shadow on first access | Don't allocate until needed |
-| **Partial sync** | Upload with offset/size | Efficient for large buffers |
-| **Resource tracking** | Session sets | Track by scope/owner |
-| **Hierarchical cleanup** | Parent-child sessions | Nested lifetimes |
-| **Destruction guard** | `isDestroyed` flag | Prevent double-free |
-| **Cache key** | Data class with all factors | Include all variant factors |
+OpenRNDR's patterns suggest several approaches:
 
----
+**Lazy shadows for optional CPU access.** Don't allocate CPU mirrors unless they're actually needed. The first access creates the shadow; most resources never need it.
 
-## Design Insight: Lazy Everything
+**Explicit sync direction.** Distinguish `download()` (GPU → CPU) from `upload()` (CPU → GPU). Let user code control when expensive synchronization happens.
 
-OpenRNDR's approach is deeply lazy:
-- Shadows created on first access
-- Shaders compiled on first use (then cached)
-- VAOs created when first drawn
-- Resources destroyed when session ends
+**Bounded caches with LRU eviction.** Fixed capacity prevents unbounded memory growth. LRU ensures the working set stays cached while cold entries eventually evict.
 
-This fits creative coding well - you might define 100 potential elements but only render 10. Lazy creation means the 90 unused elements cost nothing.
+**Force-invalidation through caches.** The `forceSet` pattern lets dirty flags bypass caching cleanly. One mechanism handles both cache hits and dirty-triggered recomputation.
 
-`★ Insight ─────────────────────────────────────`
-The shadow buffer pattern inverts typical CPU-GPU thinking. Instead of "GPU mirrors CPU data," it's "CPU can optionally mirror GPU data." This makes the GPU the primary owner, which aligns with modern graphics programming.
-`─────────────────────────────────────────────────`
+**Session-based resource ownership.** Group resources by lifetime scope. When the scope ends, everything in it cleans up. Hierarchical sessions match the natural structure of applications.
+
+**Destruction guards.** Track whether a resource has been destroyed. Never double-free. Cleanup happens exactly once.
 
 ---
 
 ## Source Files
 
-| File | Purpose |
-|------|---------|
-| `openrndr-gl-common/src/.../Cache.kt:1-29` | LRU cache |
-| `openrndr-gl-common/src/.../ShadeStructureGLCommon.kt:8-22` | Shader caching |
-| `openrndr-jvm/openrndr-gl3/src/.../ColorBufferShadowGL3.kt:1-129` | Color buffer shadow |
-| `openrndr-jvm/openrndr-gl3/src/.../VertexBufferGL3.kt:26-217` | Vertex buffer + shadow |
-| `openrndr-jvm/openrndr-gl3/src/.../ColorBufferGL3.kt:712-939` | Lazy shadow, destruction |
-| `openrndr-draw/src/.../Session.kt:99-276` | Session tracking |
+| File | Key Lines | Purpose |
+|------|-----------|---------|
+| `openrndr-gl-common/src/.../Cache.kt` | 1-29 | LRU cache |
+| `openrndr-gl-common/src/.../ShadeStructureGLCommon.kt` | 8-22 | Shader caching |
+| `openrndr-jvm/openrndr-gl3/src/.../ColorBufferShadowGL3.kt` | 1-129 | Color buffer shadow |
+| `openrndr-jvm/openrndr-gl3/src/.../VertexBufferGL3.kt` | 26-217 | Vertex buffer + shadow |
+| `openrndr-jvm/openrndr-gl3/src/.../ColorBufferGL3.kt` | 712-939 | Lazy shadow, destruction |
+| `openrndr-draw/src/.../Session.kt` | 99-276 | Session tracking |
 
 ---
 
 ## Related Documents
 
-- [tixl.md](tixl.md) - Different dirty flag approach
-- [../cache-invalidation.md](../cache-invalidation.md) - Cross-framework comparison
-- [wgpu.md](wgpu.md) - Lower-level patterns these build on
+- [tixl.md](tixl.md) — Different dirty flag approach (reference/target)
+- [../cache-invalidation.md](../cache-invalidation.md) — Cross-framework comparison
+- [wgpu.md](wgpu.md) — Lower-level patterns these build on

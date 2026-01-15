@@ -1,38 +1,25 @@
-# Flux GPU Resource Pool: Implementation Recommendations
+# Flux GPU Resource Pool: What We Learned
 
-> Synthesized recommendations from cross-framework research
-
----
-
-## Executive Summary
-
-Based on studying wgpu, nannou, rend3, tixl, OpenRNDR, Three.js, Cinder, and Processing, here are the recommended patterns for Flux's GPU resource pool:
-
-| Concern | Recommendation | Inspired By |
-|---------|----------------|-------------|
-| **Handle design** | Arc-wrapped for most, dense indices if needed | wgpu, rend3 |
-| **Dirty tracking** | Reference/Target with frame deduplication | tixl |
-| **Partial updates** | Update range tracking for large buffers | Three.js |
-| **Allocation** | Per-resource initially, megabuffer if needed | wgpu → rend3 |
-| **Reclamation** | Drop-based with 2-frame delay | wgpu + rend3 |
-| **Command batching** | Single encoder + deferred operations | wgpu + rend3 |
+> Synthesizing patterns from eight frameworks into concrete guidance
 
 ---
 
-## 1. Dirty Flag Integration
+## The Story So Far
 
-### Core Implementation
+We studied eight frameworks—wgpu, nannou, rend3, tixl, OpenRNDR, Three.js, Cinder, and Processing—each with battle-tested solutions to GPU resource management. They span languages (Rust, Kotlin, JavaScript, C++, Java, C#), audiences (creative coders, game developers, web developers), and scales (hundreds of resources to tens of thousands).
 
-Adopt tixl's reference/target pattern with frame-based deduplication:
+Despite their differences, consistent patterns emerged. The same problems recur; the same solutions appear in different guises. What follows is a distillation: the patterns that matter most for Flux, presented not as abstract theory but as concrete recommendations.
+
+---
+
+## Dirty Flags: The tixl Way
+
+For Flux's node graph, tixl's reference/target pattern with frame deduplication is the clear choice:
 
 ```rust
-/// Frame-aware dirty flag that prevents double-invalidation
 pub struct DirtyFlag {
-    /// Last known clean state
     reference: u32,
-    /// Current dirty state (incremented on invalidation)
     target: u32,
-    /// Frame when last invalidated (prevents double-invalidation)
     invalidated_frame: u64,
 }
 
@@ -45,14 +32,10 @@ impl DirtyFlag {
         }
     }
 
-    /// Returns true if this flag needs processing
-    #[inline]
     pub fn is_dirty(&self) -> bool {
         self.reference != self.target
     }
 
-    /// Mark as dirty. Returns target value for propagation.
-    /// Safe to call multiple times per frame.
     pub fn invalidate(&mut self, current_frame: u64) -> u32 {
         if self.invalidated_frame == current_frame {
             return self.target;  // Already invalidated this frame
@@ -62,14 +45,18 @@ impl DirtyFlag {
         self.target
     }
 
-    /// Mark as clean after processing
     pub fn clear(&mut self) {
         self.reference = self.target;
     }
 }
 ```
 
-### Integration with Node Graph
+This pattern handles everything Flux needs:
+- **Diamond dependencies**: Multiple paths to the same node don't multiply invalidation
+- **Independent tracking**: Multiple consumers can check staleness independently
+- **Debugging information**: The difference between target and reference tells you how far behind you are
+
+### Integration with the Node Graph
 
 ```rust
 pub struct Slot<T> {
@@ -82,7 +69,7 @@ impl<T> Slot<T> {
     pub fn set(&mut self, value: T, frame: u64) {
         self.value = value;
         self.dirty_flag.invalidate(frame);
-        // Propagate to connected slots handled by graph
+        // Propagation handled by graph
     }
 
     pub fn update(&mut self, frame: u64, compute: impl FnOnce() -> T) {
@@ -96,23 +83,19 @@ impl<T> Slot<T> {
 
 ---
 
-## 2. Update Range Tracking
+## Update Ranges: When Precision Matters
 
-### For Large Dynamic Buffers
-
-Adopt Three.js pattern for buffers where only portions change:
+For large buffers with sparse updates—particle positions, instance transforms, dynamic geometry—track which portions changed:
 
 ```rust
-/// Buffer with tracked dirty regions
 pub struct TrackedBuffer {
     buffer: wgpu::Buffer,
     data: Vec<u8>,
     dirty_ranges: Vec<Range<u64>>,
-    dirty_flag: DirtyFlag,  // Coarse "anything changed" flag
+    dirty_flag: DirtyFlag,
 }
 
 impl TrackedBuffer {
-    /// Write data at offset, tracking the dirty range
     pub fn write(&mut self, offset: u64, data: &[u8], frame: u64) {
         let end = offset + data.len() as u64;
         self.data[offset as usize..end as usize].copy_from_slice(data);
@@ -120,13 +103,12 @@ impl TrackedBuffer {
         self.dirty_flag.invalidate(frame);
     }
 
-    /// Upload only dirty regions to GPU
     pub fn flush(&mut self, queue: &wgpu::Queue) {
         if !self.dirty_flag.is_dirty() {
             return;
         }
 
-        // Optional: merge adjacent ranges (Three.js WebGL pattern)
+        // Optional: merge adjacent ranges
         self.merge_adjacent_ranges();
 
         for range in self.dirty_ranges.drain(..) {
@@ -139,64 +121,37 @@ impl TrackedBuffer {
 
         self.dirty_flag.clear();
     }
-
-    fn merge_adjacent_ranges(&mut self) {
-        if self.dirty_ranges.len() <= 1 {
-            return;
-        }
-
-        self.dirty_ranges.sort_by_key(|r| r.start);
-
-        let mut merged = Vec::with_capacity(self.dirty_ranges.len());
-        let mut current = self.dirty_ranges[0].clone();
-
-        for range in self.dirty_ranges.iter().skip(1) {
-            if range.start <= current.end {
-                // Overlapping or adjacent - merge
-                current.end = current.end.max(range.end);
-            } else {
-                // Gap - keep separate
-                merged.push(current);
-                current = range.clone();
-            }
-        }
-        merged.push(current);
-
-        self.dirty_ranges = merged;
-    }
 }
 ```
 
-### When to Use
+### When to Use Update Ranges
 
 | Buffer Type | Use Update Ranges? |
 |-------------|-------------------|
-| Uniform buffers (<256 bytes) | No - upload whole buffer |
-| Transform arrays (100-1000 elements) | Maybe - profile first |
-| Vertex buffers (>10K vertices) | Yes - if sparse updates |
-| Instance data (>1K instances) | Yes - common use case |
+| Uniform buffers (<256 bytes) | No — upload entire buffer |
+| Transform arrays (100-1000 elements) | Maybe — profile first |
+| Vertex buffers (>10K vertices) | Yes — if sparse updates |
+| Instance data (>1K instances) | Yes — common use case |
+
+The overhead of tracking ranges isn't worth it for small buffers. For large buffers with localized changes, the bandwidth savings are substantial.
 
 ---
 
-## 3. Resource Pool Structure
+## Resource Pool: The Frame Rhythm
 
-### Core Design
+Flux's resource pool should follow the natural frame rhythm: collect dirty resources, batch uploads, process deletions at boundaries.
 
 ```rust
 pub struct ResourcePool {
-    // Resources
     buffers: Vec<Option<BufferEntry>>,
     textures: Vec<Option<TextureEntry>>,
 
-    // Freelists for handle recycling (rend3 pattern)
     buffer_freelist: Vec<u32>,
     texture_freelist: Vec<u32>,
 
-    // Deferred operations (rend3 instruction queue, simplified)
     pending_uploads: Vec<UploadOp>,
     pending_deletes: VecDeque<Vec<ResourceId>>,
 
-    // Frame tracking
     current_frame: u64,
     delete_delay_frames: usize,  // Default: 2
 }
@@ -204,31 +159,7 @@ pub struct ResourcePool {
 struct BufferEntry {
     buffer: wgpu::Buffer,
     dirty_flag: DirtyFlag,
-    staged_data: Option<Vec<u8>>,  // For CPU-side staging
-}
-
-struct TextureEntry {
-    texture: wgpu::Texture,
-    view: wgpu::TextureView,
-    dirty_flag: DirtyFlag,
-}
-```
-
-### Handle Types
-
-```rust
-/// Opaque handle to a buffer in the pool
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct BufferHandle {
-    index: u32,
-    generation: u16,  // For use-after-free detection
-}
-
-/// Opaque handle to a texture in the pool
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TextureHandle {
-    index: u32,
-    generation: u16,
+    staged_data: Option<Vec<u8>>,
 }
 ```
 
@@ -236,13 +167,10 @@ pub struct TextureHandle {
 
 ```rust
 impl ResourcePool {
-    /// Called at start of frame
     pub fn begin_frame(&mut self) {
         self.current_frame += 1;
-        DirtyFlag::increment_global_ticks();  // If using global tick counter
     }
 
-    /// Upload dirty resources to GPU
     pub fn process_uploads(&mut self, queue: &wgpu::Queue) {
         // Process pending upload operations
         for op in self.pending_uploads.drain(..) {
@@ -259,7 +187,7 @@ impl ResourcePool {
             }
         }
 
-        // Process tracked buffers with dirty ranges
+        // Process tracked buffers with dirty flags
         for entry in self.buffers.iter_mut().flatten() {
             if entry.dirty_flag.is_dirty() {
                 if let Some(staged) = &entry.staged_data {
@@ -270,9 +198,8 @@ impl ResourcePool {
         }
     }
 
-    /// Process deferred deletions (call after submit)
     pub fn process_deletions(&mut self) {
-        // Queue this frame's deletions
+        // Queue this frame's deletes
         let this_frame = std::mem::take(&mut self.pending_deletes_this_frame);
         self.pending_deletes.push_back(this_frame);
 
@@ -284,26 +211,47 @@ impl ResourcePool {
             }
         }
     }
-
-    /// Mark resource for deferred deletion
-    pub fn delete(&mut self, handle: impl Into<ResourceId>) {
-        self.pending_deletes_this_frame.push(handle.into());
-    }
 }
 ```
 
 ---
 
-## 4. Shader Caching
+## Handle Design: Match Complexity to Volume
 
-### Two-Level Cache (tixl pattern)
+Start simple. Add sophistication only when measurements demand it.
+
+```rust
+// For most resources: opaque handles with generation checks
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BufferHandle {
+    index: u32,
+    generation: u16,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TextureHandle {
+    index: u32,
+    generation: u16,
+}
+```
+
+| Resource Type | Recommended Handle | Rationale |
+|---------------|-------------------|-----------|
+| Device/Queue | Arc-wrapped | Few, shared, automatic cleanup |
+| Buffers | Generation + index | Moderate count, varied lifetimes |
+| Textures | Generation + index | Few, often shared between nodes |
+| Mesh data | Generation + index | Many small allocations possible |
+| Bind groups | Recreate per-frame | Cheap, depend on multiple resources |
+
+---
+
+## Shader Caching: Two Levels
+
+Shaders are expensive to compile. Cache at two levels:
 
 ```rust
 pub struct ShaderCache {
-    // In-memory: hash → compiled module
     memory_cache: HashMap<u64, wgpu::ShaderModule>,
-
-    // Disk: hash → spirv/wgsl bytes (optional)
     disk_cache_dir: Option<PathBuf>,
 }
 
@@ -336,7 +284,7 @@ impl ShaderCache {
                 ..Default::default()
             });
 
-            // Cache to disk (async, fire-and-forget)
+            // Cache to disk (async)
             self.save_to_disk(hash, &module);
 
             module
@@ -345,97 +293,64 @@ impl ShaderCache {
 }
 ```
 
----
-
-## 5. Thread Safety Considerations
-
-### Phase 1: Single-Threaded
-
-Start simple - all GPU work on one thread:
-
-```rust
-pub struct Renderer {
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    pool: ResourcePool,
-    // All on main thread
-}
-```
-
-### Phase 2: Parallel Command Recording (if needed)
-
-Design for future parallel recording without major refactoring:
-
-```rust
-pub struct ParallelRenderer {
-    device: Arc<wgpu::Device>,
-    queue: Arc<wgpu::Queue>,
-    pool: Arc<Mutex<ResourcePool>>,
-}
-
-impl ParallelRenderer {
-    pub fn record_parallel<F, R>(&self, chunks: Vec<F>) -> Vec<wgpu::CommandBuffer>
-    where
-        F: FnOnce(&wgpu::Device) -> wgpu::CommandBuffer + Send,
-    {
-        chunks.into_par_iter()
-            .map(|f| f(&self.device))
-            .collect()
-    }
-}
-```
+Hot shaders stay in memory. Cold shaders load from disk. First-time compilations hit the compiler, but results persist across sessions.
 
 ---
 
-## 6. Open Questions for Prototyping
-
-These questions should be resolved through prototyping:
-
-### Megabuffer Threshold
-- At what mesh count does megabuffer become worthwhile?
-- Start with 100+ meshes as threshold
-
-### Range Merging Value
-- Is Three.js-style merging worth it for wgpu?
-- wgpu's `queue.writeBuffer` may be cheap enough to skip merging
-
-### Bind Group Caching
-- Should Flux cache bind groups or recreate per-frame?
-- Profile both approaches with typical node graphs
-
-### Shader Hot-Reload
-- How to integrate shader dirty flags with hot reload?
-- Consider file watcher → dirty flag integration
-
----
-
-## 7. Implementation Phases
+## Implementation Phases
 
 ### Phase 1: Foundation
-- [ ] DirtyFlag struct with frame deduplication
-- [ ] Basic ResourcePool with Arc-wrapped resources
-- [ ] Single-encoder command recording
-- [ ] Drop-based cleanup with 2-frame delay
+
+The minimum viable resource pool:
+
+- DirtyFlag struct with frame deduplication
+- Basic ResourcePool with generation-checked handles
+- Single-encoder command recording
+- Drop-based cleanup with 2-frame delay
+
+This is enough for simple creative coding. It handles the common cases correctly and safely.
 
 ### Phase 2: Optimization
-- [ ] Update range tracking for large buffers
-- [ ] Shader caching (memory + disk)
-- [ ] Dense index handles for high-volume resources
 
-### Phase 3: Advanced (if needed)
-- [ ] Megabuffer + range allocator
-- [ ] Parallel command recording
-- [ ] Render graph for complex passes
+Add when profiling shows need:
+
+- Update range tracking for large buffers
+- Shader caching (memory + disk)
+- Range merging for many small updates
+
+Don't add these preemptively. Measure first, optimize second.
+
+### Phase 3: Scale
+
+If Flux grows to handle complex scenes:
+
+- Megabuffer + range allocator for geometry
+- Parallel command recording
+- Render graph for multi-pass pipelines
+
+These are substantial complexity investments. Defer until the simpler approaches prove insufficient.
 
 ---
 
-## Summary
+## Principles to Remember
 
-The research across 8 frameworks reveals consistent patterns:
+**Dirty tracking is universal.** Every framework we studied tracks what changed. The mechanism varies—boolean flags, version counters, reference/target pairs—but the need is constant.
 
-1. **Dirty tracking is universal** - every framework tracks what changed
-2. **Deferred operations are common** - batch work, process at boundaries
-3. **Granularity matters** - coarse flags + fine ranges for different cases
-4. **Simplicity first** - start simple, optimize based on profiling
+**Deferred operations are common.** Batch work, process at boundaries. User code operates with handles; GPU work happens at frame end.
 
-Flux should adopt the tixl dirty flag system (already planned) and integrate it with a resource pool inspired by rend3's instruction queue and Three.js's update ranges. Start simple, measure, and add complexity only where profiling shows benefit.
+**Granularity matters.** Coarse flags for most resources, fine-grained ranges for large dynamic buffers. Match tracking granularity to update patterns.
+
+**Simplicity first.** Start with per-resource allocation and single-threaded rendering. Add megabuffers, parallelism, or render graphs only when profiling shows the need.
+
+**Safety over speed.** For creative coding, memory is abundant and debugging use-after-free is painful. Err toward conservative reclamation, generous delays, and automatic cleanup.
+
+The frameworks we studied evolved these patterns through years of real-world use. They're not arbitrary—they're the solutions that survived contact with actual applications. Flux should adopt them thoughtfully, starting simple and adding complexity only where measurements prove it necessary.
+
+---
+
+## Related Documents
+
+- [README.md](README.md) — Overview of the research
+- [per-framework/](per-framework/) — Deep dives into each framework
+- [cache-invalidation.md](cache-invalidation.md) — Dirty flag patterns in detail
+- [handle-designs.md](handle-designs.md) — Handle pattern catalog

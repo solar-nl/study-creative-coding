@@ -1,264 +1,171 @@
-# GPU Resource Management Patterns
+# GPU Resource Management
 
-> How creative coding frameworks manage buffers, textures, and GPU state
-
----
-
-## Overview
-
-This directory documents GPU resource management patterns across creative coding frameworks. The research answers seven questions critical for designing Flux's resource pool:
-
-1. **Resource Types**: What GPU resources need management?
-2. **Handle Design**: How do frameworks represent GPU resources?
-3. **Allocation Strategy**: When and how is GPU memory allocated?
-4. **Cache Invalidation**: How do frameworks track what needs updating?
-5. **Reclamation Timing**: When are resources freed?
-6. **Thread Safety**: How is concurrent access managed?
-7. **Command Batching**: How are GPU commands organized?
+> How do you keep the GPU fed without drowning in bookkeeping?
 
 ---
 
-## Quick Comparison Tables
+## The Central Tension
 
-### Handle Design
+Every frame, creative coding applications shuttle data to the GPU: vertex positions, texture pixels, transformation matrices, shader parameters. The naive approach—upload everything fresh each frame—works for simple sketches but collapses under complexity. A thousand particles, each with position and color? That's millions of bytes per second, most of it unchanged.
 
-| Framework | Handle Type | Cloning | Lifetime |
-|-----------|-------------|---------|----------|
-| **wgpu** | Arc-wrapped dispatch | Cheap (Arc::clone) | Ref-counted, drop frees |
-| **nannou** | Weak + Arc DeviceQueuePair | Cheap | Auto-cleanup when windows close |
-| **rend3** | Dense integer index + freelist | Zero-cost (Copy) | Explicit via instruction queue |
-| **tixl** | Direct object reference | N/A (C#) | GC + IDisposable |
-| **OpenRNDR** | Object with context tracking | N/A (Kotlin) | Session-based cleanup |
-| **Three.js** | JavaScript object | Reference | Manual dispose() |
-| **Cinder** | shared_ptr&lt;BufferObj&gt; | Ref-count | RAII destructor |
-| **Processing** | Weak reference + GLResource | N/A (Java) | Context-validity check |
+The solution seems obvious: track what changed, upload only that. But this simple idea spawns a thicket of questions. How do you know what changed? When is it safe to free GPU memory? What if multiple parts of your application reference the same buffer? How do you organize uploads to minimize driver overhead?
 
-### Dirty Flag Approaches
-
-| Framework | Dirty Mechanism | Granularity | Propagation |
-|-----------|-----------------|-------------|-------------|
-| **tixl** | Reference/Target integers | Per-slot | Recursive with dedup |
-| **Three.js** | Version counter + ranges | Per-resource + byte ranges | None (pull-based) |
-| **OpenRNDR** | Boolean + LRU forceSet | Per-resource | None |
-| **rend3** | group_dirty flag | Per-manager | None |
-
-### Allocation Strategies
-
-| Framework | Buffer Strategy | Growth | Initial Size |
-|-----------|-----------------|--------|--------------|
-| **rend3** | Megabuffer + range allocator | Reallocate + copy | 32MB |
-| **Processing** | Exponential (power of 2) | Double until fits | 256/512 elements |
-| **Cinder** | Exact reallocation | Match requested size | Per-mesh |
-| **wgpu** | Per-buffer allocation | N/A (no pooling) | Per-descriptor |
-
-### Cache/Invalidation
-
-| Framework | Cache Type | Eviction | Integration |
-|-----------|------------|----------|-------------|
-| **OpenRNDR** | LRU (1K capacity) | Oldest first | forceSet on dirty |
-| **tixl** | Memory + disk (shaders) | N/A | DirtyFlag.IsDirty check |
-| **Three.js** | Version comparison | Implicit (overwrite) | needsUpdate trigger |
-
-### Thread Safety
-
-| Framework | Resource Creation | Command Recording | Queue Submit |
-|-----------|-------------------|-------------------|--------------|
-| **wgpu** | Send + Sync | Parallel encoders | Needs coordination |
-| **nannou** | Mutex on maps | Single-threaded | Single queue |
-| **rend3** | Instruction queue | Not exposed | Internal |
-| **OpenRNDR** | synchronized block | Single-threaded | Single-threaded |
+These questions led us to study eight frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding.
 
 ---
 
-## Key Patterns by Research Question
+## The Cast of Frameworks
 
-### Q1: Resource Types
+We studied frameworks spanning languages, eras, and design philosophies:
 
-All frameworks manage the same core resources:
-- **Buffers**: Vertex, index, uniform/constant, storage
-- **Textures**: 2D, cube, render targets
-- **Shaders**: Compiled programs, modules
-- **State objects**: Pipelines, bind groups, VAOs
+**The Rust Ecosystem**
+- **wgpu** — The foundation. A safe, portable GPU abstraction that Flux will build upon.
+- **nannou** — Creative coding on wgpu, with elegant device pooling for multi-window applications.
+- **rend3** — A production 3D renderer showing how to scale resource management.
 
-### Q2: Handle Design
+**The Visual Programming World**
+- **tixl** — A node-based tool with a dirty flag system remarkably similar to what Flux needs.
+- **OpenRNDR** — Kotlin creative coding with LRU caches and shadow buffers.
 
-Three main approaches emerged:
+**The Web**
+- **Three.js** — JavaScript's dominant 3D library, pioneering update range tracking.
 
-| Approach | Example | Trade-offs |
-|----------|---------|------------|
-| **Arc-wrapped** | wgpu, nannou | Safe, slight overhead, implicit lifetime |
-| **Dense index** | rend3 | Zero-cost lookup, explicit lifetime, freelist management |
-| **Direct reference** | tixl, Three.js | Simple, relies on GC or manual cleanup |
+**The Native Traditionalists**
+- **Cinder** — C++ creative coding with RAII patterns.
+- **Processing** — Java's approachable graphics, with context tracking for mobile.
 
-**Recommendation for Flux**: Consider dense indices for high-volume resources (mesh vertices), Arc-wrapped for lower-volume resources (textures, shaders).
-
-### Q3: Allocation Strategy
-
-| Strategy | When to Use |
-|----------|-------------|
-| **Per-resource** | Low volume, varying sizes |
-| **Megabuffer + suballoc** | High volume, frequent creation |
-| **Exponential growth** | Unknown final size |
-| **Exact allocation** | Known size, minimal waste |
-
-**Recommendation for Flux**: Start with per-resource (simpler), add megabuffer for geometry if profiling shows creation overhead.
-
-### Q4: Cache Invalidation
-
-| Pattern | Complexity | Best For |
-|---------|------------|----------|
-| **Boolean dirty** | O(1) | Simple cases |
-| **Version counter** | O(1) | Multiple consumers |
-| **Reference/Target** | O(1) | Frame deduplication |
-| **Update ranges** | O(n ranges) | Large buffers with small changes |
-
-**Recommendation for Flux**: Use tixl-style reference/target for dirty flags (already planned), add Three.js-style update ranges for large dynamic geometry.
-
-### Q5: Reclamation Timing
-
-| Strategy | When to Free |
-|----------|--------------|
-| **Immediate** | On drop/dispose |
-| **Deferred** | End of frame, poll() |
-| **Session-based** | When session ends |
-| **Instruction queue** | During render prep |
-
-**Recommendation for Flux**: Deferred (during frame boundary) aligns with dirty flag processing.
-
-### Q6: Thread Safety
-
-| Concern | Solution |
-|---------|----------|
-| Device sharing | Device pooling (nannou) |
-| Resource creation | Mutex or single-threaded |
-| Command recording | Multiple encoders |
-| Submission | Coordinate or single point |
-
-**Recommendation for Flux**: Single-threaded initially, design for parallel command recording later.
-
-### Q7: Command Batching
-
-| Pattern | Framework | Benefit |
-|---------|-----------|---------|
-| **Instruction queue** | rend3 | Decouple API from GPU |
-| **Encoder per thread** | wgpu | Parallel recording |
-| **Update range merging** | Three.js WebGL | Reduce GPU commands |
-
-**Recommendation for Flux**: Instruction queue pattern meshes well with dirty flag processing.
+Each framework solved the same fundamental problems, but their solutions reveal different priorities: safety versus performance, simplicity versus flexibility, immediate feedback versus batch efficiency.
 
 ---
 
-## Framework Deep Dives
+## Seven Questions, Many Answers
+
+### 1. What needs managing?
+
+All frameworks manage the same core resources, though they name them differently:
+
+| Resource | wgpu | Three.js | Cinder |
+|----------|------|----------|--------|
+| Vertex data | Buffer | BufferAttribute | VboMesh |
+| Images | Texture | Texture | Texture2d |
+| Shader programs | ShaderModule | ShaderMaterial | GlslProg |
+| GPU state bundles | BindGroup | — | Batch |
+
+The abstraction level varies—Three.js hides much of the GPU complexity, while wgpu exposes it directly—but the underlying resources are universal.
+
+### 2. How do you reference GPU resources?
+
+This is where frameworks diverge most sharply.
+
+**wgpu wraps resources in Arc.** Clone a buffer handle? You get another reference to the same GPU memory. Drop all references? The resource eventually frees. This is safe and ergonomic, but carries reference-counting overhead.
+
+**rend3 uses dense integer indices.** A mesh handle is just a number—an index into an array. Allocation is O(1), lookup is O(1), and freed indices go onto a freelist for reuse. Fast, but requires explicit lifetime management.
+
+**nannou adds Weak references** for device pooling. The pool doesn't keep devices alive; when all windows using a device close, it cleans up automatically.
+
+The lesson: match handle complexity to resource volume. Few textures? Arc is fine. Millions of particles? Consider indices.
+
+### 3. When do you allocate GPU memory?
+
+**Per-resource allocation** is simplest: each buffer gets its own GPU allocation. wgpu does this by default, and it's perfectly adequate for moderate resource counts.
+
+**Megabuffer suballocation** shines at scale. rend3 allocates a 32MB buffer upfront, then carves out regions for individual meshes. One GPU allocation serves hundreds of meshes, dramatically reducing driver overhead.
+
+**Exponential growth** handles unknown sizes. Processing doubles buffer capacity when it fills, amortizing reallocation cost. The alternative—exact reallocation each time—wastes less memory but costs more CPU.
+
+### 4. How do you know what changed?
+
+This question matters most for Flux, whose node graph must propagate changes efficiently.
+
+**Boolean dirty flags** are the simplest approach: `needsUpdate = true`. But they have a flaw—if two systems check the flag, only the first sees it dirty.
+
+**Version counters** solve this. Three.js increments a version number on each change; consumers cache the version they last processed. Multiple systems can independently track staleness.
+
+**tixl's reference/target pattern** goes further. A "target" integer increments on invalidation; a "reference" integer records the last processed state. The flag is dirty when they differ. Combined with frame-based deduplication (don't invalidate twice in the same frame), this handles complex dependency graphs elegantly.
+
+**Update ranges** add granularity. Instead of "this buffer changed," Three.js tracks "bytes 100-200 changed." For a 10,000-vertex buffer where only a few vertices moved, this means uploading kilobytes instead of megabytes.
+
+### 5. When do you free GPU memory?
+
+The GPU executes asynchronously. When your code says "delete this buffer," the GPU might still be using it for queued commands. Frameworks handle this tension differently:
+
+**wgpu defers cleanup internally.** Drop a buffer, and wgpu schedules deletion for when it's safe. You don't see this complexity.
+
+**rend3 uses an instruction queue.** Deletion becomes a queued operation, processed at frame boundaries after the GPU confirms completion.
+
+**OpenRNDR groups resources into sessions.** End a session, and all its resources clean up together—perfect for scene boundaries or temporary render targets.
+
+### 6. What about threads?
+
+wgpu resources are Send + Sync, meaning you can share them across threads safely. But this doesn't mean everything is automatically parallel:
+
+- **Resource creation** typically goes through a single device
+- **Command recording** can parallelize (multiple encoders)
+- **Queue submission** needs coordination
+
+Most creative coding stays single-threaded, and that's fine. Design for single-threaded first; add parallelism only if profiling demands it.
+
+### 7. How do you batch GPU commands?
+
+GPU commands aren't executed immediately—they're recorded into command buffers, then submitted in batches. The organization matters:
+
+**Single encoder per frame** is simplest. Record all your draws into one encoder, submit once.
+
+**Multiple encoders** enable parallel recording. Each thread gets its own encoder; you collect and submit them together.
+
+**Instruction queues** decouple user API from GPU work. rend3 lets you add a mesh and get a handle immediately, even though the actual GPU upload happens later. This simplifies user code while enabling sophisticated batching.
+
+---
+
+## What This Means for Flux
+
+The research points toward a layered approach:
+
+**Foundation: tixl-style dirty flags.** The reference/target pattern with frame deduplication handles node graph invalidation cleanly. This is already part of Flux's design.
+
+**Addition: Three.js-style update ranges.** For large dynamic buffers (particle systems, dynamic meshes), tracking byte ranges enables efficient partial uploads.
+
+**Structure: rend3-inspired resource pool.** Deferred operations mesh well with dirty flag processing—collect what's dirty, batch the uploads, process at frame boundaries.
+
+**Simplicity first.** Start with per-resource allocation and single-threaded rendering. Add megabuffers or parallelism only if profiling shows the need.
+
+The frameworks teach that there's no single correct approach—only tradeoffs appropriate to your constraints. Creative coding values rapid iteration and immediate feedback; optimize for those first.
+
+---
+
+## Document Map
+
+### Per-Framework Deep Dives
 
 | Document | Focus |
 |----------|-------|
-| [per-framework/wgpu.md](per-framework/wgpu.md) | Foundation patterns, Arc-wrapped handles, buffer mapping |
-| [per-framework/nannou.md](per-framework/nannou.md) | Device pooling, Weak references |
-| [per-framework/rend3.md](per-framework/rend3.md) | Managers pattern, megabuffers, instruction queue |
-| [per-framework/tixl.md](per-framework/tixl.md) | Dirty flag system, shader caching |
-| [per-framework/openrndr.md](per-framework/openrndr.md) | LRU cache, shadow buffers, sessions |
-| [per-framework/threejs.md](per-framework/threejs.md) | Update ranges, version tracking |
+| [wgpu.md](per-framework/wgpu.md) | The foundation: Arc-wrapped handles, buffer mapping, command encoding |
+| [nannou.md](per-framework/nannou.md) | Device pooling, Weak references, creative coding ergonomics |
+| [rend3.md](per-framework/rend3.md) | Production patterns: megabuffers, instruction queues, bindless textures |
+| [tixl.md](per-framework/tixl.md) | Dirty flag system, shader caching, node graph integration |
+| [openrndr.md](per-framework/openrndr.md) | LRU caching, shadow buffers, session-based cleanup |
+| [threejs.md](per-framework/threejs.md) | Update ranges, version tracking, backend abstraction |
 
----
+### Cross-Cutting Topics
 
-## Flux Recommendations
+| Document | Focus |
+|----------|-------|
+| [handle-designs.md](handle-designs.md) | Arc vs indices vs weak references |
+| [allocation-strategies.md](allocation-strategies.md) | Per-resource vs megabuffer vs pools |
+| [cache-invalidation.md](cache-invalidation.md) | Dirty flags, versions, update ranges |
+| [reclamation-timing.md](reclamation-timing.md) | When and how to free GPU memory |
+| [command-batching.md](command-batching.md) | Organizing GPU work efficiently |
 
-Based on this research, recommended approaches for Flux:
+### Synthesis
 
-### Handle Design
-```rust
-// Dense indices for high-volume resources
-pub struct MeshHandle(u32);
-
-// Arc-wrapped for lower-volume resources
-pub struct TextureHandle(Arc<TextureInner>);
-```
-
-### Dirty Flag Integration
-```rust
-pub struct DirtyFlag {
-    reference: u32,
-    target: u32,
-    invalidated_frame: u64,  // Prevents double-invalidation
-}
-
-impl DirtyFlag {
-    pub fn is_dirty(&self) -> bool {
-        self.reference != self.target
-    }
-
-    pub fn invalidate(&mut self, current_frame: u64) -> u32 {
-        if self.invalidated_frame == current_frame {
-            return self.target;
-        }
-        self.invalidated_frame = current_frame;
-        self.target = self.target.wrapping_add(1);
-        self.target
-    }
-
-    pub fn clear(&mut self) {
-        self.reference = self.target;
-    }
-}
-```
-
-### Update Ranges for Large Buffers
-```rust
-pub struct DynamicBuffer {
-    buffer: wgpu::Buffer,
-    update_ranges: Vec<Range<u64>>,
-}
-
-impl DynamicBuffer {
-    pub fn mark_range_dirty(&mut self, range: Range<u64>) {
-        self.update_ranges.push(range);
-    }
-
-    pub fn upload_dirty_ranges(&mut self, queue: &wgpu::Queue) {
-        // Optionally merge adjacent ranges first
-        for range in self.update_ranges.drain(..) {
-            queue.write_buffer(&self.buffer, range.start, &self.data[range]);
-        }
-    }
-}
-```
-
-### Resource Pool Structure
-```rust
-pub struct ResourcePool {
-    // Immediate dirty processing
-    dirty_buffers: Vec<BufferHandle>,
-
-    // Deferred operations (like rend3)
-    pending_uploads: Vec<UploadOperation>,
-    pending_deletes: Vec<DeleteOperation>,
-}
-
-impl ResourcePool {
-    pub fn process_frame(&mut self, encoder: &mut wgpu::CommandEncoder) {
-        // Process pending operations at frame boundary
-        for op in self.pending_uploads.drain(..) {
-            op.execute(encoder);
-        }
-        // Deferred deletes happen after GPU confirms completion
-    }
-}
-```
-
----
-
-## Open Questions
-
-1. **Megabuffer sizing**: Should Flux start with megabuffers (like rend3's 32MB) or grow into them?
-2. **Range merging**: Is the complexity of Three.js-style range merging worth it for wgpu backends?
-3. **Session hierarchy**: Should Flux support OpenRNDR-style hierarchical sessions?
-4. **Shadow buffers**: Are CPU-side shadows needed for Flux's use cases?
+| Document | Focus |
+|----------|-------|
+| [flux-recommendations.md](flux-recommendations.md) | Concrete recommendations for Flux implementation |
 
 ---
 
 ## Related Documents
 
-- [../README.md](../README.md) - Rendering overview (draw call batching)
-- [../instance-rendering.md](../instance-rendering.md) - Instance buffer patterns
-- [../primitive-strategies.md](../primitive-strategies.md) - Tier-based routing
-- [../../node-graphs/](../../node-graphs/) - Node graph dirty tracking context
+- [../README.md](../README.md) — Draw call batching strategies
+- [../instance-rendering.md](../instance-rendering.md) — Instance buffer patterns
+- [../../node-graphs/node-graph-architecture.md](../../node-graphs/node-graph-architecture.md) — Node graph execution models

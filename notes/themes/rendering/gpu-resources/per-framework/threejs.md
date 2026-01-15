@@ -1,28 +1,30 @@
-# Three.js: Update Range Tracking
+# Three.js: The Art of Partial Updates
 
-> How JavaScript's most popular 3D library optimizes GPU updates
-
----
-
-## Overview
-
-Three.js pioneered many patterns now common in web 3D graphics. Its approach to GPU resource management emphasizes **version-based dirty tracking** and **partial update ranges** that minimize data transfer to the GPU.
-
-The key insight: **tracking which portions of a buffer changed enables uploading only the modified regions, dramatically reducing bandwidth for large dynamic geometry**.
+> What if you could tell the GPU exactly which bytes changed?
 
 ---
 
-## Update Range Architecture
+## The Bandwidth Problem
 
-### The Core Pattern
+A vertex buffer with 10,000 vertices takes 480KB at 12 floats per vertex (position, normal, UV, color). Upload it every frame at 60fps, and you're pushing 28MB/second—just for one mesh. With a complex scene, bandwidth becomes the bottleneck.
 
-Every `BufferAttribute` can track which portions need GPU updates:
+But in most frames, most vertices don't change. A character's idle animation might move 500 vertices out of 10,000. The other 9,500 vertices are identical to last frame. Uploading everything is wasteful.
+
+Three.js pioneered a solution that's now standard across web 3D: update range tracking. Instead of "this buffer changed," you say "bytes 2400-4400 in this buffer changed." The GPU uploads 2KB instead of 480KB.
+
+The question guiding this exploration: *how do you track fine-grained changes without drowning in bookkeeping?*
+
+---
+
+## Update Ranges: Tracking What Actually Changed
+
+### The Core API
+
+Every `BufferAttribute` in Three.js maintains a list of dirty regions:
 
 ```javascript
-// From src/core/BufferAttribute.js:116
 this.updateRanges = [];
 
-// From BufferAttribute.js:178-191
 addUpdateRange(start, count) {
     this.updateRanges.push({ start, count });
 }
@@ -32,65 +34,75 @@ clearUpdateRanges() {
 }
 ```
 
-When you modify vertices 100-200 in a 10,000 vertex buffer, you add an update range covering just those vertices. The renderer then uploads only that portion.
+User code that modifies vertices can declare exactly which portion changed:
 
-### Why Arrays Instead of Single Range?
+```javascript
+// Modified vertices 100-200
+attribute.setXYZ(100, x1, y1, z1);
+// ... modify more vertices ...
+attribute.setXYZ(199, xN, yN, zN);
 
-Multiple disjoint regions might change in a single frame:
-- Vertex 100-200 (one object moved)
-- Vertex 5000-5100 (another object moved)
+// Tell Three.js what changed
+attribute.addUpdateRange(100, 100);
+attribute.needsUpdate = true;
+```
 
-Uploading vertices 100-5100 would waste bandwidth on unchanged data. The array allows tracking both regions separately.
+### Why an Array?
+
+A single range would be simpler, but consider a scene with two animated objects sharing a vertex buffer:
+- Object A uses vertices 100-200, and its arm moved
+- Object B uses vertices 5000-5100, and its leg moved
+
+One range covering 100-5100 would upload 4,900 unchanged vertices. Two ranges—[100, 100] and [5000, 100]—upload only what actually changed.
+
+The array accommodates disjoint modifications within the same frame. Each modification adds its range; the renderer processes all of them.
 
 ---
 
-## Version-Based Dirty Tracking
+## Version Counters: More Than a Boolean
 
 ### The needsUpdate Pattern
 
+Three.js uses a version counter, not a boolean flag:
+
 ```javascript
-// From BufferAttribute.js:152-156
 set needsUpdate(value) {
     if (value === true) this.version++;
 }
-
-// From Texture.js:743-752
-set needsUpdate(value) {
-    if (value === true) {
-        this.version++;
-        this.source.needsUpdate = true;  // Propagate to source
-    }
-}
 ```
 
-Setting `needsUpdate = true` increments an internal version counter. The renderer compares cached versions against current versions:
+Setting `needsUpdate = true` increments an internal version number. The renderer compares cached versions against current versions:
 
 ```javascript
-// From renderers/common/Textures.js:190
-if (textureData.initialized === true && textureData.version === texture.version)
+if (textureData.version === texture.version)
     return;  // Skip - nothing changed
 ```
 
-### Why Version Counters?
+### Why Counters Beat Booleans
 
-Boolean dirty flags have a problem: once you clear the flag, you can't tell if something else already processed it. Version counters solve this:
+Boolean flags have a flaw: once cleared, you can't tell who cleared them. If two subsystems both need to respond to changes, the first one to process the flag steals it from the second.
 
-1. Texture.version = 5 (current)
-2. Renderer caches version 5
-3. Later: texture.needsUpdate = true → version becomes 6
-4. Renderer sees cached=5, current=6 → needs update
-5. After update: cache version 6
+Version counters solve this elegantly:
+1. Texture version is 5
+2. Renderer A caches version 5
+3. Renderer B caches version 5
+4. Texture changes → version becomes 6
+5. Renderer A sees cached=5, current=6 → updates, caches 6
+6. Renderer B sees cached=5, current=6 → also updates, caches 6
 
-Multiple subsystems can independently track whether they've processed the latest version.
+Each consumer tracks its own "last seen" version independently. No coordination needed.
+
+This matters for Three.js's multi-renderer scenarios—the same scene might render to a preview canvas and a main canvas, each with its own renderer. Both need to see texture changes.
 
 ---
 
-## WebGPU Backend: Partial Uploads
+## The WebGPU Backend
 
-### Attribute Updates
+### Partial Upload Implementation
+
+When it's time to send data to the GPU, Three.js's WebGPU backend checks for update ranges:
 
 ```javascript
-// From renderers/webgpu/utils/WebGPUAttributeUtils.js:177-228
 updateAttribute(attribute) {
     const updateRanges = attribute.updateRanges;
 
@@ -113,12 +125,13 @@ updateAttribute(attribute) {
 }
 ```
 
-### Uniform Buffer Updates
+If no ranges are specified, the entire buffer uploads—the fallback for simple cases where tracking ranges isn't worth the effort. If ranges exist, only those regions upload. Either way, the ranges clear after processing, ready for the next frame.
 
-The same pattern applies to uniform buffers:
+### Uniform Buffers Too
+
+The pattern extends to uniform buffers:
 
 ```javascript
-// From renderers/webgpu/utils/WebGPUBindingUtils.js:184-229
 updateBinding(binding) {
     const updateRanges = binding.buffer.updateRanges;
 
@@ -126,7 +139,6 @@ updateBinding(binding) {
         device.queue.writeBuffer(buffer, 0, array);
     } else {
         for (const range of updateRanges) {
-            // Handle byte alignment for both typed and untyped arrays
             device.queue.writeBuffer(buffer, range.start * bytes, array, range.start, range.count);
         }
     }
@@ -135,16 +147,17 @@ updateBinding(binding) {
 }
 ```
 
+The same approach that works for vertex data works for material parameters, transform matrices, anything sent to the GPU repeatedly.
+
 ---
 
-## WebGL Backend: Range Merging
+## Range Merging: Reducing GPU Calls
 
 ### The Optimization
 
-WebGL backends take update ranges a step further with **range merging**:
+WebGL backends add another layer: merging adjacent ranges before upload. Each GPU call has overhead; fewer calls with larger payloads is more efficient than many small calls.
 
 ```javascript
-// From renderers/webgl/WebGLAttributes.js:103-136
 // Sort ranges by start position
 updateRanges.sort((a, b) => a.start - b.start);
 
@@ -167,60 +180,53 @@ for (let i = 1; i < updateRanges.length; i++) {
     }
 }
 
-// Trim array to remove merged-away entries
 updateRanges.length = mergedIndex + 1;
 ```
 
-### Why Merge?
+Consider ranges [100, 50], [120, 40], [200, 30]:
+- Ranges 1 and 2 overlap (120 < 100+50), so they merge into [100, 60]
+- Range 3 is separate (200 > 160)
+- Result: two calls instead of three
 
-Consider ranges [100, 150], [120, 80], [230, 50]:
-- Without merging: 3 `bufferSubData` calls
-- After merging: [100, 100], [230, 50] - 2 calls
-- If [230, 50] were [200, 50]: would merge to [100, 150] - 1 call
+### When Merging Helps
 
-Fewer GPU commands means less driver overhead.
+Merging matters most when:
+- Many small, adjacent changes occur (e.g., particle system updates)
+- Driver call overhead is significant (older APIs, mobile GPUs)
+- The gap between ranges is small
 
-### Texture Range Merging (Row-Aware)
+For WebGPU, `queue.writeBuffer` is relatively cheap per-call, so merging helps less. For WebGL's `bufferSubData`, each call has more overhead, making merging more valuable.
 
-Texture updates are more complex because 2D data has rows:
+### Texture Merging: Row-Aware
+
+Texture updates complicate merging. Textures are 2D; merging across rows would upload data that doesn't need uploading:
 
 ```javascript
-// From renderers/webgl/WebGLTextures.js:777-820
-// Sort by start
-updateRanges.sort((a, b) => a.start - b.start);
+// Only merge ranges in the same row
+const prevRow = Math.floor(prev.start / width);
+const currRow = Math.floor(curr.start / width);
 
-// Merge only ranges in same row
-for (let i = 1; i < updateRanges.length; i++) {
-    const prev = updateRanges[mergeIndex];
-    const curr = updateRanges[i];
-
-    // Calculate row for each range
-    const prevRow = Math.floor(prev.start / width);
-    const currRow = Math.floor(curr.start / width);
-
-    if (currRow === prevRow && curr.start <= prev.start + prev.count) {
-        // Same row and overlapping - merge
-        prev.count = Math.max(prev.count, curr.start + curr.count - prev.start);
-    } else {
-        // Different row or gap - keep separate
-        mergeIndex++;
-        updateRanges[mergeIndex] = curr;
-    }
+if (currRow === prevRow && curr.start <= prev.start + prev.count) {
+    // Same row and overlapping - merge
+    prev.count = Math.max(prev.count, curr.start + curr.count - prev.start);
+} else {
+    // Different row or gap - keep separate
+    mergeIndex++;
+    updateRanges[mergeIndex] = curr;
 }
 ```
 
-Merging ranges that span rows would require uploading more data than separate uploads.
+Two ranges in the same row merge normally. Two ranges in different rows stay separate, even if their indices are adjacent numerically.
 
 ---
 
-## Abstract Buffer Layer
+## The Abstract Buffer Layer
 
-### The Pattern
+### Backend Independence
 
-Three.js abstracts buffers in `renderers/common/Buffer.js`:
+Three.js abstracts the update range pattern in `renderers/common/Buffer.js`:
 
 ```javascript
-// From renderers/common/Buffer.js:49-87
 class Buffer {
     constructor() {
         this._updateRanges = [];
@@ -239,106 +245,72 @@ class Buffer {
     }
 
     update() {
-        // Returns true if GPU upload needed
-        return true;
+        return true;  // Override in subclasses
     }
 }
 ```
 
-This abstraction allows the WebGL and WebGPU backends to share the same update range logic while implementing backend-specific upload methods.
+This abstraction lets WebGL and WebGPU backends share the range-tracking logic while implementing backend-specific upload methods. The same user code works regardless of which backend renders.
 
 ---
 
-## Texture Versioning
+## Dimension Changes
 
-### The Full Pipeline
+### A Different Kind of Update
 
-```javascript
-// From renderers/common/Textures.js (conceptual flow)
+Not all changes are equal. Modifying vertices 100-200 is a data update—the buffer size stays the same. Changing a texture from 512x512 to 1024x1024 is a structural change—you need a completely new GPU texture.
 
-// 1. User modifies texture
-texture.image = newImageData;
-texture.needsUpdate = true;  // → version++
-
-// 2. During render, Textures manager checks
-if (textureData.version === texture.version) {
-    return;  // Cached version matches - skip
-}
-
-// 3. Upload new texture data
-uploadTexture(texture);
-
-// 4. Cache new version
-textureData.version = texture.version;
-```
-
-### Dimension Change Detection
+Three.js distinguishes these:
 
 ```javascript
-// From Textures.js:77-108
 textureNeedsUpdate = textureNeedsUpdate ||
     textureData.width !== textureDescriptor.width ||
     textureData.height !== textureDescriptor.height ||
     textureData.sampleCount !== textureDescriptor.sampleCount;
 
 if (textureNeedsUpdate) {
-    // Need to recreate GPU texture (dimensions changed)
-    depthTexture.needsUpdate = true;
+    depthTexture.needsUpdate = true;  // Full reallocation
 }
 ```
 
-Size changes require full reallocation, not just data upload.
+Size changes bypass the update range optimization entirely. You can't partially update your way to a larger texture—you must reallocate.
 
 ---
 
-## Summary: Key Patterns for Flux
+## Lessons for Flux
 
-| Pattern | Three.js Approach | Flux Application |
-|---------|-------------------|------------------|
-| **Dirty tracking** | Version counter per resource | Integrate with slot dirty flags |
-| **Partial updates** | Update range array | Track which portions changed |
-| **Range clearing** | After GPU upload | Reset per frame |
-| **Range merging** | Sort + merge adjacent | Reduce GPU commands |
-| **Row-aware merging** | For 2D textures | Don't merge across rows |
-| **Backend abstraction** | Buffer class | Share logic across backends |
-| **Dimension change** | Separate flag + realloc | Distinguish data change from size change |
+Three.js's patterns suggest several approaches:
 
----
+**Update ranges for large buffers.** For buffers over a few KB where sparse updates are common, tracking which regions changed can dramatically reduce bandwidth. For small uniform buffers, the overhead isn't worth it—just upload everything.
 
-## Design Insight: Granularity Matters
+**Version counters for multi-consumer scenarios.** When multiple systems might respond to the same change, version counters let each track independently. Each consumer caches the last version it saw.
 
-Three.js tracks changes at multiple granularities:
-1. **Resource level**: `needsUpdate` → "something changed"
-2. **Range level**: `updateRanges` → "these specific bytes changed"
-3. **Version level**: `version` → "how many times has it changed"
+**Range merging with care.** Merge adjacent ranges to reduce GPU calls, but be aware of structure. For 2D data, don't merge across rows. The optimization is backend-dependent—measure before committing.
 
-This layered tracking enables optimizations at each level:
-- Skip entirely if version matches
-- Upload only changed ranges
-- Merge ranges when beneficial
+**Clear ranges after processing.** The range list resets each frame. Stale ranges from previous frames would cause redundant uploads or, worse, incorrect data.
 
-`★ Insight ─────────────────────────────────────`
-The range merging algorithm in WebGL backends shows that optimal strategies differ between backends. WebGPU's `queue.writeBuffer` is cheaper per-call than WebGL's `bufferSubData`, so merging matters less. Backend-specific optimization paths are valuable.
-`─────────────────────────────────────────────────`
+**Distinguish data changes from structural changes.** Changing a texture's pixels is different from changing its dimensions. Data changes can use partial updates; structural changes require reallocation.
+
+**Abstract the mechanism.** The same range-tracking pattern works for vertices, uniforms, textures—anything that uploads repeatedly. A shared abstraction reduces code duplication and ensures consistent behavior.
 
 ---
 
 ## Source Files
 
-| File | Purpose |
-|------|---------|
-| `src/core/BufferAttribute.js:116-191` | Core update range API |
-| `src/textures/Texture.js:315-752` | Texture dirty tracking |
-| `src/renderers/common/Buffer.js:49-87` | Abstract buffer layer |
-| `src/renderers/common/Textures.js:77-348` | Texture version management |
-| `src/renderers/webgpu/utils/WebGPUAttributeUtils.js:177-228` | WebGPU partial uploads |
-| `src/renderers/webgl/WebGLAttributes.js:83-150` | WebGL range merging |
-| `src/renderers/webgl/WebGLTextures.js:756-857` | Texture range merging |
+| File | Key Lines | Purpose |
+|------|-----------|---------|
+| `src/core/BufferAttribute.js` | 116-191 | Core update range API |
+| `src/textures/Texture.js` | 315-752 | Texture dirty tracking |
+| `src/renderers/common/Buffer.js` | 49-87 | Abstract buffer layer |
+| `src/renderers/common/Textures.js` | 77-348 | Texture version management |
+| `src/renderers/webgpu/utils/WebGPUAttributeUtils.js` | 177-228 | WebGPU partial uploads |
+| `src/renderers/webgl/WebGLAttributes.js` | 83-150 | WebGL range merging |
+| `src/renderers/webgl/WebGLTextures.js` | 756-857 | Texture range merging |
 
 ---
 
 ## Related Documents
 
-- [tixl.md](tixl.md) - Different dirty flag approach
-- [wgpu.md](wgpu.md) - How wgpu implements similar patterns
-- [../cache-invalidation.md](../cache-invalidation.md) - Cross-framework comparison
+- [tixl.md](tixl.md) — Different dirty flag approach (reference/target)
+- [wgpu.md](wgpu.md) — How wgpu implements similar patterns at a lower level
+- [../cache-invalidation.md](../cache-invalidation.md) — Cross-framework comparison

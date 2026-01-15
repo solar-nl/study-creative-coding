@@ -1,148 +1,139 @@
-# tixl: Dirty Flag System for Visual Programming
+# tixl: The Reference/Target Pattern
 
-> How a node graph tracks what needs recomputation
-
----
-
-## Overview
-
-tixl is a visual programming tool built on Stride (formerly Xenko), a C#/.NET game engine. Its dirty flag system is particularly relevant for Flux because both systems need to track when node outputs require recomputation.
-
-The key insight from studying tixl: **a global tick counter plus reference/target comparison enables O(1) dirty checks while preventing double-invalidation per frame**.
+> How do you track what needs recomputation across thousands of nodes?
 
 ---
 
-## DirtyFlag: The Core Mechanism
+## A Familiar Challenge
 
-### The Pattern
+tixl is a visual programming tool built on Stride (the C#/.NET game engine), and it faces the same challenge Flux will: a node graph where upstream changes must propagate downstream, but doing so naively would recompute far too much.
 
-Each slot has a `DirtyFlag` that tracks whether its value needs recomputation:
+The naive approach—mark everything dirty, recompute everything—works for a hundred nodes. For a thousand nodes with complex interconnections, it collapses. The graph becomes a swamp of redundant computation.
+
+The question guiding this exploration: *how do you track what changed without drowning in bookkeeping?*
+
+---
+
+## Two Integers and a Comparison
+
+### The Core Insight
+
+Open `Core/Operator/Slots/DirtyFlag.cs` and you'll find the heart of tixl's system:
 
 ```csharp
-// From Core/Operator/Slots/DirtyFlag.cs:6-67
 public class DirtyFlag
 {
     public int Reference;           // Last known clean state
     public int Target = 1;          // Current dirty state (starts dirty)
     public int InvalidatedWithRefFrame;  // Prevents double invalidation
 
-    // A slot is dirty if:
-    // 1. Always-trigger is enabled, OR
-    // 2. Reference doesn't match Target
     public bool IsDirty => TriggerIsEnabled || Reference != Target;
 }
 ```
 
-### How It Works
+A slot is dirty when its `Reference` doesn't match its `Target`. That's it. Two integers and a comparison.
 
-**Initial state:** `Reference = 0, Target = 1` → slot is dirty (needs first computation)
+Initial state: `Reference = 0, Target = 1`. The slot is dirty because 0 ≠ 1. After computing the slot's value, you call `Clear()`, which sets `Reference = Target`. Now 1 = 1, and the slot is clean.
 
-**After computation:**
-```csharp
-// From DirtyFlag.cs:46-50
-public void Clear()
-{
-    Reference = Target;  // Mark as clean
-}
-```
+When an upstream change invalidates the slot, `Target` increments. Now `Reference` (still 1) ≠ `Target` (now 2). The slot is dirty again.
 
-**On invalidation:**
-```csharp
-// From DirtyFlag.cs:18-37
-public int Invalidate()
-{
-    // Prevent double invalidation in same frame
-    if (InvalidatedWithRefFrame == _globalTickCount)
-        return Target;
+### Why Not a Boolean?
 
-    InvalidatedWithRefFrame = _globalTickCount;
-    Target++;  // Increment target → IsDirty becomes true
-    return Target;
-}
-```
+A boolean flag seems simpler: `isDirty = true` when something changes, `isDirty = false` after processing. But boolean flags have a subtle flaw.
 
-### Why Reference/Target Instead of Boolean?
+Consider a node with two upstream connections, A and B. Both change in the same frame. With a boolean:
+1. A changes → set `isDirty = true`
+2. B changes → set `isDirty = true` (redundant, but harmless)
+3. Process the node → set `isDirty = false`
 
-A boolean flag has a problem: if multiple upstream nodes invalidate the same downstream node in one frame, you can't tell if you've already processed that invalidation.
+This works, but you've lost information. You can't tell whether the node was invalidated once or twice. More importantly, if you try to track "when was this node last invalidated?" a boolean tells you nothing.
 
-The target integer solves this:
-- Each invalidation increments `Target`
-- `InvalidatedWithRefFrame` prevents incrementing twice in the same frame
-- After processing, `Reference = Target` makes it clean
-- If something else invalidates later, `Target++` makes it dirty again
-
-`★ Insight ─────────────────────────────────────`
-The reference/target pattern is more expressive than a boolean. It could even support "how many times has this been invalidated?" queries, though tixl doesn't use that capability.
-`─────────────────────────────────────────────────`
+The target integer preserves history. Each invalidation increments `Target`, so you could theoretically detect "this was invalidated twice this frame"—useful for debugging dependency cycles.
 
 ---
 
-## Global Tick Counter
+## Frame Deduplication
 
-### The Pattern
+### The Problem
 
-A global tick counter advances each frame:
+In a complex graph, the same node might receive invalidation signals multiple times per frame. Node C might be downstream of both A and B; when both change, C gets two invalidation calls.
+
+Without protection, `Target` would increment twice unnecessarily. Over time, overflow becomes a concern. And the redundant work adds up.
+
+### tixl's Solution: Global Tick Counter
 
 ```csharp
-// From DirtyFlag.cs:9-12
 public static void IncrementGlobalTicks()
 {
     _globalTickCount += GlobalTickDiffPerFrame;  // += 100
 }
 ```
 
-### Why 100 per Frame?
-
-The spacing of 100 between frame ticks allows for intra-frame events or debugging without overflow concerns. At 100 ticks per frame and 60fps, you get about 400,000 years before integer overflow.
-
-### Frame Timing
+Every frame, a global tick counter advances. Each `DirtyFlag` remembers the frame when it was last invalidated:
 
 ```csharp
-// From DirtyFlag.cs:69-70
+public int Invalidate()
+{
+    if (InvalidatedWithRefFrame == _globalTickCount)
+        return Target;  // Already invalidated this frame
+
+    InvalidatedWithRefFrame = _globalTickCount;
+    Target++;
+    return Target;
+}
+```
+
+If you try to invalidate twice in the same frame, the second call is a no-op. The graph can send redundant signals; the receiving node ignores duplicates.
+
+### Why 100 per Frame?
+
+The spacing of 100 between frame ticks isn't arbitrary. It leaves room for intra-frame events or debugging without worrying about collision. At 100 ticks per frame and 60fps, you get about 400,000 years before integer overflow—plenty of headroom.
+
+The spacing also enables a useful diagnostic:
+
+```csharp
 public int FramesSinceLastUpdate =>
     (_globalTickCount - _lastUpdateTick) / GlobalTickDiffPerFrame;
 ```
 
-This enables diagnostics like "this node hasn't updated in 30 frames."
+"This node hasn't updated in 30 frames" is immediately actionable debugging information.
 
 ---
 
-## Slot Update Loop
+## Lazy Evaluation
 
-### The Pattern
+### The Update Dance
 
-The `Slot.Update()` method implements lazy evaluation:
+When it's time to compute a node's value, tixl doesn't blindly recompute. It checks first:
 
 ```csharp
-// From Core/Operator/Slots/Slot.cs:160-169
 public void Update(EvaluationContext context)
 {
     if (_dirtyFlag.IsDirty || _valueIsCommand)
     {
         OpUpdateCounter.CountUp();
         UpdateAction?.Invoke(context);
-        _dirtyFlag.Clear();       // Mark clean
-        _dirtyFlag.SetUpdated();  // Record update time
+        _dirtyFlag.Clear();
+        _dirtyFlag.SetUpdated();
     }
 }
 ```
 
-Key points:
-- Only executes if dirty
-- `_valueIsCommand` forces execution (for side-effect nodes)
-- Counter enables profiling
-- Clear happens after execution, not before
+If the flag isn't dirty, the node skips computation entirely. The expensive work only happens when necessary.
+
+The `_valueIsCommand` escape hatch handles nodes that must execute every frame regardless of input changes—rendering nodes, audio output, anything with side effects.
+
+The counter enables profiling. "This node updated 47 times this session" tells you where optimization effort should focus.
 
 ---
 
-## Invalidation Propagation
+## Propagation Through the Graph
 
-### The Pattern
+### Walking Upstream
 
-When an input changes, its connected outputs must invalidate:
+When a node evaluates, it must first check whether its inputs have changed. tixl walks upstream recursively:
 
 ```csharp
-// From Slot.cs:269-326 (simplified)
 internal virtual int InvalidationOverride()
 {
     if (_inputConnections == null || _inputConnections.Count == 0)
@@ -171,18 +162,47 @@ internal virtual int InvalidationOverride()
 }
 ```
 
-This walks the graph recursively but short-circuits via `InvalidatedWithRefFrame`.
+The recursion short-circuits via `InvalidatedWithRefFrame`. If this node already participated in invalidation this frame, it returns its cached `Target` immediately. No redundant graph traversal.
+
+The target sum aggregates changes from all inputs. This means "how dirty am I" reflects the cumulative dirtiness of the entire upstream subgraph—a richer signal than a simple boolean.
+
+---
+
+## Handling Massive Graphs
+
+### When 1,000 Nodes Isn't Enough
+
+For graphs with thousands of nodes, even efficient invalidation propagation can become a bottleneck. tixl provides an escape valve:
+
+```csharp
+// From MultiInputSlot.cs
+public HashSet<int>? LimitMultiInputInvalidationToIndices;
+```
+
+If you know only certain inputs matter for a particular node, you can restrict invalidation checking to just those inputs. The graph walks less; propagation costs less.
+
+```csharp
+if (LimitMultiInputInvalidationToIndices != null)
+{
+    foreach (var index in LimitMultiInputInvalidationToIndices)
+    {
+        if (index < _collectedInputs.Count)
+            ProcessInput(_collectedInputs[index]);
+    }
+}
+```
+
+This is an optimization for expert users building complex patches. Most graphs don't need it. But when you're instancing 10,000 particles with interconnected behavior, selective invalidation makes the difference between responsive and sluggish.
 
 ---
 
 ## Trigger Modes
 
-### The Pattern
+### Beyond Input-Driven Dirtiness
 
-Some operators need to execute every frame regardless of input changes:
+Some nodes must execute every frame regardless of inputs:
 
 ```csharp
-// From Core/Operator/Slots/DirtyFlagTrigger.cs:1-11
 [Flags]
 public enum DirtyFlagTrigger : byte
 {
@@ -192,70 +212,19 @@ public enum DirtyFlagTrigger : byte
 }
 ```
 
-The `Always` trigger is used for:
-- Time-dependent nodes (current time)
-- Input nodes (mouse, keyboard)
-- Audio analysis nodes
+Time nodes, mouse input, audio analysis—these don't have "inputs" in the traditional sense. They sample the world. The `Always` trigger forces them to update regardless of the graph's change detection.
+
+The `Animated` trigger is more subtle. It forces updates only when the animation timeline is playing, not when paused. Scrubbing through a timeline, you want frame-accurate updates; idle, you want the graph to rest.
 
 ---
 
-## Multi-Input Optimization
+## GPU Resources in a Node Graph
 
-### The Problem
+### Bundling Buffer and Views
 
-In large graphs (thousands of nodes), invalidation propagation can become expensive. If a single change propagates through many paths, you visit the same nodes repeatedly.
-
-### tixl's Solution
+tixl wraps DirectX 11 resources into coherent units:
 
 ```csharp
-// From Core/Operator/Slots/MultiInputSlot.cs:14
-public HashSet<int>? LimitMultiInputInvalidationToIndices;
-```
-
-For massive graphs, you can limit which inputs are considered during invalidation:
-
-```csharp
-// From MultiInputSlot.cs:46-83 (simplified)
-internal override int InvalidationOverride()
-{
-    // "In situations with extremely large graphs (1000 of instances)
-    // invalidation can become bottleneck"
-
-    if (LimitMultiInputInvalidationToIndices != null)
-    {
-        // Only check specific inputs
-        foreach (var index in LimitMultiInputInvalidationToIndices)
-        {
-            if (index < _collectedInputs.Count)
-                ProcessInput(_collectedInputs[index]);
-        }
-    }
-    else
-    {
-        // Check all inputs
-        foreach (var input in GetCollectedTypedInputs())
-            ProcessInput(input);
-    }
-}
-```
-
-### Flux Implications
-
-For Flux's dirty tracking:
-- **Track which inputs changed** - not just "any input changed"
-- **Support partial invalidation** - for large graphs
-- **Consider incremental propagation** - only what's needed
-
----
-
-## GPU Resource Management
-
-### BufferWithViews
-
-tixl wraps DirectX 11 resources together:
-
-```csharp
-// From Core/DataTypes/BufferWithViews.cs:5-23
 public sealed class BufferWithViews : IDisposable
 {
     public SharpDX.Direct3D11.Buffer Buffer;
@@ -271,103 +240,87 @@ public sealed class BufferWithViews : IDisposable
 }
 ```
 
-This bundles the buffer with its views (needed for shader binding).
+A buffer rarely travels alone. Shaders need views to bind it. Bundling them ensures they're created together, disposed together, never orphaned.
 
-### Buffer Reuse Pattern
+### Pragmatic Buffer Reuse
 
 ```csharp
-// From Core/Rendering/ResourceUtils.cs:48-64
 public static SharpDX.Direct3D11.Buffer GetDynamicConstantBuffer(
     SharpDX.Direct3D11.Buffer? existingBuffer,
     int neededSize)
 {
-    // Reuse if size matches
     if (existingBuffer != null && existingBuffer.Description.SizeInBytes >= neededSize)
         return existingBuffer;
 
-    // Dispose old, create new
     existingBuffer?.Dispose();
     return CreateDynamicConstantBuffer(neededSize);
 }
 ```
 
-Simple but effective: reuse if big enough, recreate otherwise.
+No elaborate pooling, no complex allocation tracking. If the existing buffer is big enough, reuse it. If not, dispose and recreate. Simple, and sufficient for most creative coding workloads.
 
 ---
 
 ## Shader Caching
 
-### Two-Level Cache
+### Two Levels
 
-tixl caches compiled shaders at two levels:
+Compiling shaders is expensive. tixl caches at two levels:
 
 ```csharp
-// From Core/Resource/ShaderCompiler.Caching.cs:134
 Dictionary<ulong, byte[]> _shaderBytecodeCache;  // In-memory
-
-// From Core/Resource/ShaderCompiler.Caching.cs:178
-string _shaderCacheDirectory;  // .shadercache files on disk
+string _shaderCacheDirectory;  // On disk
 ```
+
+Hot shaders stay in memory. Cold shaders load from disk. First-time compilations hit the compiler, but the result persists across sessions.
 
 ### Integration with Dirty Flags
 
 Shader operators check dirty flags before recompiling:
 
 ```csharp
-// From Core/Operator/IShaderOperator.cs:48
 if (!Code.DirtyFlag.IsDirty && !EntryPoint.DirtyFlag.IsDirty)
     return;  // Skip recompilation
 ```
 
----
-
-## Summary: Key Patterns for Flux
-
-| Pattern | tixl Approach | Flux Application |
-|---------|---------------|------------------|
-| **Dirty tracking** | Reference/Target integers | More expressive than boolean |
-| **Frame deduplication** | Global tick + InvalidatedWithRefFrame | Prevents repeated work |
-| **Lazy evaluation** | Check IsDirty before Update() | Only compute what's needed |
-| **Propagation** | Recursive with short-circuit | Walk graph, cache results |
-| **Trigger modes** | Always, Animated flags | Support time-dependent nodes |
-| **Large graph optimization** | LimitMultiInputInvalidationToIndices | Partial invalidation |
-| **Buffer reuse** | Check size, recreate if needed | Simple but effective |
-| **Shader caching** | Memory + disk | Two-level for persistence |
+The same pattern that governs node evaluation governs shader compilation. Changed inputs trigger recompilation; stable inputs skip it.
 
 ---
 
-## Design Insight: Simple Integers, Powerful System
+## Lessons for Flux
 
-tixl's dirty flag system is surprisingly simple at its core - just two integers and a comparison. But the combination of:
-- Global tick counter for frame tracking
-- InvalidatedWithRefFrame for deduplication
-- Recursive propagation with short-circuits
-- Trigger modes for special cases
+tixl's patterns suggest several approaches:
 
-...creates a robust system for managing thousands of operators efficiently.
+**Reference/Target over booleans.** Two integers provide richer information than one boolean. You get deduplication for free, debugging information as a bonus, and overflow is a non-concern for any realistic workload.
 
-`★ Insight ─────────────────────────────────────`
-tixl's `Target++` on invalidation means you could theoretically detect "this was invalidated twice this frame" - useful for debugging dependency issues. Though tixl doesn't expose this, Flux could consider it.
-`─────────────────────────────────────────────────`
+**Global tick counter for frame awareness.** Knowing "what frame is it" enables deduplication, diagnostics, and time-dependent behavior without threading complexity.
+
+**Lazy evaluation everywhere.** Check before computing. If the inputs haven't changed, don't recompute. The check is cheap; the computation isn't.
+
+**Selective invalidation for scale.** Most graphs don't need it, but when you're pushing thousands of nodes, being able to limit propagation paths is invaluable.
+
+**Trigger modes for special cases.** Time-dependent nodes, input nodes, side-effect nodes—they all need exemptions from the normal dirty-tracking rules. Design for the exceptions from the start.
+
+**Bundle related resources.** Buffer + views travel together. Create together, dispose together. Don't let them drift apart.
 
 ---
 
 ## Source Files
 
-| File | Purpose |
-|------|---------|
-| `Core/Operator/Slots/DirtyFlag.cs:6-101` | DirtyFlag class |
-| `Core/Operator/Slots/Slot.cs:160-326` | Update and invalidation |
-| `Core/Operator/Slots/MultiInputSlot.cs:46-83` | Multi-input optimization |
-| `Core/Operator/Slots/DirtyFlagTrigger.cs:1-11` | Trigger modes |
-| `Core/DataTypes/BufferWithViews.cs:5-23` | GPU buffer wrapper |
-| `Core/Rendering/ResourceUtils.cs:48-64` | Buffer reuse |
-| `Core/Resource/ShaderCompiler.Caching.cs:113-178` | Shader caching |
+| File | Key Lines | Purpose |
+|------|-----------|---------|
+| `Core/Operator/Slots/DirtyFlag.cs` | 6-101 | DirtyFlag class |
+| `Core/Operator/Slots/Slot.cs` | 160-326 | Update and invalidation |
+| `Core/Operator/Slots/MultiInputSlot.cs` | 46-83 | Multi-input optimization |
+| `Core/Operator/Slots/DirtyFlagTrigger.cs` | 1-11 | Trigger modes |
+| `Core/DataTypes/BufferWithViews.cs` | 5-23 | GPU buffer wrapper |
+| `Core/Rendering/ResourceUtils.cs` | 48-64 | Buffer reuse |
+| `Core/Resource/ShaderCompiler.Caching.cs` | 113-178 | Shader caching |
 
 ---
 
 ## Related Documents
 
-- [../cache-invalidation.md](../cache-invalidation.md) - Cross-framework comparison
-- [openrndr.md](openrndr.md) - LRU approach to caching
-- [../../node-graphs/node-graph-architecture.md](../../node-graphs/node-graph-architecture.md) - Broader context
+- [openrndr.md](openrndr.md) — LRU approach to caching
+- [../cache-invalidation.md](../cache-invalidation.md) — Cross-framework comparison
+- [../../node-graphs/node-graph-architecture.md](../../node-graphs/node-graph-architecture.md) — Broader context

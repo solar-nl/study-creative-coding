@@ -1,36 +1,41 @@
-# Allocation Strategies
+# Allocation Strategies: How Memory Flows to the GPU
 
-> How frameworks allocate and grow GPU memory
-
----
-
-## The Problem
-
-GPU buffer creation has overhead - driver calls, memory allocation, internal tracking. For applications creating many buffers or frequently resizing, allocation strategy matters.
+> Creating a GPU buffer isn't free. How do you minimize the overhead?
 
 ---
 
-## Pattern Catalog
+## The Allocation Overhead
 
-### 1. Per-Resource Allocation (wgpu default)
+Every `device.create_buffer()` call involves driver overhead: syscalls, memory mapping, internal tracking, potential GPU command submission. For a single buffer, this overhead is negligible. For ten thousand buffers, it dominates your frame time.
+
+Creative coding often creates many small resources. Each particle might have a position buffer. Each text glyph might have a texture. Each effect might have uniform buffers. Without care, you spend more time allocating than rendering.
+
+The question guiding this exploration: *when does allocation strategy matter, and what strategies work?*
+
+---
+
+## Per-Resource Allocation: The Simple Baseline
+
+wgpu's default approach allocates each buffer independently:
 
 ```rust
-// Each buffer is independent
 let buffer_a = device.create_buffer(&BufferDescriptor { size: 1024, .. });
 let buffer_b = device.create_buffer(&BufferDescriptor { size: 2048, .. });
 ```
 
-**Characteristics:**
-- Simple, direct mapping to GPU
-- No sharing or suballocation
-- Each buffer has exact size needed
+This is straightforward. Each buffer exists in its own allocation. Sizes are exactly what you need—no waste. Lifetimes are independent—free one without affecting others.
 
-**When to use**: Low buffer count, varied sizes, simple applications.
+For most creative coding, this is fine. If you have dozens of textures and a few dozen buffers, allocation overhead is negligible. The driver amortizes its internal costs, and you get simplicity in return.
 
-### 2. Megabuffer + Suballocation (rend3)
+The warning sign: allocation shows up in profiling. If you're creating hundreds of buffers per frame, or if buffer creation dominates your startup time, it's time to consider alternatives.
+
+---
+
+## The Megabuffer: One Allocation to Rule Them All
+
+rend3 allocates one large buffer upfront and suballocates from it:
 
 ```rust
-// rend3 pattern
 const STARTING_MESH_DATA: u64 = 1 << 25;  // 32MB
 
 pub struct MeshManager {
@@ -40,70 +45,61 @@ pub struct MeshManager {
 
 impl MeshManager {
     fn allocate(&mut self, size: u64) -> Range<u64> {
-        // Suballocate from megabuffer
-        self.allocator.allocate_range(size)
-            .expect("buffer full")
+        self.allocator.allocate_range(size).expect("buffer full")
     }
 }
 ```
 
-**Characteristics:**
-- One large buffer, many sub-regions
-- Range allocator manages free space
-- Reduces `create_buffer` calls dramatically
+Create one 32MB buffer. When you need space for a mesh, the `RangeAllocator` finds a free region and returns its byte range. The mesh doesn't have its own buffer—it has a range within the shared buffer.
 
-**Trade-offs:**
-| Pro | Con |
-|-----|-----|
-| Fewer driver calls | Fragmentation |
-| Cache-friendly | Need growth strategy |
-| Bindless-friendly | More complex management |
+The benefits are dramatic at scale. Ten thousand meshes require one `create_buffer` call, not ten thousand. All mesh data lives in contiguous memory, improving cache behavior. And bindless rendering becomes natural—the shader indexes into one buffer, selecting meshes by offset.
 
-### 3. Exponential Growth (Processing)
+The costs are real. Fragmentation happens: as meshes are freed, holes appear that may be too small for new allocations. Growth requires copying: if the megabuffer fills, you must create a larger one and copy everything. And debugging becomes harder: "buffer at offset 84392" is less clear than "vertex_buffer_for_cube."
+
+---
+
+## Growth Strategies: When Buffers Fill Up
+
+When a buffer is too small, you have choices.
+
+**Exact reallocation**: Create a new buffer exactly large enough for the new data. Minimal waste, but frequent reallocations if data grows incrementally.
+
+```cpp
+// Cinder pattern
+void copyData(size_t size, const void* data) {
+    if (size <= mSize) {
+        glBufferSubData(mTarget, 0, size, data);
+    } else {
+        mSize = size;
+        glBufferData(mTarget, mSize, data, mUsage);
+    }
+}
+```
+
+**Exponential growth**: Double the capacity when it fills. Amortized O(1) growth cost, but potentially significant wasted space.
 
 ```java
 // Processing pattern
-static protected int expandArraySize(int currSize, int newMinSize) {
+static int expandArraySize(int currSize, int newMinSize) {
     int newSize = currSize;
     while (newSize < newMinSize) {
-        newSize <<= 1;  // Double
+        newSize <<= 1;
     }
     return newSize;
 }
 ```
 
-**Characteristics:**
-- Size doubles until large enough
-- Amortized O(1) growth cost
-- Always power-of-two sizes
+**Fixed increments**: Add a constant amount (e.g., 1MB) on each growth. Predictable, but neither optimal for small nor large allocations.
 
-**Use case**: Unknown final size, frequent growth.
+For megabuffers, growth is particularly expensive. You can't resize in place; you must allocate a new buffer, copy all data, and update all references. This argues for generous initial sizing—better to waste memory than to trigger growth mid-session.
 
-### 4. Exact Reallocation (Cinder)
+---
 
-```cpp
-// Cinder pattern
-void BufferObj::copyData(GLsizeiptr size, const GLvoid *data) {
-    if (size <= mSize) {
-        glBufferSubData(mTarget, 0, size, data);  // Fits
-    } else {
-        mSize = size;
-        glBufferData(mTarget, mSize, data, mUsage);  // Reallocate
-    }
-}
-```
+## Tiered Pools: Compromise at Scale
 
-**Characteristics:**
-- Use existing if big enough
-- Reallocate to exact size if not
-- Minimal wasted space
-
-**Trade-off**: More reallocations than exponential, less waste.
-
-### 5. Tiered Pools (Common in games)
+Game engines often use tiered pools:
 
 ```rust
-// Conceptual pattern
 struct BufferPool {
     small: Vec<Buffer>,   // 1KB-16KB
     medium: Vec<Buffer>,  // 16KB-256KB
@@ -124,124 +120,70 @@ impl BufferPool {
 }
 ```
 
-**Characteristics:**
-- Pre-sized tiers reduce fragmentation
-- Reuse buffers within tiers
-- Oversized handled separately
+Each tier contains buffers of similar sizes. When you need a buffer, you look in the appropriate tier. If one's available, reuse it. If not, create a new one at tier size (not exact size).
+
+This balances allocation overhead against fragmentation. Tiers limit internal fragmentation (a 100KB request from the medium tier wastes at most 156KB). Reuse within tiers avoids repeated allocation. But the complexity cost is real—you're maintaining multiple pools with their own reuse logic.
 
 ---
 
-## Comparison Matrix
+## Sizing for Your Use Case
 
-| Strategy | Creation Overhead | Fragmentation | Memory Efficiency | Complexity |
-|----------|------------------|---------------|-------------------|------------|
-| Per-resource | High | None | Perfect | Simple |
-| Megabuffer | Very low | Medium | Good | Medium |
-| Exponential | Medium | None | Poor | Simple |
-| Exact | Medium-High | None | Perfect | Simple |
-| Tiered pools | Low | Low | Good | High |
+Different applications have different needs:
 
----
+| Application Type | Initial Megabuffer | Rationale |
+|-----------------|-------------------|-----------|
+| Simple 2D | 1-4 MB | Few shapes, small textures |
+| Complex 2D | 8-16 MB | Many shapes, effects |
+| 3D scenes | 32-64 MB | Meshes, materials |
+| Large 3D | 128+ MB | Detailed environments |
 
-## Growth Strategy Details
+Starting too small triggers early growth (copy overhead). Starting too large wastes memory. Profile your typical workloads and size accordingly.
 
-### When to Grow
-
-| Trigger | Strategy | Example |
-|---------|----------|---------|
-| **Exact need** | Reallocate when full | Cinder |
-| **2x current** | Double capacity | Processing |
-| **1.5x current** | Grow by 50% | Common compromise |
-| **Fixed increment** | Add 1MB | Predictable |
-
-### Growth for Megabuffers
-
-rend3's megabuffer growth (conceptual):
-
-```rust
-fn grow_megabuffer(&mut self, device: &Device, min_size: u64) {
-    let new_size = (self.current_size * 2).max(min_size);
-
-    // Create new larger buffer
-    let new_buffer = device.create_buffer(&BufferDescriptor {
-        size: new_size,
-        usage: self.usage,
-        ..
-    });
-
-    // Copy old data
-    encoder.copy_buffer_to_buffer(
-        &self.buffer, 0,
-        &new_buffer, 0,
-        self.used_size
-    );
-
-    // Replace
-    self.buffer = new_buffer;
-    self.allocator = RangeAllocator::new(0..new_size);
-    // Re-add used ranges to allocator (complex!)
-}
-```
-
-**Key issue**: Re-adding used ranges after growth is tricky. Some systems avoid this by never growing (allocate large upfront) or by using handles that abstract buffer identity.
+For creative coding specifically, memory is usually abundant and allocation overhead matters more than memory waste. Err on the side of larger initial allocations.
 
 ---
 
-## Flux Recommendation
+## When to Use Which Strategy
 
-### Phase 1: Simple Per-Resource
+**Per-resource allocation** when:
+- Resource count is moderate (tens to hundreds)
+- Resources have varied, unpredictable sizes
+- Lifetimes are independent and varied
+- Simplicity matters more than performance
 
-Start simple, measure, optimize if needed.
+**Megabuffer** when:
+- Resource count is large (thousands)
+- Resources have similar sizes (mesh vertices, instance data)
+- Bindless rendering is a goal
+- Allocation overhead shows in profiling
 
-```rust
-pub struct ResourcePool {
-    buffers: Vec<wgpu::Buffer>,
-}
+**Exponential growth** when:
+- Final size is unknown at creation
+- Growth is common and incremental
+- Memory waste is acceptable
 
-impl ResourcePool {
-    pub fn create_buffer(&mut self, device: &Device, desc: &BufferDescriptor) -> BufferHandle {
-        let buffer = device.create_buffer(desc);
-        let handle = BufferHandle(self.buffers.len());
-        self.buffers.push(buffer);
-        handle
-    }
-}
-```
+**Tiered pools** when:
+- Large resource counts with varied sizes
+- High allocation/deallocation churn
+- Memory waste is a concern
 
-### Phase 2: Add Geometry Megabuffer (if needed)
+---
 
-If profiling shows buffer creation overhead for dynamic geometry:
+## Lessons for Flux
 
-```rust
-pub struct GeometryPool {
-    megabuffer: wgpu::Buffer,
-    allocator: RangeAllocator<u64>,
-    pending_uploads: Vec<PendingUpload>,
-}
+The allocation research suggests a phased approach:
 
-impl GeometryPool {
-    pub fn allocate(&mut self, size: u64) -> MeshAllocation {
-        let range = self.allocator.allocate_range(size)
-            .expect("TODO: implement growth");
-        MeshAllocation { range, pool: self }
-    }
-}
-```
+**Start with per-resource allocation.** It's simple, it works, and creative coding workloads rarely stress allocation. The optimization target is clarity, not throughput.
 
-### Consider Starting Size
+**Add megabuffers if profiling shows need.** If particle systems, instanced rendering, or complex meshes dominate, suballocating from large buffers will help. But defer until measurements prove the need.
 
-| Application Type | Initial Megabuffer |
-|-----------------|-------------------|
-| Simple 2D | 1-4 MB |
-| Complex 2D | 8-16 MB |
-| 3D scenes | 32-64 MB |
-| Large 3D | 128+ MB |
+**Use exponential growth for dynamic data.** When you don't know the final size—dynamic text, procedural geometry, growing collections—doubling beats exact reallocation.
 
-Starting too small means early growth (copy overhead). Starting too large wastes memory.
+**Don't over-engineer upfront.** Sophisticated allocation strategies have maintenance costs. The simplest strategy that works is the right choice. Add complexity only when simple isn't enough.
 
 ---
 
 ## Related Documents
 
-- [per-framework/rend3.md](per-framework/rend3.md) - Megabuffer implementation
-- [per-framework/wgpu.md](per-framework/wgpu.md) - Per-resource baseline
+- [per-framework/rend3.md](per-framework/rend3.md) — Megabuffer implementation
+- [per-framework/wgpu.md](per-framework/wgpu.md) — Per-resource baseline

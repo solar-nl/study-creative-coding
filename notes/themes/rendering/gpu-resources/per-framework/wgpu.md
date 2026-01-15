@@ -1,25 +1,26 @@
-# wgpu: GPU Resource Management Patterns
+# wgpu: The Foundation
 
-> The foundation - how wgpu handles buffers, textures, and command encoding
-
----
-
-## Overview
-
-wgpu provides the low-level GPU abstraction that higher-level frameworks build upon. Understanding its resource management patterns is essential for designing Flux's resource pool, because any abstraction we build must work within wgpu's ownership and lifetime model.
-
-The key insight from studying wgpu: **resources are reference-counted handles with interior mutability managed through runtime state tracking**. This differs from OpenGL's integer IDs and from Vulkan's explicit lifetime management.
+> What does a safe, portable GPU abstraction look like from the inside?
 
 ---
 
-## Handle Design: Arc-Wrapped Dispatch
+## Why Start Here
 
-### The Pattern
+wgpu is the bedrock. Every creative coding framework built on Rust—nannou today, Flux tomorrow—ultimately speaks wgpu's language. Understanding how wgpu manages GPU resources isn't optional; it shapes what's possible and what's efficient in everything built on top.
 
-Every GPU resource in wgpu follows the same structural pattern. A `Buffer` is not the GPU buffer itself - it's a handle containing metadata and a reference to the actual backend resource:
+But wgpu isn't just an implementation detail. It embodies a philosophy: safety through abstraction, portability through backends, ergonomics through Rust idioms. The patterns wgpu chose—Arc-wrapped handles, interior mutability for mapping, deferred cleanup—aren't arbitrary. They're solutions to real problems that any GPU abstraction must face.
+
+The question guiding this exploration: *how does wgpu balance safety, performance, and usability in its resource management?*
+
+---
+
+## Handles: Arc All The Way Down
+
+### The Design Choice
+
+Open `wgpu/src/api/buffer.rs` and you'll find this:
 
 ```rust
-// From wgpu/src/api/buffer.rs:220-227
 pub struct Buffer {
     pub(crate) inner: dispatch::DispatchBuffer,
     pub(crate) map_context: Arc<Mutex<MapContext>>,
@@ -28,114 +29,109 @@ pub struct Buffer {
 }
 ```
 
-The `inner` field holds the actual backend connection through a dispatch enum that supports multiple backends (Vulkan, Metal, DX12, WebGPU). The outer struct stores convenience metadata (`size`, `usage`) that would otherwise require a backend call to retrieve.
+A `Buffer` isn't the GPU buffer itself—it's a handle containing a reference to backend-specific data (`inner`), some tracking state (`map_context`), and cached metadata (`size`, `usage`).
 
-### Why Arc-Wrapped?
+Both `Buffer` and `Device` derive `Clone`. Cloning creates another handle to the same underlying resource. This is `Arc` semantics without explicit `Arc`—the reference counting happens inside `DispatchBuffer`.
 
-Both `Buffer` and `Device` derive `Clone`. Cloning produces another handle to the same underlying resource:
+### Why This Matters
 
-```rust
-// From wgpu/src/api/device.rs:19-22
-#[derive(Debug, Clone)]
-pub struct Device {
-    pub(crate) inner: dispatch::DispatchDevice,
-}
-```
+Consider the alternative: unique ownership. In a unique-ownership model, you'd need to carefully track who "owns" each buffer and pass references or indices around. Rust's borrow checker would enforce correctness, but the ergonomics would suffer.
 
-This enables patterns where multiple parts of the application hold handles to the same buffer. The underlying resource lives until all handles are dropped.
+Arc-wrapped handles offer a different tradeoff:
+- **Sharing is trivial.** Pass a buffer to multiple render passes? Just clone the handle.
+- **Cleanup is automatic.** Drop all handles, and the resource eventually frees.
+- **Thread safety is built-in.** Arc is Send + Sync; share across threads safely.
 
-### Flux Implications
+The cost? Reference counting overhead on clone and drop. For most creative coding workloads—hundreds of resources, not millions—this overhead is negligible.
 
-For Flux's resource pool, this suggests:
-- **Handles should be cheap to clone** - `Arc<T>` rather than `T`
-- **Metadata should be cached** - avoid backend calls for common queries
-- **Dropping a handle doesn't necessarily free the resource** - reference counting handles shared ownership
+### The Metadata Cache
+
+Notice that `Buffer` stores `size` and `usage` directly. Why not query these from the backend?
+
+Because queries are expensive. The backend might be Vulkan, Metal, DX12, or WebGPU—each with its own API for retrieving buffer properties. Caching metadata avoids cross-API calls for common queries.
+
+This pattern appears throughout wgpu: the handle stores what's frequently needed, delegates to the backend only for operations that must touch GPU state.
 
 ---
 
-## Buffer Mapping: The MapContext Pattern
+## Buffer Mapping: A Dance of States
 
 ### The Problem
 
-Buffer mapping creates a CPU-accessible view of GPU memory. But multiple simultaneous mappings of overlapping regions would cause data races. wgpu solves this with `MapContext` - a runtime tracking system:
+GPU buffers live in GPU memory. CPU code can't just dereference a pointer to read them. You need to *map* the buffer—make a CPU-accessible view of its contents. But mapping has constraints:
+
+- You can't map while the GPU is using the buffer
+- You can't use the buffer while it's mapped
+- Multiple simultaneous maps of overlapping regions would cause data races
+
+wgpu must enforce these constraints at runtime, because Rust's compile-time borrow checker can't see into GPU scheduling.
+
+### The MapContext Solution
+
+Each buffer carries a `MapContext`:
 
 ```rust
-// From wgpu/src/api/buffer.rs:744-758
 pub(crate) struct MapContext {
-    /// The range of the buffer that is mapped (0..0 if not mapped)
-    mapped_range: Range<BufferAddress>,
-
-    /// Ranges covered by outstanding BufferView/BufferViewMut
-    /// These are non-overlapping, contained within mapped_range
-    sub_ranges: Vec<Subrange>,
+    mapped_range: Range<BufferAddress>,  // What's mapped (0..0 if unmapped)
+    sub_ranges: Vec<Subrange>,           // Outstanding views into mapped data
 }
 ```
 
-### How It Works
+When you call `map_async()`, wgpu records the mapped range. When you call `get_mapped_range()`, it checks that your request falls within the mapped range and doesn't overlap existing views. When you drop a `BufferView`, it removes that subrange. When you call `unmap()`, it verifies no views remain, then clears the mapped range.
 
-1. **Map Request**: When you call `map_async()`, the `mapped_range` is set
-2. **View Creation**: When you call `get_mapped_range()`, a new `Subrange` is added
-3. **Overlap Check**: `validate_and_add()` ensures no overlapping views exist
-4. **View Drop**: Dropping `BufferView` removes the `Subrange`
-5. **Unmap**: `unmap()` clears `mapped_range` and panics if views remain
-
-```rust
-// From wgpu/src/api/buffer.rs:566-579
-pub fn map_async(
-    &self,
-    mode: MapMode,
-    callback: impl FnOnce(Result<(), BufferAsyncError>) + WasmNotSend + 'static,
-) {
-    let mut mc = self.buffer.map_context.lock();
-    assert_eq!(mc.mapped_range, 0..0, "Buffer is already mapped");
-    let end = self.offset + self.size.get();
-    mc.mapped_range = self.offset..end;
-
-    self.buffer
-        .inner
-        .map_async(mode, self.offset..end, Box::new(callback));
-}
-```
+This is runtime borrow checking. The compiler can't help here—GPU operations are inherently dynamic—so wgpu implements the same safety guarantees through explicit tracking.
 
 ### The Async Dance
 
-Buffer mapping is inherently asynchronous - the GPU might still be using the buffer. wgpu handles this through callbacks:
+Mapping is asynchronous because the GPU might still be using the buffer:
 
 ```rust
-// Usage pattern from buffer.rs documentation
-let capturable = buffer.clone();  // Clone for the callback
-buffer.map_async(wgpu::MapMode::Write, .., move |result| {
+buffer.map_async(MapMode::Read, .., move |result| {
     if result.is_ok() {
-        let mut view = capturable.get_mapped_range_mut(..);
-        // ... write to view ...
+        let view = buffer.get_mapped_range(..);
+        // ... read data ...
         drop(view);
-        capturable.unmap();
+        buffer.unmap();
     }
 });
-// Later: device.poll() to drive the callback
+// Later: device.poll() drives the callback
 ```
 
-### Flux Implications
+The callback runs when mapping completes—potentially on a different thread, potentially many frames later. This dance is awkward but unavoidable; GPU work is fundamentally asynchronous.
 
-For Flux's buffer management:
-- **Track mapped regions** - can't submit commands while mapped
-- **Handle async completion** - mapping isn't instant
-- **Consider staging buffers** - `Queue::write_buffer()` uses internal staging
+For simpler cases, `Queue::write_buffer()` hides the complexity. It uses internal staging buffers, handling the map/copy/unmap dance invisibly. The tradeoff is an extra copy, but for most use cases, the ergonomic benefit outweighs the performance cost.
 
 ---
 
-## Resource Creation: Device Factory Methods
+## Resource Creation: The Device as Factory
 
 ### The Pattern
 
-All resources are created through the `Device`:
+All GPU resources come from the Device:
 
 ```rust
-// From wgpu/src/api/device.rs:270-283
+let buffer = device.create_buffer(&BufferDescriptor {
+    label: Some("my buffer"),
+    size: 1024,
+    usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
+    mapped_at_creation: false,
+});
+```
+
+The descriptor pattern is everywhere in wgpu. You build a struct describing what you want, pass it to a creation method, get back a handle. This is deliberate:
+
+- **Descriptors are data.** You can store them, serialize them, build them programmatically.
+- **Creation is synchronous.** Unlike mapping, buffer creation returns immediately.
+- **Errors are rare.** Out-of-memory panics; invalid parameters panic. No error handling clutter.
+
+### What Creation Does
+
+Looking at `device.rs:270-283`:
+
+```rust
 pub fn create_buffer(&self, desc: &BufferDescriptor<'_>) -> Buffer {
     let map_context = MapContext::new(desc.mapped_at_creation.then_some(0..desc.size));
     let buffer = self.inner.create_buffer(desc);
-
     Buffer {
         inner: buffer,
         map_context: Arc::new(Mutex::new(map_context)),
@@ -143,44 +139,42 @@ pub fn create_buffer(&self, desc: &BufferDescriptor<'_>) -> Buffer {
         usage: desc.usage,
     }
 }
-
-pub fn create_texture(&self, desc: &TextureDescriptor<'_>) -> Texture {
-    let texture = self.inner.create_texture(desc);
-    Texture {
-        inner: texture,
-        descriptor: TextureDescriptor {
-            label: None,
-            view_formats: &[],
-            ..desc.clone()
-        },
-    }
-}
 ```
 
-### Notable Details
+Creation initializes the map context (pre-mapped if `mapped_at_creation` is set), delegates to the backend for actual GPU allocation, then wraps everything in a handle with cached metadata.
 
-1. **No allocator parameter** - wgpu manages memory internally
-2. **Descriptors are borrowed** - no ownership transfer
-3. **Immediate return** - creation is synchronous (unlike mapping)
-4. **Metadata stored** - `Texture` stores a clone of its descriptor
-
-### Flux Implications
-
-Flux should consider:
-- **Descriptor caching** - store descriptors alongside resources for introspection
-- **Creation batching** - wgpu creates one at a time, but we could pool
-- **Error handling** - wgpu panics on OOM; consider pre-validation
+Notice there's no allocator parameter. Unlike Vulkan, where you might integrate a custom memory allocator, wgpu manages memory internally. This simplifies the API at the cost of some flexibility.
 
 ---
 
-## Command Encoding: Deferred Execution
+## Command Encoding: Record Now, Execute Later
 
-### The Pattern
+### The Model
 
-Commands aren't executed immediately. They're recorded into a `CommandEncoder`, then batched into a `CommandBuffer` for submission:
+GPU work isn't executed immediately. You record commands into an encoder, finish it into a command buffer, then submit:
 
 ```rust
-// From wgpu/src/api/device.rs:200-210
+let mut encoder = device.create_command_encoder(&Default::default());
+{
+    let mut pass = encoder.begin_render_pass(&render_pass_desc);
+    pass.set_pipeline(&pipeline);
+    pass.draw(0..3, 0..1);
+}
+let command_buffer = encoder.finish();
+queue.submit([command_buffer]);
+```
+
+This separation—recording versus execution—is fundamental to modern GPU APIs. It enables:
+
+- **Batching.** Many commands in one submit, reducing driver overhead.
+- **Reordering.** The driver can optimize command order within a submit.
+- **Parallelism.** Multiple threads can record simultaneously (multiple encoders).
+
+### Deferred Actions
+
+Looking at encoder creation in `device.rs:200-210`:
+
+```rust
 pub fn create_command_encoder(&self, desc: &CommandEncoderDescriptor<'_>) -> CommandEncoder {
     let encoder = self.inner.create_command_encoder(desc);
     CommandEncoder {
@@ -190,177 +184,87 @@ pub fn create_command_encoder(&self, desc: &CommandEncoderDescriptor<'_>) -> Com
 }
 ```
 
-The `actions` field is interesting - it allows wgpu to defer certain operations until the command buffer is submitted. This is the hook point for things like "map this buffer after these commands complete."
+That `actions` field is intriguing. It allows wgpu to attach deferred operations—like "map this buffer after these commands complete"—to the command buffer. When you submit, those actions get scheduled appropriately.
 
-### Recording and Submission
-
-```rust
-// Typical usage pattern
-let mut encoder = device.create_command_encoder(&Default::default());
-{
-    let mut pass = encoder.begin_render_pass(&render_pass_descriptor);
-    pass.set_pipeline(&pipeline);
-    pass.draw(0..3, 0..1);
-}
-queue.submit(Some(encoder.finish()));
-```
-
-### Flux Implications
-
-For Flux's command batching:
-- **Encoders are single-use** - finish() consumes the encoder
-- **Multiple encoders** - can record in parallel, submit together
-- **Deferred actions** - can schedule post-submission work
+This is the hook for advanced patterns like mapping a buffer only after a compute shader writes to it. User code sees a simple callback; wgpu handles the synchronization.
 
 ---
 
-## Data Transfer Patterns
+## Thread Safety: What's Actually Safe
 
-### The Options
+### The Guarantees
 
-wgpu provides multiple ways to get data into buffers, each with different tradeoffs:
-
-| Method | Use Case | Characteristics |
-|--------|----------|-----------------|
-| `mapped_at_creation` | Initial data | Sync, direct write, unmap before use |
-| `Queue::write_buffer()` | Dynamic updates | Async-ish, staging buffer, immediate |
-| `map_async()` | Readback or controlled writes | Truly async, callback-based |
-| `StagingBelt` | Many small updates | Pooled staging, manual management |
-| Manual staging | Maximum control | Full ownership of staging buffers |
-
-### Queue::write_buffer
-
-The simplest pattern for dynamic data:
+wgpu enforces Send + Sync on its types:
 
 ```rust
-// From buffer.rs documentation comments
-queue.write_buffer(&buffer, offset, &data);
-```
-
-Internally, this uses a staging buffer managed by wgpu. The data is copied to staging, then a copy command is recorded. The staging buffer is reused or freed later.
-
-### StagingBelt
-
-For many small uploads per frame:
-
-```rust
-// Usage pattern
-let mut belt = StagingBelt::new(chunk_size);
-
-// Each frame:
-let mut encoder = device.create_command_encoder(&Default::default());
-belt.write_buffer(&mut encoder, &target_buffer, offset, size, &device)
-    .copy_from_slice(&data);
-belt.finish();
-queue.submit(Some(encoder.finish()));
-belt.recall();  // Reclaim completed staging buffers
-```
-
-### Flux Implications
-
-For Flux's buffer updates:
-- **Prefer `Queue::write_buffer`** for simplicity unless profiling shows issues
-- **Consider StagingBelt** for particle systems with many small updates
-- **Avoid mapping** for per-frame data unless you need readback
-
----
-
-## Thread Safety
-
-### The Model
-
-wgpu resources are `Send + Sync` (enforced by `static_assertions`):
-
-```rust
-// From wgpu/src/api/device.rs:23-24
 #[cfg(send_sync)]
 static_assertions::assert_impl_all!(Device: Send, Sync);
 ```
 
 This means you can:
-- Create resources on one thread, use on another
-- Share handles across threads (they're `Arc`-based internally)
-- Record commands in parallel (multiple encoders)
+- Create a buffer on one thread, use it on another
+- Share handles across threads (they're Arc-based internally)
+- Record commands in parallel (one encoder per thread)
 
-### What You Can't Do
+But "safe" doesn't mean "automatically parallel." You still need to coordinate:
+- **Queue submission** should happen from one place, or be synchronized
+- **Resource creation** goes through the device, which handles its own locking
+- **Buffer mapping** has state that needs coordination
 
-- Map the same buffer region simultaneously from multiple threads
-- Submit to the same queue from multiple threads without synchronization
-- Use resources after the device is dropped
+### The Practical Approach
 
-### Flux Implications
-
-For Flux's threading model:
-- **Safe to parallelize command recording** - each thread gets its own encoder
-- **Queue submission needs coordination** - or use a dedicated submission thread
-- **Resource creation can be threaded** - but all go through the same device
+For creative coding, single-threaded is usually fine. wgpu's thread safety means you *can* parallelize if profiling shows the need, but you don't pay complexity costs until then.
 
 ---
 
-## Resource Cleanup
+## Cleanup: Deferred by Design
 
-### Drop-Based
+### When Resources Die
 
-Resources are cleaned up when all handles are dropped:
+Drop a buffer handle, and... nothing immediately happens to GPU memory. wgpu schedules cleanup, but actual deletion waits until:
 
-```rust
-// Implicit cleanup
-{
-    let buffer = device.create_buffer(&desc);
-    // ... use buffer ...
-}  // Buffer dropped here, GPU resource will be freed
-```
+1. All command buffers referencing the resource have completed
+2. `device.poll()` runs to process completions
 
-### Explicit Destroy
+This is invisible to user code, but it matters for memory pressure. If you're churning through temporary buffers, they accumulate until the next poll. For most applications, this is fine—the driver manages memory intelligently. For memory-constrained scenarios, explicit `buffer.destroy()` marks the resource for immediate cleanup.
 
-For immediate cleanup (useful when you know you're done):
+### The Safety Net
 
-```rust
-buffer.destroy();  // Marks for immediate destruction
-```
-
-### Deferred Cleanup
-
-wgpu internally defers actual GPU memory reclamation until it's safe (no in-flight commands reference the resource). This happens during `device.poll()`.
-
-### Flux Implications
-
-For Flux's resource pool:
-- **Reference counting is handled** - wgpu does this internally
-- **Explicit destroy** - call when reusing pool slots
-- **Poll regularly** - ensures timely cleanup
+wgpu's deferred cleanup is a safety net. You can't accidentally use a freed resource, because the resource isn't actually freed until it's safe. This is a different model than OpenGL (immediate deletion, undefined behavior if used) or Vulkan (explicit fence management).
 
 ---
 
-## Summary: Key Patterns for Flux
+## Lessons for Flux
 
-| Pattern | wgpu Approach | Flux Application |
-|---------|---------------|------------------|
-| **Handle design** | Arc-wrapped dispatch | Use `Arc<T>` for pool handles |
-| **Metadata** | Stored alongside handle | Cache descriptors in pool entries |
-| **Mapping** | MapContext tracks state | Track mapped regions, integrate with dirty flags |
-| **Creation** | Device factory methods | Pool manages creation, expose simple API |
-| **Commands** | Encoder → Buffer → Submit | Batch recording, single submission |
-| **Data transfer** | Multiple options | Default to `Queue::write_buffer` |
-| **Threading** | Send + Sync | Safe to parallelize recording |
-| **Cleanup** | Drop-based + deferred | Rely on wgpu, call destroy for pool reuse |
+wgpu's patterns suggest several approaches for Flux:
+
+**Arc-wrapped handles for simplicity.** Until profiling shows overhead, reference-counted handles are the right default. They're safe, ergonomic, and thread-compatible.
+
+**Metadata caching.** Store frequently-accessed data (size, format, usage) alongside handles. Don't query the backend for basic properties.
+
+**Runtime state tracking.** Some invariants can't be checked at compile time. Buffer mapping state, dirty flags, dependency graphs—these need explicit tracking.
+
+**Deferred cleanup.** Don't free resources immediately. Batch deletions, process at frame boundaries, let the system confirm safety.
+
+**Single-threaded first.** Design for parallel compatibility, but implement single-threaded. Add complexity only when measurements demand it.
 
 ---
 
 ## Source Files
 
-| File | Purpose |
-|------|---------|
-| `wgpu/src/api/buffer.rs:220-227` | Buffer struct definition |
-| `wgpu/src/api/buffer.rs:744-758` | MapContext tracking |
-| `wgpu/src/api/device.rs:19-22` | Device struct definition |
-| `wgpu/src/api/device.rs:200-210` | CommandEncoder creation |
-| `wgpu/src/api/device.rs:270-300` | Resource creation methods |
+| File | Key Lines | Purpose |
+|------|-----------|---------|
+| `wgpu/src/api/buffer.rs` | 220-227 | Buffer struct definition |
+| `wgpu/src/api/buffer.rs` | 744-758 | MapContext tracking |
+| `wgpu/src/api/buffer.rs` | 566-579 | map_async implementation |
+| `wgpu/src/api/device.rs` | 19-22 | Device struct definition |
+| `wgpu/src/api/device.rs` | 200-210 | CommandEncoder creation |
+| `wgpu/src/api/device.rs` | 270-283 | Buffer creation |
 
 ---
 
 ## Related Documents
 
-- [nannou.md](nannou.md) - How nannou builds on wgpu
-- [rend3.md](rend3.md) - Advanced pooling patterns
-- [../handle-designs.md](../handle-designs.md) - Cross-framework comparison
+- [nannou.md](nannou.md) — How nannou builds creative coding ergonomics on wgpu
+- [rend3.md](rend3.md) — Production-scale resource management over wgpu
+- [../cache-invalidation.md](../cache-invalidation.md) — Dirty flag patterns that complement wgpu's model
