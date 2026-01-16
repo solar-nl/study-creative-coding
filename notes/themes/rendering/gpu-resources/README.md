@@ -158,7 +158,15 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [cache-invalidation.md](cache-invalidation.md) | Dirty flags, versions, update ranges |
 | [reclamation-timing.md](reclamation-timing.md) | When and how to free GPU memory |
 | [command-batching.md](command-batching.md) | Organizing GPU work efficiently |
-| [charging-vs-shadows.md](charging-vs-shadows.md) | CPU-GPU data flow: Farbrausch vs OpenRNDR |
+
+### Comparative Analyses
+
+| Document | Focus |
+|----------|-------|
+| [charging-vs-shadows.md](charging-vs-shadows.md) | CPU-GPU data flow: Farbrausch charging vs OpenRNDR shadows |
+| [arc-vs-index-handles.md](arc-vs-index-handles.md) | Handle design: Arc-wrapped (wgpu) vs index+freelist (rend3) |
+| [version-counters-vs-reference-target.md](version-counters-vs-reference-target.md) | Staleness tracking: Three.js versions vs tixl reference/target |
+| [session-vs-frame-delayed-cleanup.md](session-vs-frame-delayed-cleanup.md) | Resource cleanup: OpenRNDR sessions vs rend3 frame delay |
 
 ### Synthesis
 
