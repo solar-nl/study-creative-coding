@@ -10,7 +10,7 @@ Every frame, creative coding applications shuttle data to the GPU: vertex positi
 
 The solution seems obvious: track what changed, upload only that. But this simple idea spawns a thicket of questions. How do you know what changed? When is it safe to free GPU memory? What if multiple parts of your application reference the same buffer? How do you organize uploads to minimize driver overhead?
 
-These questions led us to study nine frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding. This research informs the design of a **GPU Resource Pool** component for the Rust creative coding framework.
+These questions led us to study ten frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding. This research informs the design of a **GPU Resource Pool** component for the Rust creative coding framework.
 
 ---
 
@@ -29,6 +29,7 @@ We studied frameworks spanning languages, eras, and design philosophies:
 
 **The Web**
 - **Three.js** — JavaScript's dominant 3D library, pioneering update range tracking.
+- **Babylon.js** — Production WebGPU engine with tree-based bind group caching.
 
 **The Native Traditionalists**
 - **Cinder** — C++ creative coding with RAII patterns.
@@ -145,6 +146,7 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [tixl.md](per-framework/tixl.md) | Dirty flag system, shader caching, node graph integration |
 | [openrndr.md](per-framework/openrndr.md) | LRU caching, shadow buffers, session-based cleanup |
 | [threejs.md](per-framework/threejs.md) | Update ranges, version tracking, backend abstraction |
+| [babylonjs.md](per-framework/babylonjs.md) | Tree-based caching, deferred destruction, multi-level dirty tracking |
 | [cinder.md](per-framework/cinder.md) | RAII patterns, scoped bindings, texture pooling |
 | [processing.md](per-framework/processing.md) | Context tracking, exponential growth, mobile resilience |
 | [farbrausch.md](per-framework/farbrausch.md) | Demoscene efficiency: megabuffers, charging, render phases |
