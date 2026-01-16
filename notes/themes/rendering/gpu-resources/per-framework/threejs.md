@@ -277,7 +277,7 @@ Size changes bypass the update range optimization entirely. You can't partially 
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 Three.js's patterns suggest several approaches:
 

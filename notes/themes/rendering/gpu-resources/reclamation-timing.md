@@ -178,13 +178,13 @@ For creative coding, conservative usually wins. Memory is abundant; debugging us
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 The reclamation research suggests a layered approach:
 
 **Rely on wgpu's automatic handling by default.** Drop handles, let wgpu schedule cleanup. For most resources, this is sufficient and safe.
 
-**Implement frame-delayed deletion for explicit management.** If Flux manages resources in pools or instruction queues, delay actual deletion by 2+ frames. This handles in-flight commands safely.
+**Implement frame-delayed deletion for explicit management.** When managing resources in pools or instruction queues, delay actual deletion by 2+ frames. This handles in-flight commands safely.
 
 **Consider sessions for lifetime boundaries.** Scene transitions, effect lifetimes, loading phases—these are natural cleanup points. Sessions can group resources that should die together.
 

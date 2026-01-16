@@ -278,13 +278,13 @@ This allows staging writes to happen in parallel while ensuring they complete be
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
-rend3's patterns are designed for scale that Flux may not initially need. But they're worth understanding:
+rend3's patterns are designed for scale that creative coding may not initially need. But they're worth understanding:
 
-**Dense indices when volume demands.** If Flux ever manages thousands of resources, integer handles beat Arc. But start with Arc; switch if profiling shows the need.
+**Dense indices when volume demands.** When managing thousands of resources, integer handles beat Arc. But start with Arc; switch if profiling shows the need.
 
-**Megabuffers for geometry.** If Flux supports dynamic mesh editing or particle systems, suballocation will matter. But defer until there's a use case.
+**Megabuffers for geometry.** For dynamic mesh editing or particle systems, suballocation will matter. But defer until there's a use case.
 
 **Instruction queues mesh with dirty flags.** Both are about deferring work: dirty flags mark what changed, instructions describe what to do. Process both at frame boundaries.
 

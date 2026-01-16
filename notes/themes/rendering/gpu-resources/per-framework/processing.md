@@ -261,11 +261,11 @@ This flexibility matters for performance tuning. Streaming is faster when data c
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 Processing's patterns suggest several approaches:
 
-**Context tracking for portability.** If Flux targets WebGPU (where similar context loss can occur), tracking resource-context binding enables graceful recovery.
+**Context tracking for portability.** When targeting WebGPU (where similar context loss can occur), tracking resource-context binding enables graceful recovery.
 
 **Exponential growth for dynamic data.** When you don't know the final size, doubling is simple and efficient. The power-of-two sizes help with alignment and allocation.
 

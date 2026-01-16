@@ -294,7 +294,7 @@ Change a material parameter, and its shader needs recompilation. The dirty flag 
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 OpenRNDR's patterns suggest several approaches:
 

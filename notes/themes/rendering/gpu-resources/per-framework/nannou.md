@@ -141,7 +141,7 @@ Studying what nannou *omits* is as instructive as what it includes.
 
 **No bind group caching.** Create a new bind group each time you need one. For creative coding's typical complexity, this is fine. For complex scenes, it's wasteful.
 
-nannou optimized for simplicity and rapid iteration, not raw performance. This is appropriate for its audience. But it means Flux, targeting broader use cases, will need patterns nannou doesn't provide.
+nannou optimized for simplicity and rapid iteration, not raw performance. This is appropriate for its audience. A more comprehensive GPU Resource Pool, targeting broader use cases, will need patterns nannou doesn't provide.
 
 ---
 
@@ -188,7 +188,7 @@ This is the kind of "quality of life" utility creative coding frameworks need. T
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 nannou's patterns suggest several approaches:
 

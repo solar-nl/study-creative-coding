@@ -1,6 +1,6 @@
-# Flux GPU Resource Pool: What We Learned
+# GPU Resource Pool: Design Synthesis
 
-> Synthesizing patterns from nine frameworks into concrete guidance
+> Synthesizing patterns from nine frameworks into a reusable component
 
 ---
 
@@ -8,13 +8,15 @@
 
 We studied nine frameworks—wgpu, nannou, rend3, tixl, OpenRNDR, Three.js, Cinder, Processing, and Farbrausch's Werkkzeug/Altona—each with battle-tested solutions to GPU resource management. They span languages (Rust, Kotlin, JavaScript, C++, Java, C#), audiences (creative coders, game developers, demoscene artists, web developers), and scales (hundreds of resources to tens of thousands).
 
-Despite their differences, consistent patterns emerged. The same problems recur; the same solutions appear in different guises. What follows is a distillation: the patterns that matter most for Flux, presented not as abstract theory but as concrete recommendations.
+Despite their differences, consistent patterns emerged. The same problems recur; the same solutions appear in different guises. What follows is a distillation: the patterns that matter most for a GPU Resource Pool component, presented not as abstract theory but as concrete design recommendations.
+
+The GPU Resource Pool is a framework-level component that any part of the system can use—the node graph (Flux), the renderer, procedural generators, or user code. It abstracts wgpu's resource management into patterns optimized for creative coding workflows.
 
 ---
 
-## Dirty Flags: The tixl Way
+## Dirty Flags: The tixl Pattern
 
-For Flux's node graph, tixl's reference/target pattern with frame deduplication is the clear choice:
+For tracking what needs uploading, tixl's reference/target pattern with frame deduplication is the clear choice:
 
 ```rust
 pub struct DirtyFlag {
@@ -51,28 +53,26 @@ impl DirtyFlag {
 }
 ```
 
-This pattern handles everything Flux needs:
-- **Diamond dependencies**: Multiple paths to the same node don't multiply invalidation
+This pattern handles the common cases:
+- **Diamond dependencies**: Multiple paths to the same resource don't multiply invalidation
 - **Independent tracking**: Multiple consumers can check staleness independently
 - **Debugging information**: The difference between target and reference tells you how far behind you are
 
-### Integration with the Node Graph
+### Integration Example
 
 ```rust
-pub struct Slot<T> {
+pub struct TrackedResource<T> {
     value: T,
     dirty_flag: DirtyFlag,
-    connections: Vec<SlotId>,
 }
 
-impl<T> Slot<T> {
+impl<T> TrackedResource<T> {
     pub fn set(&mut self, value: T, frame: u64) {
         self.value = value;
         self.dirty_flag.invalidate(frame);
-        // Propagation handled by graph
     }
 
-    pub fn update(&mut self, frame: u64, compute: impl FnOnce() -> T) {
+    pub fn update_if_dirty(&mut self, frame: u64, compute: impl FnOnce() -> T) {
         if self.dirty_flag.is_dirty() {
             self.value = compute();
             self.dirty_flag.clear();
@@ -137,12 +137,12 @@ The overhead of tracking ranges isn't worth it for small buffers. For large buff
 
 ---
 
-## Resource Pool: The Frame Rhythm
+## The Pool Structure
 
-Flux's resource pool should follow the natural frame rhythm: collect dirty resources, batch uploads, process deletions at boundaries.
+The resource pool follows the natural frame rhythm: collect dirty resources, batch uploads, process deletions at boundaries.
 
 ```rust
-pub struct ResourcePool {
+pub struct GpuResourcePool {
     buffers: Vec<Option<BufferEntry>>,
     textures: Vec<Option<TextureEntry>>,
 
@@ -166,7 +166,7 @@ struct BufferEntry {
 ### Frame Processing
 
 ```rust
-impl ResourcePool {
+impl GpuResourcePool {
     pub fn begin_frame(&mut self) {
         self.current_frame += 1;
     }
@@ -239,7 +239,7 @@ pub struct TextureHandle {
 |---------------|-------------------|-----------|
 | Device/Queue | Arc-wrapped | Few, shared, automatic cleanup |
 | Buffers | Generation + index | Moderate count, varied lifetimes |
-| Textures | Generation + index | Few, often shared between nodes |
+| Textures | Generation + index | Few, often shared between components |
 | Mesh data | Generation + index | Many small allocations possible |
 | Bind groups | Recreate per-frame | Cheap, depend on multiple resources |
 
@@ -304,7 +304,7 @@ Hot shaders stay in memory. Cold shaders load from disk. First-time compilations
 The minimum viable resource pool:
 
 - DirtyFlag struct with frame deduplication
-- Basic ResourcePool with generation-checked handles
+- Basic GpuResourcePool with generation-checked handles
 - Single-encoder command recording
 - Drop-based cleanup with 2-frame delay
 
@@ -322,7 +322,7 @@ Don't add these preemptively. Measure first, optimize second.
 
 ### Phase 3: Scale
 
-If Flux grows to handle complex scenes:
+For complex scenes or high-performance requirements:
 
 - Megabuffer + range allocator for geometry
 - Parallel command recording
@@ -344,7 +344,7 @@ These are substantial complexity investments. Defer until the simpler approaches
 
 **Safety over speed.** For creative coding, memory is abundant and debugging use-after-free is painful. Err toward conservative reclamation, generous delays, and automatic cleanup.
 
-The frameworks we studied evolved these patterns through years of real-world use. They're not arbitrary—they're the solutions that survived contact with actual applications. Flux should adopt them thoughtfully, starting simple and adding complexity only where measurements prove it necessary.
+The frameworks we studied evolved these patterns through years of real-world use. They're not arbitrary—they're the solutions that survived contact with actual applications.
 
 ---
 
@@ -354,3 +354,4 @@ The frameworks we studied evolved these patterns through years of real-world use
 - [per-framework/](per-framework/) — Deep dives into each framework
 - [cache-invalidation.md](cache-invalidation.md) — Dirty flag patterns in detail
 - [handle-designs.md](handle-designs.md) — Handle pattern catalog
+- [charging-vs-shadows.md](charging-vs-shadows.md) — CPU-GPU data flow patterns

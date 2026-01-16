@@ -6,7 +6,7 @@
 
 ## Why Start Here
 
-wgpu is the bedrock. Every creative coding framework built on Rust—nannou today, Flux tomorrow—ultimately speaks wgpu's language. Understanding how wgpu manages GPU resources isn't optional; it shapes what's possible and what's efficient in everything built on top.
+wgpu is the bedrock. Every creative coding framework built on Rust—nannou today, new frameworks tomorrow—ultimately speaks wgpu's language. Understanding how wgpu manages GPU resources isn't optional; it shapes what's possible and what's efficient in everything built on top.
 
 But wgpu isn't just an implementation detail. It embodies a philosophy: safety through abstraction, portability through backends, ergonomics through Rust idioms. The patterns wgpu chose—Arc-wrapped handles, interior mutability for mapping, deferred cleanup—aren't arbitrary. They're solutions to real problems that any GPU abstraction must face.
 
@@ -234,9 +234,9 @@ wgpu's deferred cleanup is a safety net. You can't accidentally use a freed reso
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
-wgpu's patterns suggest several approaches for Flux:
+wgpu's patterns suggest several approaches:
 
 **Arc-wrapped handles for simplicity.** Until profiling shows overhead, reference-counted handles are the right default. They're safe, ergonomic, and thread-compatible.
 

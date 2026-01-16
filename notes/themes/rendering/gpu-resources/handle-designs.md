@@ -146,15 +146,15 @@ The research across frameworks reveals a consistent pattern: handle complexity s
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 The handle research suggests a layered approach:
 
 **Start with Arc for most resources.** Device, queue, buffers, textures—wrap them in Arc. The ergonomics are excellent, the safety is automatic, and the overhead is negligible for typical creative coding workloads.
 
-**Add generation-counted indices for high-volume resources.** If Flux supports particle systems with tens of thousands of particles, or instanced rendering with thousands of instances, integer handles with generation counters will serve better than Arc.
+**Add generation-counted indices for high-volume resources.** For particle systems with tens of thousands of particles, or instanced rendering with thousands of instances, integer handles with generation counters will serve better than Arc.
 
-**Consider Weak for caches and pools.** If Flux has shader caches or texture pools, Weak references let the pool enable sharing without owning the resources.
+**Consider Weak for caches and pools.** For shader caches or texture pools, Weak references let the pool enable sharing without owning the resources.
 
 **Don't over-engineer.** The simplest handle that meets your needs is the right choice. Complexity costs in maintenance, debugging, and cognitive load. Add sophistication only when profiling shows the need.
 

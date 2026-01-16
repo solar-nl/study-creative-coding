@@ -10,7 +10,7 @@ Every frame, creative coding applications shuttle data to the GPU: vertex positi
 
 The solution seems obvious: track what changed, upload only that. But this simple idea spawns a thicket of questions. How do you know what changed? When is it safe to free GPU memory? What if multiple parts of your application reference the same buffer? How do you organize uploads to minimize driver overhead?
 
-These questions led us to study eight frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding.
+These questions led us to study nine frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding. This research informs the design of a **GPU Resource Pool** component for the Rust creative coding framework.
 
 ---
 
@@ -19,12 +19,12 @@ These questions led us to study eight frameworks, each with battle-tested answer
 We studied frameworks spanning languages, eras, and design philosophies:
 
 **The Rust Ecosystem**
-- **wgpu** — The foundation. A safe, portable GPU abstraction that Flux will build upon.
+- **wgpu** — The foundation. A safe, portable GPU abstraction the framework builds upon.
 - **nannou** — Creative coding on wgpu, with elegant device pooling for multi-window applications.
 - **rend3** — A production 3D renderer showing how to scale resource management.
 
 **The Visual Programming World**
-- **tixl** — A node-based tool with a dirty flag system remarkably similar to what Flux needs.
+- **tixl** — A node-based tool with a dirty flag system applicable to node graph systems.
 - **OpenRNDR** — Kotlin creative coding with LRU caches and shadow buffers.
 
 **The Web**
@@ -75,7 +75,7 @@ The lesson: match handle complexity to resource volume. Few textures? Arc is fin
 
 ### 4. How do you know what changed?
 
-This question matters most for Flux, whose node graph must propagate changes efficiently.
+This question matters most for node graphs, where upstream changes must propagate downstream efficiently.
 
 **Boolean dirty flags** are the simplest approach: `needsUpdate = true`. But they have a flaw—if two systems check the flag, only the first sees it dirty.
 
@@ -117,11 +117,11 @@ GPU commands aren't executed immediately—they're recorded into command buffers
 
 ---
 
-## What This Means for Flux
+## What This Means for the GPU Resource Pool
 
 The research points toward a layered approach:
 
-**Foundation: tixl-style dirty flags.** The reference/target pattern with frame deduplication handles node graph invalidation cleanly. This is already part of Flux's design.
+**Foundation: tixl-style dirty flags.** The reference/target pattern with frame deduplication handles change tracking cleanly.
 
 **Addition: Three.js-style update ranges.** For large dynamic buffers (particle systems, dynamic meshes), tracking byte ranges enables efficient partial uploads.
 
@@ -164,7 +164,7 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 
 | Document | Focus |
 |----------|-------|
-| [flux-recommendations.md](flux-recommendations.md) | Concrete recommendations for Flux implementation |
+| [resource-pool-design.md](resource-pool-design.md) | Design synthesis for the GPU Resource Pool component |
 
 ---
 

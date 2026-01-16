@@ -245,13 +245,13 @@ But DSA isn't universally available, so Cinder falls back to traditional bind-th
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 Cinder's patterns suggest several approaches:
 
 **RAII for resource lifecycles.** In Rust, this means Drop traits. Resources are valid while they exist; destruction is automatic. No separate create/destroy phases to get out of sync.
 
-**Scoped state management.** If Flux needs to manage mutable state (less common in wgpu than OpenGL, but possible), scoped guards ensure cleanup. Rust's RAII maps perfectly to this.
+**Scoped state management.** For mutable state management (less common in wgpu than OpenGL, but possible), scoped guards ensure cleanup. Rust's RAII maps perfectly to this.
 
 **Custom deleters for pooling.** Rust's Arc doesn't support custom deleters as elegantly as shared_ptr, but similar patterns are possible with explicit pool return mechanisms.
 

@@ -308,7 +308,7 @@ The flags determine which geometry variant to charge (wireframe vs solid) and wh
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 Farbrausch's patterns suggest several approaches:
 
@@ -318,13 +318,13 @@ Farbrausch's patterns suggest several approaches:
 
 **Phase separation enables batching.** Clear separation between simulation, preparation, and rendering allows the framework to optimize each phase independently. Uploads complete before draws begin; no mid-frame stalls.
 
-**Operator graphs are timeless.** The node-based procedural texture system anticipated modern visual programming. Flux's node graph can learn from this heritage—graphs that compute resources, then cache and reuse results.
+**Operator graphs are timeless.** The node-based procedural texture system anticipated modern visual programming. Node graph systems can learn from this heritage—graphs that compute resources, then cache and reuse results.
 
 **Reference + charge counting for smart cleanup.** Tracking both total references and GPU-ready references enables intelligent memory management. Resources shed weight as they transition from creation to rendering.
 
 **Flag-based permutation selection.** Rather than complex inheritance or runtime branching, simple flag combinations select shader variants. O(1) lookup, predictable behavior, easy debugging.
 
-The demoscene constraint—64KB for everything—forced elegance. Every pattern serves a purpose. Modern frameworks have more memory, but the discipline of efficiency remains valuable. Flux can adopt these patterns not from necessity but from their proven effectiveness.
+The demoscene constraint—64KB for everything—forced elegance. Every pattern serves a purpose. Modern frameworks have more memory, but the discipline of efficiency remains valuable. The GPU Resource Pool can adopt these patterns not from necessity but from their proven effectiveness.
 
 ---
 

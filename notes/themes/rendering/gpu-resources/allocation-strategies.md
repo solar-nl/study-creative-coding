@@ -169,7 +169,7 @@ For creative coding specifically, memory is usually abundant and allocation over
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 The allocation research suggests a phased approach:
 

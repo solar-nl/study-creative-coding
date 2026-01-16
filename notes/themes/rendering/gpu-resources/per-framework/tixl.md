@@ -6,7 +6,7 @@
 
 ## A Familiar Challenge
 
-tixl is a visual programming tool built on Stride (the C#/.NET game engine), and it faces the same challenge Flux will: a node graph where upstream changes must propagate downstream, but doing so naively would recompute far too much.
+tixl is a visual programming tool built on Stride (the C#/.NET game engine), and it faces a common challenge for node graph systems: upstream changes must propagate downstream, but doing so naively would recompute far too much.
 
 The naive approach—mark everything dirty, recompute everything—works for a hundred nodes. For a thousand nodes with complex interconnections, it collapses. The graph becomes a swamp of redundant computation.
 
@@ -287,7 +287,7 @@ The same pattern that governs node evaluation governs shader compilation. Change
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 tixl's patterns suggest several approaches:
 

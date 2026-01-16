@@ -10,7 +10,7 @@ GPU resources shouldn't be re-uploaded every frame. A texture that hasn't change
 
 This is cache invalidation—knowing when cached GPU state has become stale. Get it wrong in one direction, and you waste bandwidth uploading unchanged data. Get it wrong in the other direction, and you render with outdated data, producing visual artifacts that may be subtle or catastrophic.
 
-For a node graph like Flux, cache invalidation becomes even more critical. When an upstream node changes, how do you know which downstream nodes need recomputation? Propagate too eagerly, and you recompute everything unnecessarily. Propagate too conservatively, and you miss updates.
+For a node graph system, cache invalidation becomes even more critical. When an upstream node changes, how do you know which downstream nodes need recomputation? Propagate too eagerly, and you recompute everything unnecessarily. Propagate too conservatively, and you miss updates.
 
 The question guiding this exploration: *what mechanisms track staleness efficiently?*
 
@@ -201,13 +201,13 @@ For a node graph, the hybrid approach usually wins. Propagating dirty flags is c
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 The cache invalidation research points to a clear recommendation:
 
-**Reference/Target with frame deduplication for the node graph.** tixl's pattern handles diamond dependencies gracefully and provides clear semantics for tracking what's been processed.
+**Reference/Target with frame deduplication.** tixl's pattern handles diamond dependencies gracefully and provides clear semantics for tracking what's been processed.
 
-**Update ranges for large buffers.** If Flux supports dynamic geometry or particle systems, tracking which bytes changed enables efficient partial uploads.
+**Update ranges for large buffers.** For dynamic geometry or particle systems, tracking which bytes changed enables efficient partial uploads.
 
 **Version counters for multi-consumer resources.** If the same resource feeds multiple systems (multiple render passes, editor previews, etc.), version counters let each track staleness independently.
 

@@ -214,7 +214,7 @@ This is powerful but complex. Render graphs shine for multi-pass rendering: shad
 
 ---
 
-## Lessons for Flux
+## Lessons for the GPU Resource Pool
 
 The command batching research suggests a progression:
 

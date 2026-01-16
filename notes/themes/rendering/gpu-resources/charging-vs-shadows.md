@@ -263,9 +263,9 @@ impl ResourceState {
 
 ---
 
-## Implications for Flux
+## Implications for the GPU Resource Pool
 
-The Rust creative coding framework under development can learn from both patterns.
+The GPU Resource Pool component can incorporate both patterns.
 
 ### Adopt Lazy Shadow Allocation
 
@@ -289,7 +289,7 @@ The `OnceCell` pattern naturally expresses lazy allocation in Rust.
 
 ### Consider Charging for Procedural Content
 
-Flux's node graph may generate substantial procedural content. For nodes that produce static geometry—computed once during graph evaluation—charging-style cleanup makes sense:
+Node graphs and procedural generators may produce substantial content. For resources that are computed once and rendered many times—static geometry, baked textures—charging-style cleanup makes sense:
 
 ```rust
 impl ProceduralMeshNode {
@@ -330,7 +330,7 @@ Implicit synchronization hides costs and makes performance unpredictable. Creati
 
 ### Document the Tradeoffs
 
-The choice between patterns depends on use case. Flux's documentation should explain when to use each:
+The choice between patterns depends on use case. The framework's documentation should explain when to use each:
 
 - **Procedural generation (one-time):** Enable charging, skip shadows
 - **Dynamic geometry (every frame):** Keep shadows, skip charging
@@ -349,7 +349,7 @@ The demoscene's extreme constraints birthed charging. Creative coding's experime
 
 A modern framework can offer both. The key is making the choice explicit: users should understand what data lives where, and when expensive operations occur. With that transparency, the patterns become tools rather than mysteries—applied deliberately to achieve specific goals.
 
-For Flux, the recommendation is clear: lazy shadows as the default (creative coding's flexibility), with charging available for procedural content in performance-critical paths (demoscene's efficiency). The best of both worlds, applied where each excels.
+For the GPU Resource Pool, the recommendation is clear: lazy shadows as the default (creative coding's flexibility), with charging available for procedural content in performance-critical paths (demoscene's efficiency). The best of both worlds, applied where each excels.
 
 ---
 
@@ -358,4 +358,4 @@ For Flux, the recommendation is clear: lazy shadows as the default (creative cod
 - [farbrausch.md](per-framework/farbrausch.md) — Complete analysis of Farbrausch's resource patterns
 - [openrndr.md](per-framework/openrndr.md) — OpenRNDR's shadow and caching systems
 - [reclamation-timing.md](reclamation-timing.md) — When to free GPU resources
-- [flux-recommendations.md](flux-recommendations.md) — Concrete recommendations for Flux
+- [resource-pool-design.md](resource-pool-design.md) — Design synthesis for the GPU Resource Pool
