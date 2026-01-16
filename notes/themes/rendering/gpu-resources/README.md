@@ -147,6 +147,7 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [threejs.md](per-framework/threejs.md) | Update ranges, version tracking, backend abstraction |
 | [cinder.md](per-framework/cinder.md) | RAII patterns, scoped bindings, texture pooling |
 | [processing.md](per-framework/processing.md) | Context tracking, exponential growth, mobile resilience |
+| [farbrausch.md](per-framework/farbrausch.md) | Demoscene efficiency: megabuffers, charging, render phases |
 
 ### Cross-Cutting Topics
 

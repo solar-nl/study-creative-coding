@@ -1,12 +1,12 @@
 # Flux GPU Resource Pool: What We Learned
 
-> Synthesizing patterns from eight frameworks into concrete guidance
+> Synthesizing patterns from nine frameworks into concrete guidance
 
 ---
 
 ## The Story So Far
 
-We studied eight frameworks—wgpu, nannou, rend3, tixl, OpenRNDR, Three.js, Cinder, and Processing—each with battle-tested solutions to GPU resource management. They span languages (Rust, Kotlin, JavaScript, C++, Java, C#), audiences (creative coders, game developers, web developers), and scales (hundreds of resources to tens of thousands).
+We studied nine frameworks—wgpu, nannou, rend3, tixl, OpenRNDR, Three.js, Cinder, Processing, and Farbrausch's Werkkzeug/Altona—each with battle-tested solutions to GPU resource management. They span languages (Rust, Kotlin, JavaScript, C++, Java, C#), audiences (creative coders, game developers, demoscene artists, web developers), and scales (hundreds of resources to tens of thousands).
 
 Despite their differences, consistent patterns emerged. The same problems recur; the same solutions appear in different guises. What follows is a distillation: the patterns that matter most for Flux, presented not as abstract theory but as concrete recommendations.
 
