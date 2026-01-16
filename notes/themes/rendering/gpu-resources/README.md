@@ -10,7 +10,7 @@ Every frame, creative coding applications shuttle data to the GPU: vertex positi
 
 The solution seems obvious: track what changed, upload only that. But this simple idea spawns a thicket of questions. How do you know what changed? When is it safe to free GPU memory? What if multiple parts of your application reference the same buffer? How do you organize uploads to minimize driver overhead?
 
-These questions led us to study ten frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding. This research informs the design of a **GPU Resource Pool** component for the Rust creative coding framework.
+These questions led us to study eleven frameworks, each with battle-tested answers. The patterns that emerged aren't arbitrary—they reflect the fundamental constraints of GPU programming and the specific demands of creative coding. This research informs the design of a **GPU Resource Pool** component for the Rust creative coding framework.
 
 ---
 
@@ -23,17 +23,21 @@ We studied frameworks spanning languages, eras, and design philosophies:
 - **nannou** — Creative coding on wgpu, with elegant device pooling for multi-window applications.
 - **rend3** — A production 3D renderer showing how to scale resource management.
 
-**The Visual Programming World**
-- **tixl** — A node-based tool with a dirty flag system applicable to node graph systems.
+**The Processing Tradition**
+- **Processing** — Java's approachable graphics, with context tracking for mobile.
 - **OpenRNDR** — Kotlin creative coding with LRU caches and shadow buffers.
+- **Cinder** — C++ creative coding with RAII patterns.
 
 **The Web**
 - **Three.js** — JavaScript's dominant 3D library, pioneering update range tracking.
 - **Babylon.js** — Production WebGPU engine with tree-based bind group caching.
 
-**The Native Traditionalists**
-- **Cinder** — C++ creative coding with RAII patterns.
-- **Processing** — Java's approachable graphics, with context tracking for mobile.
+**Visual Programming**
+- **tixl** — A node-based tool with dirty flag patterns applicable to node graph systems.
+- **cables.gl** — WebGL/WebGPU visual programming with stack-based state and comprehensive profiling.
+
+**The Demoscene**
+- **Farbrausch** — 64KB demo tooling with megabuffers, charging, and render phases.
 
 Each framework solved the same fundamental problems, but their solutions reveal different priorities: safety versus performance, simplicity versus flexibility, immediate feedback versus batch efficiency.
 
@@ -144,6 +148,7 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [nannou.md](per-framework/nannou.md) | Device pooling, Weak references, creative coding ergonomics |
 | [rend3.md](per-framework/rend3.md) | Production patterns: megabuffers, instruction queues, bindless textures |
 | [tixl.md](per-framework/tixl.md) | Dirty flag system, shader caching, node graph integration |
+| [cables.md](per-framework/cables.md) | Stack-based state, comprehensive profiling, heavy event tracking |
 | [openrndr.md](per-framework/openrndr.md) | LRU caching, shadow buffers, session-based cleanup |
 | [threejs.md](per-framework/threejs.md) | Update ranges, version tracking, backend abstraction |
 | [babylonjs.md](per-framework/babylonjs.md) | Tree-based caching, deferred destruction, multi-level dirty tracking |
@@ -169,6 +174,9 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [arc-vs-index-handles.md](arc-vs-index-handles.md) | Handle design: Arc-wrapped (wgpu) vs index+freelist (rend3) |
 | [version-counters-vs-reference-target.md](version-counters-vs-reference-target.md) | Staleness tracking: Three.js versions vs tixl reference/target |
 | [session-vs-frame-delayed-cleanup.md](session-vs-frame-delayed-cleanup.md) | Resource cleanup: OpenRNDR sessions vs rend3 frame delay |
+| [stack-vs-raii-state.md](stack-vs-raii-state.md) | State management: cables.gl push/pop vs Cinder RAII scoped bindings |
+| [tree-vs-hash-caching.md](tree-vs-hash-caching.md) | Bind group caching: Babylon.js tree traversal vs hash-based lookup |
+| [immediate-vs-queued-deletion.md](immediate-vs-queued-deletion.md) | Resource deletion: cables.gl immediate vs Babylon.js deferred vs rend3 multi-frame |
 
 ### Synthesis
 
