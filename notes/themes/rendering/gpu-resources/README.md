@@ -158,6 +158,7 @@ The frameworks teach that there's no single correct approach—only tradeoffs ap
 | [cache-invalidation.md](cache-invalidation.md) | Dirty flags, versions, update ranges |
 | [reclamation-timing.md](reclamation-timing.md) | When and how to free GPU memory |
 | [command-batching.md](command-batching.md) | Organizing GPU work efficiently |
+| [charging-vs-shadows.md](charging-vs-shadows.md) | CPU-GPU data flow: Farbrausch vs OpenRNDR |
 
 ### Synthesis
 
