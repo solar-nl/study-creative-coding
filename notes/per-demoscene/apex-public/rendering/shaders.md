@@ -95,7 +95,7 @@ Phoenix uses consistent texture slot assignments across materials.
 |------|----------|--------------|-------------------|
 | t0 | `t_0` | Albedo + Metalness | RT0 (Albedo+Metal) |
 | t1 | `t_1` | Normal + Roughness | RT1 (Normal+Rough) |
-| t2 | `t_2` | Emissive / detail | Reserved |
+| t2 | `t_2` | Emissive + Alpha | Reserved |
 | t3 | `t_3` | Shadow map | Shadow map |
 | t4 | `t_4` | Reserved | Reserved |
 | t5 | `t_5` | Reserved | Reserved |
@@ -107,6 +107,8 @@ Phoenix uses consistent texture slot assignments across materials.
 - Metalness in texture 0's alpha channel
 - Normal.XY in texture 1's RG channels (Z reconstructed)
 - Roughness in texture 1's alpha channel
+- Emissive.RGB in texture 2's RGB channels
+- Alpha mask in texture 2's alpha channel
 
 This packing halves texture memory and sampling costs compared to separate textures.
 
@@ -236,6 +238,68 @@ PSOUT p(VSOUT v)
 ```
 
 The `SV_TARGET1` and `SV_TARGET2` outputs skip the main render target (TARGET0), which receives depth-only or color output depending on the pass configuration.
+
+### Mixed Rendering with Emissive
+
+For materials with emissive properties, Phoenix uses "mixed rendering"—computing lighting in the geometry pass while also writing G-Buffer data. This hybrid approach allows emissive surfaces to glow while still participating in reflections.
+
+```hlsl
+struct PSOUT
+{
+    float4 c  : SV_TARGET0;  // Lit color output
+    float4 am : SV_TARGET1;  // Albedo.RGB + Metalness.A
+    float4 nr : SV_TARGET2;  // Normal.RGB + Roughness.A
+};
+
+PSOUT CalcLight(VSOUT v, float4 albedo, float4 normalMap,
+                float4 emissiveMap, float4 data, float4 shdw)
+{
+    // Alpha cutout using emissive alpha
+    if (shdw.y < emissiveMap.w)
+        discard;
+
+    // Normal and material setup
+    float3 N = perturb_normal(normalize(v.Normal), v.p, v.uv, normalMap.xyz);
+    float3 V = normalize(campos.xyz - v.p);
+    float metallic = ApplyModifier(albedo.w, data.y);
+    float roughness = ApplyModifier(normalMap.w, data.x);
+    float3 F0 = lerp(0.04, albedo.xyz, metallic);
+
+    // Shadow evaluation
+    float shadow = 1;
+    if ((lights[0].ambient.w * lights[0].diffuse.w) > 0.01)
+        shadow = VSM2(v.lp.xyz, data.w, shdw.x);
+
+    // Initialize with emissive contribution
+    float3 Lo = emissiveMap.xyz;
+
+    // Accumulate lighting
+    for (int i = 0; i < lightcount[0]; ++i)
+    {
+        // ... BRDF calculations ...
+        float NdotL = max(dot(N, L), 0.0);
+        if (i == 0) NdotL *= shadow;
+        Lo += (kD * albedo.xyz / PI + specular) * radiance * NdotL;
+    }
+
+    // Output lit color AND G-Buffer
+    PSOUT p;
+    p.c  = float4(Lo, 1.0);
+    p.nr = float4(N, roughness);
+    p.am = float4(albedo.xyz, metallic);
+    return p;
+}
+```
+
+Key aspects of the mixed rendering approach:
+
+1. **Emissive initializes `Lo`**: The light accumulator starts with emissive color, ensuring self-illumination appears even without lights.
+
+2. **Alpha cutout**: The emissive texture's alpha channel enables shape masking via `discard`. The `shdw.y` parameter provides a threshold for controlling cutout sensitivity.
+
+3. **Triple output**: The shader writes to three render targets—lit color (TARGET0), albedo+metalness (TARGET1), and normal+roughness (TARGET2).
+
+4. **G-Buffer for reflections**: Even though lighting is computed forward-style, G-Buffer data is still written so other surfaces can reflect this material correctly.
 
 ### Derivative-Based Tangent Reconstruction
 

@@ -53,7 +53,7 @@ More sophisticated engines use additional G-Buffer targets:
 - **RT3**: Material ID or subsurface parameters
 - **RT4**: Motion vectors (for temporal AA)
 
-Phoenix omits these for size. Emissive adds during the lighting pass via material parameters. Motion vectors compute from position derivatives. The minimal two-target approach keeps bandwidth and memory low.
+Phoenix handles emissive differently—through "mixed rendering" rather than a dedicated G-Buffer channel. See the Mixed Rendering section below. Motion vectors compute from position derivatives. The minimal two-target approach keeps bandwidth and memory low.
 
 ## G-Buffer Generation
 
@@ -229,6 +229,63 @@ FGBufferData UnpackGBuffer(float4 albedoMetal, float4 normalRough)
 **Why 0.04?** Most dielectric materials (plastic, glass, ceramic) have ~4% Fresnel reflectance at normal incidence. This is the "F0" value—the specular color when looking straight at the surface.
 
 **Metals have no diffuse**: In metals, free electrons absorb and re-emit light immediately, producing only specular reflection. Setting `DiffuseColor = albedo * (1 - metalness)` ensures metals have zero diffuse.
+
+## Mixed Rendering for Emissive
+
+Phoenix supports emissive (self-illuminating) materials through "mixed rendering"—a hybrid approach that computes lighting during the geometry pass while still writing G-Buffer data.
+
+### Why Mixed Rendering?
+
+Pure deferred rendering can't handle emissive elegantly:
+- Storing emissive in a G-Buffer channel wastes bandwidth for non-emissive surfaces
+- Emissive needs to add directly to output, not participate in BRDF calculations
+- Alpha cutout (common with emissive) requires early fragment discard
+
+Mixed rendering solves these by doing forward-style lighting in materials that need emissive, while preserving deferred's benefits for other surfaces.
+
+### Mixed Rendering Output
+
+Emissive materials write to three render targets simultaneously:
+
+```hlsl
+struct PSOUT
+{
+    float4 c  : SV_TARGET0;  // Lit color (including emissive)
+    float4 am : SV_TARGET1;  // Albedo.RGB + Metalness.A
+    float4 nr : SV_TARGET2;  // Normal.RGB + Roughness.A
+};
+```
+
+The shader samples the emissive texture (slot t2) and uses it to initialize the light accumulator:
+
+```hlsl
+float3 Lo = emissiveMap.xyz;  // Start with emissive
+for (int i = 0; i < lightcount; i++) {
+    // BRDF calculations...
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+}
+p.c = float4(Lo, 1.0);
+```
+
+### Benefits of Mixed Rendering
+
+| Aspect | Benefit |
+|--------|---------|
+| Self-illumination | Emissive contributes even in darkness |
+| Reflections | G-Buffer written, so emissive surfaces reflect correctly |
+| Alpha cutout | `discard` works naturally in geometry pass |
+| No extra RT | No dedicated emissive G-Buffer channel needed |
+| Selective use | Only emissive materials pay the forward lighting cost |
+
+### When to Use Each Approach
+
+| Material Type | Rendering Approach |
+|---------------|-------------------|
+| Opaque, no emissive | Pure deferred (G-Buffer only) |
+| Opaque with emissive | Mixed rendering |
+| Transparent | Forward rendering |
+
+This hybrid pipeline keeps the G-Buffer compact for the common case (non-emissive materials) while supporting the full range of material effects.
 
 ## Lighting Layer Configuration
 

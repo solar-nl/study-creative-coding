@@ -208,7 +208,78 @@ Phoenix doesn't implement true subsurface scattering. Instead, the donut materia
 
 3. **Lighting design**: The scene's lighting emphasizes the material's softness. Rim lights and fill lights positioned to minimize harsh shadows complement the material design.
 
-## Example 5: Area Light Sphere
+## Example 5: Emissive Material
+
+Clean Slate uses emissive materials for glowing elements, light sources, and UI highlights.
+
+### Design Intent
+
+Create self-illuminating surfaces that glow independently of scene lighting while still integrating with reflections.
+
+### Material Configuration
+
+```
+Technique: PBR Mixed Rendering
+Layer: Solid Layer
+
+Parameters:
+  - Albedo texture: Base color + metalness (slot 0)
+  - Normal texture: Normal + roughness (slot 1)
+  - Emissive texture: Glow color + alpha mask (slot 2)
+  - Shadow threshold: Controls alpha cutout sensitivity
+```
+
+### Emissive Texture Layout
+
+| Channel | Purpose |
+|---------|---------|
+| RGB | Emissive color and intensity |
+| Alpha | Cutout mask (< threshold = discard) |
+
+### Shader Integration
+
+The mixed rendering shader initializes light accumulation with the emissive value:
+
+```hlsl
+// Sample emissive texture
+float4 emissiveMap = t_2.Sample(Sampler, v.uv.xy);
+
+// Alpha cutout
+if (shdw.y < emissiveMap.w)
+    discard;
+
+// Initialize with emissive, then add lighting
+float3 Lo = emissiveMap.xyz;
+for (int i = 0; i < lightcount; i++) {
+    Lo += CalculateBRDF(...) * radiance * NdotL;
+}
+
+// Output lit color AND G-Buffer data
+p.c  = float4(Lo, 1.0);
+p.am = float4(albedo.xyz, metallic);
+p.nr = float4(N, roughness);
+```
+
+### Key Observations
+
+1. **Self-illumination**: Emissive adds directly to output before the lighting loop. Even in complete darkness, emissive surfaces glow.
+
+2. **G-Buffer participation**: Despite forward lighting, the material writes G-Buffer data. Other surfaces can reflect this material correctly via deferred passes.
+
+3. **Alpha cutout**: The emissive alpha channel enables complex shapes—text, patterns, decals—without geometry. The `shdw.y` parameter provides animated threshold control.
+
+4. **HDR ready**: Emissive values can exceed 1.0 for bloom and HDR effects. The RGB channels directly encode intensity, not clamped to display range.
+
+5. **Texture-driven animation**: Animating the emissive texture (or using procedural generation) creates pulsing, flowing, or flickering effects without shader changes.
+
+### Use Cases in Clean Slate
+
+- **Light source geometry**: Visible sphere lights use emissive to represent the glowing source
+- **UI elements**: Text and interface elements use emissive for visibility regardless of scene lighting
+- **Accent lighting**: Glowing details on objects (LEDs, screens, indicators)
+- **Alpha-masked decals**: Complex shapes that need cutout without transparent sorting
+
+## Example 6: Area Light Sphere
 
 Clean Slate uses physical area lights extensively. The lighting materials demonstrate both LTC and analytical approaches.
 

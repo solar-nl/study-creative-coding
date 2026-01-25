@@ -436,7 +436,171 @@ A complete IBL implementation would include:
 - Irradiance map for diffuse (spherical harmonics or cubemap)
 - Split-sum approximation with BRDF LUT
 
-Phoenix omits these for size reasons. The 64k constraint favors analytical lighting over baked environment data.
+Phoenix omits full IBL for size reasons. The 64k constraint favors analytical lighting over baked environment data. However, Phoenix does support several reflection techniques as post-processing effects.
+
+## Reflection Techniques
+
+While Phoenix doesn't use traditional cubemap environment reflections, it provides several alternative techniques for reflective surfaces.
+
+### Screen-Space Reflections (SSR)
+
+Clean Slate implements SSR as a post-processing pass, ray-marching in screen space to find reflected geometry.
+
+```hlsl
+// screen-space-reflections.hlsl (conceptual)
+float4 SSR(float2 texCoord, float4 pixelPos)
+{
+    float4 background = colorTexture.Load(pixelPos.xy);
+
+    // Early exit for non-reflective pixels
+    if (background.w <= 0)
+        return background * (1 + backgroundBoost);
+
+    // Get view-space position and normal
+    float3 viewPos = GetViewPosition(pixelPos.xy);
+    float3 viewNormal = LoadNormal(pixelPos.xy);
+
+    // Calculate reflection vector
+    float3 reflectionDir = reflect(normalize(viewPos), viewNormal);
+
+    // Ray march along reflection
+    float3 hitPos = viewPos;
+    for (int i = 0; i < STEPS; i++)
+    {
+        hitPos += reflectionDir * stepSize;
+
+        // Project to screen space
+        float2 screenUV = ProjectToScreen(hitPos);
+        float sceneDepth = SampleDepth(screenUV);
+
+        // Check for intersection
+        if (hitPos.z > sceneDepth)
+        {
+            // Binary refinement for accuracy
+            for (int j = 0; j < 4; j++)
+            {
+                hitPos -= reflectionDir * stepSize;
+                stepSize *= 0.5;
+                // Re-test and adjust...
+            }
+
+            // Sample reflection color
+            float4 reflection = colorTexture.SampleLevel(sampler, screenUV, mipLevel);
+            return background + reflection * fadeout * mask;
+        }
+    }
+
+    return background;
+}
+```
+
+**SSR characteristics:**
+- **Pros**: No pre-baked data, reflects dynamic content, roughness-aware (mip selection)
+- **Cons**: Only reflects visible geometry, artifacts at screen edges, costly ray march
+
+**Parameters exposed:**
+- `radius` — Maximum ray march distance
+- `steps` — Number of march steps (quality vs. performance)
+- `acceptBias` — Hit detection tolerance
+
+### Fake Cubemap / Importance-Sampled Environment
+
+For ambient reflections without a real cubemap, Clean Slate uses importance sampling:
+
+```hlsl
+// deferred-fake-cubemap.hlsl (conceptual)
+float3 FakeEnvironmentReflection(float3 N, float3 V, float roughness)
+{
+    float3 R = reflect(-V, N);
+    float3 color = 0;
+
+    // Sample environment in importance-weighted directions
+    for (int i = 0; i < SAMPLES; i++)
+    {
+        float2 Xi = Hammersley(i, SAMPLES);
+        float3 H = ImportanceSampleGGX(Xi, N, roughness);
+        float3 L = reflect(-V, H);
+
+        // Sample environment at this direction
+        float mipLevel = roughness * MAX_MIP;  // Rougher = blurrier
+        color += SampleEnvironment(L, mipLevel);
+    }
+
+    return color / SAMPLES;
+}
+```
+
+This technique samples a simple environment texture (gradient, procedural sky) in multiple directions weighted by the GGX distribution. Rougher surfaces sample more spread-out directions with higher mip levels.
+
+### Spherical Environment Mapping
+
+A classic technique for simple environment reflections using a 2D texture:
+
+```hlsl
+// base-material.hlsl spherical mapping
+float2 SphereMapUV(float3 viewReflection)
+{
+    // Map 3D reflection vector to 2D UV
+    float m = 2.0 * sqrt(viewReflection.x * viewReflection.x +
+                         viewReflection.y * viewReflection.y +
+                         (viewReflection.z + 1) * (viewReflection.z + 1));
+    return viewReflection.xy / m + 0.5;
+}
+
+float4 EnvironmentColor(float3 N, float3 V)
+{
+    float3 viewPos = mul(viewMatrix, float4(worldPos, 1)).xyz;
+    float3 viewNormal = mul(viewMatrix, float4(N, 0)).xyz;
+    float3 R = reflect(normalize(viewPos), normalize(viewNormal));
+
+    float2 envUV = SphereMapUV(R);
+    return environmentTexture.Sample(sampler, envUV);
+}
+```
+
+This maps the 3D reflection vector to a 2D texture coordinate using spherical projection. Simple but limited to single-bounce, fixed environment images.
+
+### Planar Reflections
+
+For flat surfaces like floors or water, planar reflection renders the scene from a mirrored viewpoint:
+
+```hlsl
+// mirror.hlsl planar reflection
+float4 PlanarReflection(float2 uv, float2 mirrorPoint, float2 mirrorNormal)
+{
+    // Check which side of mirror line we're on
+    float2 toPixel = uv - mirrorPoint;
+    float side = dot(toPixel, mirrorNormal);
+
+    if (side < 0)
+        return originalTexture.Sample(sampler, uv);
+
+    // Reflect UV across the mirror line
+    float2 projectedPoint = mirrorPoint + mirrorNormal * dot(toPixel, mirrorNormal);
+    float2 reflectedUV = 2 * projectedPoint - uv;
+
+    return reflectedTexture.Sample(sampler, reflectedUV);
+}
+```
+
+This is a 2D technique operating in screen space. The scene is rendered twice—once normally, once with a flipped view matrix—and composited.
+
+### Reflection Technique Comparison
+
+| Technique | Use Case | Data Required | Dynamic Content | Quality |
+|-----------|----------|---------------|-----------------|---------|
+| SSR | General reflections | G-Buffer, color | Yes | High but limited |
+| Fake Cubemap | Ambient/sky reflections | Simple environment | Limited | Medium |
+| Spherical Mapping | Simple static reflections | Environment texture | No | Low |
+| Planar | Floors, water | Second render pass | Yes | High |
+| LTC Area Lights | Light reflections | LTC tables | Yes | High |
+
+### When to Use Each
+
+- **SSR**: Primary reflection technique for dynamic scenes. Falls back to ambient when rays miss.
+- **Fake Cubemap**: Ambient fill for SSR misses or distant reflections.
+- **Planar**: Special case for large flat surfaces where SSR quality isn't sufficient.
+- **LTC**: Handles area light reflections specifically (covered in Area Lights section).
 
 ## Light Rendering Flow
 

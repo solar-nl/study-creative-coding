@@ -22,9 +22,9 @@ enum MATERIALPARAMTYPE
     PARAM_FILLMODE,         // Solid/wireframe
     PARAM_CULLMODE,         // Front/back/none culling
     PARAM_RENDERPRIORITY,   // Draw order within layer
-    PARAM_TEXTURE0,         // Texture slot 0 (albedo)
-    PARAM_TEXTURE1,         // Texture slot 1 (normal)
-    PARAM_TEXTURE2,         // Texture slot 2-7
+    PARAM_TEXTURE0,         // Texture slot 0 (albedo + metalness)
+    PARAM_TEXTURE1,         // Texture slot 1 (normal + roughness)
+    PARAM_TEXTURE2,         // Texture slot 2 (emissive + alpha)
     PARAM_TEXTURE3,
     PARAM_TEXTURE4,
     PARAM_TEXTURE5,

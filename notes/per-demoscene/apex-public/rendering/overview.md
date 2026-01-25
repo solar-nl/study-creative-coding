@@ -94,6 +94,30 @@ Additional properties come from material parameters and modifiers:
 - **Roughness/metalness modifiers** adjust texture values at runtime via splines
 - **Emissive** adds self-illumination independent of lighting
 
+### Emissive Materials
+
+Phoenix supports emissive (self-illuminating) materials through a texture-driven approach. The emissive map occupies texture slot 2 with the following layout:
+
+| Channel | Purpose |
+|---------|---------|
+| RGB | Emissive color and intensity |
+| Alpha | Alpha mask for cutout effects |
+
+Emissive uses "mixed rendering"—a hybrid of forward and deferred. The shader writes to the G-Buffer for reflections while also computing lighting and adding emissive contribution directly:
+
+```hlsl
+float3 Lo = emissiveMap.xyz;  // Initialize with emissive
+for (int i = 0; i < lightcount; i++) {
+    // ... BRDF calculations ...
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+}
+```
+
+This approach allows emissive surfaces to:
+- Glow in complete darkness (emissive adds directly to output)
+- Participate in reflections (G-Buffer still written)
+- Use alpha cutout for complex shapes (`discard` based on emissive alpha)
+
 ## BRDF Implementation
 
 The Cook-Torrance microfacet BRDF calculates specular reflection as three multiplicative terms:
