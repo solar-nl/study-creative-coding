@@ -752,7 +752,7 @@ The next step is implementing these patterns in a Rust-based framework: trait-ba
 ## References
 
 - Model extraction files: `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenes*.json`
-- Primitive implementations: `notes/per-demoscene/apex-public/mesh-primitives.md`
-- Filter implementations: `notes/per-demoscene/apex-public/mesh-filters.md`
+- Primitive implementations: `notes/per-demoscene/apex-public/geometry/primitives.md`
+- Filter implementations: `notes/per-demoscene/apex-public/geometry/filters.md`
 - Architecture overview: `notes/per-demoscene/apex-public/architecture.md`
 - Clean Slate production: Released at Revision 2017, 64KB intro by Conspiracy

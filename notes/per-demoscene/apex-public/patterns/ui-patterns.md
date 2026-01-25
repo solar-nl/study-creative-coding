@@ -882,7 +882,7 @@ The real lesson is that good architecture transcends implementation details. Dir
 
 | File | Purpose | Key Insights |
 |------|---------|--------------|
-| `notes/per-demoscene/apex-public/ui-system.md` | System overview | Immediate-mode philosophy, architecture decisions, egui comparison |
+| `notes/per-demoscene/apex-public/tool/ui-system.md` | System overview | Immediate-mode philosophy, architecture decisions, egui comparison |
 | `notes/per-demoscene/apex-public/code-traces/ui-rendering.md` | Implementation trace | Transform stacks, batching, GPU submission, clipping math |
 | `Bedrock/Whiteboard/DrawAPI.cpp` | Batching implementation | CPU-side clipping, UV adjustment, opacity propagation |
 | `Bedrock/Whiteboard/GuiItem.cpp` | Widget base class | Hierarchical traversal, coordinate transforms |

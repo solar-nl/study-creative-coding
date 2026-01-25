@@ -312,11 +312,11 @@ apEx's geometry system demonstrates several patterns applicable to Rust creative
 
 This overview covers the high-level geometry pipeline. For detailed implementations, see:
 
-- **mesh-primitives.md** — Algorithms for cube, sphere, geosphere, loft, and tree generation
-- **mesh-filters.md** — Implementation details for bevel, smooth, tint, greeble, and CSG filters
+- **primitives.md** — Algorithms for cube, sphere, geosphere, loft, and tree generation
+- **filters.md** — Implementation details for bevel, smooth, tint, greeble, and CSG filters
 - **scene-integration.md** — How models connect to scenes, animation, and materials
-- **size-optimization.md** — Compile-time feature selection and compression strategies
-- **rendering-pipeline.md** — From geometry buffers to pixels on screen
+- **../size-optimization.md** — Compile-time feature selection and compression strategies
+- **../rendering/pipeline.md** — From geometry buffers to pixels on screen
 
 ## Source File Reference
 

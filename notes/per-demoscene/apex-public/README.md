@@ -168,11 +168,21 @@ apex-public/
 | Document | Description | Status |
 |----------|-------------|--------|
 | [`architecture.md`](architecture.md) | Phoenix engine and Bedrock structure | Complete |
-| [`rendering-pipeline.md`](rendering-pipeline.md) | DirectX 11 abstraction and scene rendering | Complete |
-| [`ui-system.md`](ui-system.md) | Whiteboard immediate-mode UI patterns | Complete |
+| [`rendering/pipeline.md`](rendering/pipeline.md) | DirectX 11 abstraction and scene rendering | Complete |
+| [`tool/ui-system.md`](tool/ui-system.md) | Whiteboard immediate-mode UI patterns | Complete |
 | [`synthesis.md`](synthesis.md) | MVX architecture and V2/WaveSabre integration | Complete |
-| [`tool-architecture.md`](tool-architecture.md) | apEx editor design and export pipeline | Complete |
+| [`tool/architecture.md`](tool/architecture.md) | apEx editor design and export pipeline | Complete |
 | [`size-optimization.md`](size-optimization.md) | Techniques for 64k size constraints | Complete |
+
+### Geometry System ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`geometry/overview.md`](geometry/overview.md) | Procedural geometry architecture | Complete |
+| [`geometry/primitives.md`](geometry/primitives.md) | Built-in mesh primitives | Complete |
+| [`geometry/filters.md`](geometry/filters.md) | Mesh modification filters | Complete |
+| [`geometry/scene-integration.md`](geometry/scene-integration.md) | Scene graph integration | Complete |
+| [`geometry/examples.md`](geometry/examples.md) | Modeling workflow examples | Complete |
 
 ### Code Traces ✓
 
