@@ -599,6 +599,23 @@ Phoenix blurs the boundary. The scene graph contains both data (meshes, material
 
 For framework design, the lesson is: decide whether your abstraction serves content creation, runtime rendering, or both. Optimize for your primary use case. Don't try to be everything to everyone.
 
+## Related Documents
+
+This document covers the scene-to-GPU rendering pipeline. For detailed coverage of specific subsystems, see:
+
+- **[overview.md](overview.md)** — PBR system architecture and mental model
+- **[materials.md](materials.md)** — Material parameter system, technique organization, shader binding
+- **[shaders.md](shaders.md)** — HLSL patterns, constant buffer layout, BRDF implementation
+- **[lighting.md](lighting.md)** — Light types, shadows, LTC area lights, IBL
+- **[deferred.md](deferred.md)** — G-Buffer layout, world position reconstruction
+- **[examples.md](examples.md)** — Clean Slate production materials and techniques
+
+For implementation traces with source references:
+
+- **[../code-traces/scene-to-pixels.md](../code-traces/scene-to-pixels.md)** — Complete render path walkthrough
+- **[../code-traces/pbr-pipeline.md](../code-traces/pbr-pipeline.md)** — Cook-Torrance BRDF, G-Buffer packing
+- **[../code-traces/ltc-area-lighting.md](../code-traces/ltc-area-lighting.md)** — LTC lookup tables and integration
+
 ## References
 
 - `apEx/Phoenix/Timeline.cpp:152` - Timeline event triggering scene render

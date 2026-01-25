@@ -184,11 +184,25 @@ apex-public/
 | [`geometry/scene-integration.md`](geometry/scene-integration.md) | Scene graph integration | Complete |
 | [`geometry/examples.md`](geometry/examples.md) | Modeling workflow examples | Complete |
 
+### Rendering System ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`rendering/overview.md`](rendering/overview.md) | PBR architecture and mental model | Complete |
+| [`rendering/pipeline.md`](rendering/pipeline.md) | Scene-to-GPU flow, render layers | Complete |
+| [`rendering/materials.md`](rendering/materials.md) | Material parameters and techniques | Complete |
+| [`rendering/shaders.md`](rendering/shaders.md) | HLSL patterns and BRDF implementation | Complete |
+| [`rendering/lighting.md`](rendering/lighting.md) | Lights, shadows, LTC area lights | Complete |
+| [`rendering/deferred.md`](rendering/deferred.md) | G-Buffer layout and reconstruction | Complete |
+| [`rendering/examples.md`](rendering/examples.md) | Clean Slate production examples | Complete |
+
 ### Code Traces ✓
 
 | Document | Description | Status |
 |----------|-------------|--------|
 | [`code-traces/scene-to-pixels.md`](code-traces/scene-to-pixels.md) | Trace scene graph to GPU draw calls | Complete |
+| [`code-traces/pbr-pipeline.md`](code-traces/pbr-pipeline.md) | Cook-Torrance BRDF, G-Buffer packing | Complete |
+| [`code-traces/ltc-area-lighting.md`](code-traces/ltc-area-lighting.md) | LTC lookup tables and area light integration | Complete |
 | [`code-traces/ui-rendering.md`](code-traces/ui-rendering.md) | Whiteboard widget render path | Complete |
 | [`code-traces/synth-pipeline.md`](code-traces/synth-pipeline.md) | Audio generation from MVX data | Complete |
 

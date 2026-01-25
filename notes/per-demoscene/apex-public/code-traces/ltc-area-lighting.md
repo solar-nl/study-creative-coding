@@ -472,3 +472,12 @@ The LTC approach instead uses:
 5. **Edge integration**: The rational approximation is just math—translates directly to Rust/WGSL with no architecture changes.
 
 6. **Shader variants**: Consider whether to compile separate shaders for different light types or use dynamic branching. For a small number of area lights, separate shaders likely win on GPU occupancy.
+
+## Related Documents
+
+For comprehensive coverage of the lighting and PBR systems, see:
+
+- **[../rendering/lighting.md](../rendering/lighting.md)** — Complete lighting system documentation
+- **[../rendering/overview.md](../rendering/overview.md)** — PBR system architecture
+- **[../rendering/shaders.md](../rendering/shaders.md)** — BRDF implementation and shader patterns
+- **[pbr-pipeline.md](pbr-pipeline.md)** — Cook-Torrance BRDF and G-Buffer trace

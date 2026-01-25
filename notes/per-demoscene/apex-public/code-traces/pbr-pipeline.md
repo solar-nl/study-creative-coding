@@ -471,3 +471,14 @@ The `LightingContext` and `BxDFContext` structures centralize dot products that 
 4. **Area lights** benefit greatly from LTC (documented separately). The analytical approximation shown here is a reasonable fallback when LTC textures aren't available.
 
 5. **The lighting layer pattern** maps directly to wgpu render passes. Each light type can have its own pipeline with additive blending to the HDR buffer.
+
+## Related Documents
+
+For comprehensive coverage of the PBR rendering system, see the rendering documentation:
+
+- **[../rendering/overview.md](../rendering/overview.md)** — PBR system architecture and mental model
+- **[../rendering/shaders.md](../rendering/shaders.md)** — HLSL patterns, constant buffers, BRDF functions
+- **[../rendering/deferred.md](../rendering/deferred.md)** — G-Buffer layout and world position reconstruction
+- **[../rendering/lighting.md](../rendering/lighting.md)** — Light types, shadows, IBL
+- **[../rendering/materials.md](../rendering/materials.md)** — Material parameter system
+- **[ltc-area-lighting.md](ltc-area-lighting.md)** — LTC area light implementation trace

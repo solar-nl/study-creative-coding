@@ -787,6 +787,17 @@ impl FrameArena {
 
 Allocate once at startup, reuse every frame. This eliminates per-frame allocator churn.
 
+## Related Documents
+
+For comprehensive coverage of the rendering system, see:
+
+- **[../rendering/overview.md](../rendering/overview.md)** — PBR system architecture and mental model
+- **[../rendering/pipeline.md](../rendering/pipeline.md)** — Scene-to-GPU flow documentation
+- **[../rendering/materials.md](../rendering/materials.md)** — Material parameter system
+- **[../rendering/lighting.md](../rendering/lighting.md)** — Lighting and shadow systems
+- **[pbr-pipeline.md](pbr-pipeline.md)** — PBR BRDF implementation trace
+- **[ltc-area-lighting.md](ltc-area-lighting.md)** — LTC area light implementation
+
 ## References
 
 - `apEx/Phoenix/Timeline.cpp` — Timeline event triggering scene render
