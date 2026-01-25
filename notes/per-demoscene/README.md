@@ -29,6 +29,7 @@ Demoscene techniques are highly relevant to creative coding framework design:
 | Project | Status | Description |
 |---------|--------|-------------|
 | [fr_public](./fr_public/) | Partial | Werkkzeug demo tool, V2 synthesizer, .kkrieger, procedural content (2001-2011) |
+| [apex-public](./apex-public/) | Planned | apEx demotool, Phoenix 64k engine, MVX synthesizer, Whiteboard UI (2010-2023) |
 
 ### Status Legend
 
@@ -86,6 +87,6 @@ Related theme analyses:
 
 | Project | Group | Notes |
 |---------|-------|-------|
-| GNU Rocket | Conspiracy | Sync tracker for demo timing |
+| GNU Rocket | Conspiracy | Sync tracker for demo timing (used with apEx) |
 | Werkzeug (XT) | XPLSV | Independent procedural tool |
-| NoisePlug | Gargaj | Audio synthesis library |
+| NoisePlug | Gargaj | Audio synthesis library (Gargaj also worked on apEx) |
