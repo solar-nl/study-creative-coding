@@ -630,6 +630,75 @@ Shader source code embeds in the executable for runtime compilation. Unlike C++ 
 
 The kkrunchy packer compresses the final executable. Text with repeated patterns compresses well. Minified shaders with consistent short names produce better compression ratios than verbose code.
 
+## Utility Shaders
+
+Beyond PBR and lighting, Phoenix includes utility shaders for common rendering tasks. These "ShaderToy-type" materials operate as full-screen passes without vertex geometry.
+
+### Texture Draw
+
+The simplest utility—blits a texture with color modulation:
+
+```hlsl
+// texture-draw.hlsl
+float4 p(float2 t : TEXCOORD0) : SV_TARGET0
+{
+    return Textur.Sample(sm, t) * color;
+}
+```
+
+Used for: compositing render targets, fading between scenes, applying uniform tints.
+
+### Color Palette Lookup
+
+Remaps color channels through a 1D lookup texture (LUT):
+
+```hlsl
+// palette.hlsl
+float4 p(float4 t : SV_POSITION) : SV_TARGET0
+{
+    float4 col = Textur.Load(int3(t.xy, 0));  // Point sample input
+
+    float4 ret;
+    ret.x = Palette.SampleLevel(sm, float2(saturate(col.x), 0), 0).x;
+    ret.y = Palette.SampleLevel(sm, float2(saturate(col.y), 0), 0).y;
+    ret.z = Palette.SampleLevel(sm, float2(saturate(col.z), 0), 0).z;
+    ret.w = Palette.SampleLevel(sm, float2(saturate(col.w), 0), 0).w;
+
+    return ret;
+}
+```
+
+The palette texture is a 1D gradient where horizontal position maps input intensity to output value. This enables:
+- Color grading curves (S-curves, contrast adjustment)
+- Posterization effects (stepped palettes)
+- False-color visualization (grayscale → heat map)
+
+### UV Distortion
+
+Warps texture sampling using a distortion map:
+
+```hlsl
+// mapdistort.hlsl
+float4 p(float2 t : TEXCOORD0) : SV_TARGET0
+{
+    float2 pos = Disto.Sample(sm, t) > 0.5;  // Binary threshold
+    if (!any(pos)) discard;  // Mask out unchanged areas
+    return Textur.Sample(sm, t + pos * power);
+}
+```
+
+The distortion texture encodes which pixels should offset and by how much. Used for: heat shimmer, glass refraction, transitional wipes.
+
+### Utility Shader Patterns
+
+These shaders share common characteristics:
+
+1. **No vertex shader**: Use implicit full-screen triangle or quad; fragment shader receives UV coordinates directly.
+
+2. **Load vs Sample**: `Load()` reads exact pixel values (no filtering), while `Sample()` interpolates. Palette lookup uses Load for precise input, SampleLevel for smooth gradient output.
+
+3. **Discard for masking**: Rather than alpha blending, utility shaders can `discard` fragments to create hard-edged masks without blend state changes.
+
 ## Error Handling
 
 Demo shaders typically omit error handling for size. However, certain defensive patterns appear:

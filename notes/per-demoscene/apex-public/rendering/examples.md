@@ -452,6 +452,159 @@ Create identical materials lit by sphere lights of increasing radius. Observe:
 - Shadow edge softness
 - Total illumination (energy-conserved: larger isn't brighter)
 
+## Example 7: Particle System
+
+Clean Slate uses a dedicated particle rendering system for atmospheric effects like sparks, dust, and glows.
+
+### Design Intent
+
+Render thousands of billboard sprites efficiently with per-particle color, size, and rotation that vary over the particle's lifetime.
+
+### Default Particle Configuration
+
+```
+Technique: Default Particle
+Type: Particle
+Layer: Transparent Layer
+
+Parameters:
+  - Texture: Sprite texture (soft gradients, sparks)
+  - RGBA + Size: Lifetime curves (via ParticleLifeFloat)
+  - Chaos variants: Per-particle randomization
+  - Alpha Test: Threshold for cutout
+```
+
+### Rendering Pipeline
+
+The particle shader uses a geometry shader to expand point primitives into camera-facing quads:
+
+```hlsl
+// Vertex shader: Transform particle position to view space
+VSOUT v(VSIN x)
+{
+    VSOUT k;
+    k.Position = mul(viewmat, x.Position);  // View space
+
+    // Sample lifetime curves with per-particle chaos
+    k.Color.x = pdatachaos(0, 5, x.Data.z, x.Data.x);  // Red + chaos
+    k.Color.y = pdatachaos(1, 6, x.Data.z, x.Data.x);  // Green + chaos
+    // ... size, alpha similarly
+    return k;
+}
+
+// Geometry shader: Expand point to rotated quad
+[maxvertexcount(4)]
+void g(point VSOUT input[1], inout TriangleStream<GSOUT> OutputStream)
+{
+    float r = 0.1 * input[0].Data.y;  // Rotation angle
+    float4 x = float4(sin(r), cos(r), 0, 0);
+    float4 y = float4(-x.y, x.x, 0, 0);
+
+    // Emit 4 vertices forming a rotated quad
+    vx[0].Position = mul(projmat, p + (-x-y) * scale);
+    vx[0].UV = float2(1, 1);
+    // ... remaining corners
+}
+```
+
+### Lifetime Curve System
+
+Particle properties animate via 2048×N lookup textures where each row is a different property:
+- Row 0-3: RGBA color components
+- Row 4: Size
+- Row 5-9: Chaos modifiers (added randomization)
+- Row 10: Alpha test threshold
+
+The `pdatachaos` function adds deterministic noise based on particle ID:
+
+```hlsl
+float pdatachaos(int id, int cid, float c, float l)
+{
+    return pdata(id, l) + pdata(cid, l) * GetNoise(c + cid);
+}
+```
+
+### Point Sprite Variant
+
+For simpler effects, `pointsprites.hlsl` converts triangle meshes to billboards:
+
+```hlsl
+// Geometry shader averages triangle vertices for centroid
+float4 p = (input[0].Position + input[1].Position + input[2].Position) / 3.0f;
+
+// Offset along face normal
+float3 n = cross(a, b);
+p += float4(n, 0) * offset;
+
+// Emit camera-facing quad
+```
+
+This technique places sprites at mesh face centers—useful for glowing point decorations on geometry.
+
+### Key Observations
+
+1. **Geometry shader expansion**: Point → quad expansion happens on GPU, avoiding CPU vertex generation for thousands of particles.
+
+2. **Curve-driven properties**: All visual parameters come from texture lookups, enabling complex behaviors (grow-shrink, color shifts) without shader changes.
+
+3. **Chaos for variety**: Deterministic per-particle randomization prevents particles from looking identical while maintaining reproducible results.
+
+4. **Transparent layer**: Particles render after deferred lighting, blending over the lit scene. No G-Buffer participation—particles don't receive reflections.
+
+## Example 8: Wireframe Material
+
+Clean Slate includes a wireframe material for debug visualization and stylized effects.
+
+### Design Intent
+
+Render mesh edges as smooth, controllable-width lines with optional animated reveal.
+
+### Configuration
+
+```
+Technique: Wireframe
+Layer: Solid Layer
+
+Parameters:
+  - Color: Line color (animated)
+  - Width: Line thickness (screen-space)
+  - Contrast: Edge softness
+  - Animation: Reveal progress (0-1)
+  - Animation Control Texture: Per-vertex reveal timing
+```
+
+### Geometry Shader Approach
+
+Unlike typical wireframe modes (rasterizer state), this shader generates actual geometry from lines:
+
+```hlsl
+[maxvertexcount(6)]
+void g(line VSOUT input[2], inout TriangleStream<GSOUT> OutputStream)
+{
+    // Calculate animated clip point
+    float tc = saturate((t.x - avgAnim) / 0.05);
+    float4 p2 = lerp(p1, p2, tc);  // Partially reveal edge
+
+    // Screen-space perpendicular for line width
+    float2 d = normalize((p2/p2.w).xy - (p1/p1.w).xy);
+    float4 n = float4(-d.y, d.x, 0, 0) * width * 0.05;
+
+    // Emit two triangles forming a quad
+}
+```
+
+### Animated Reveal
+
+The animation texture stores per-vertex reveal timing. Combined with the global animation parameter, edges appear progressively—creating a "drawing" effect as geometry reveals.
+
+### Key Observations
+
+1. **Geometry shader lines**: Takes `line` primitive input (not triangles), enabling true edge rendering.
+
+2. **Screen-space width**: Line width specified in screen pixels, not world units—lines stay readable regardless of distance.
+
+3. **Soft edges**: The `pow(abs(1-abs(v.t)), contrast)` falloff creates anti-aliased line edges without MSAA.
+
 ## Lessons for Framework Design
 
 These production examples reveal practical requirements for creative coding frameworks.

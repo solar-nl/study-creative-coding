@@ -522,6 +522,27 @@ Forward-rendered materials for alpha-blended geometry. Technique targets Transpa
 
 Renders after all deferred lighting completes. Limited to a small number of transparent objects due to sorting requirements.
 
+### Special Effect Materials
+
+Beyond standard PBR, Phoenix includes specialized material techniques.
+
+**Mapped Fresnel**: View-dependent color blending without PBR complexity:
+
+```hlsl
+// mapped-fresnel.hlsl
+float t = saturate(dot(-normalize(v.p - campos.xyz), normalize(v.Normal)));
+float3 c1 = color1.xyz;         // Edge color (grazing angle)
+float3 c2 = float3(color1.w, color2.xy);  // Center color (normal incidence)
+return float4(lerp(c1, c2, pow(t, color2.z)), 1);
+```
+
+Parameters:
+- `color1.xyz`: Color at grazing angles (edges)
+- `color1.w, color2.xy`: Color at normal incidence (center)
+- `color2.z`: Exponent controlling falloff curve
+
+Used for: rim lighting effects, holographic materials, force fields, and stylized non-photorealistic rendering where full PBR is unnecessary. Significantly cheaper than full BRDF evaluation—a single `pow()` replaces the entire Cook-Torrance pipeline.
+
 ## Implications for Rust Framework
 
 The Phoenix material system reveals patterns applicable to modern Rust frameworks.
