@@ -256,6 +256,7 @@ This overview introduces the PBR rendering system. For detailed implementations,
 - **[lighting.md](lighting.md)** — Light types, shadows, LTC area lights, IBL
 - **[deferred.md](deferred.md)** — G-Buffer layout, world position reconstruction
 - **[examples.md](examples.md)** — Clean Slate production materials and techniques
+- **[post-processing.md](post-processing.md)** — Bloom, DoF, SSAO, tone mapping, and effects
 
 For implementation traces with source references:
 

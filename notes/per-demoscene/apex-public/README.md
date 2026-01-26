@@ -195,6 +195,7 @@ apex-public/
 | [`rendering/lighting.md`](rendering/lighting.md) | Lights, shadows, LTC area lights | Complete |
 | [`rendering/deferred.md`](rendering/deferred.md) | G-Buffer layout and reconstruction | Complete |
 | [`rendering/examples.md`](rendering/examples.md) | Clean Slate production examples | Complete |
+| [`rendering/post-processing.md`](rendering/post-processing.md) | Post-processing effects pipeline | Complete |
 
 ### Code Traces ✓
 
