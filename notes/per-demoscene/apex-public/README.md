@@ -206,6 +206,13 @@ apex-public/
 | [`code-traces/ltc-area-lighting.md`](code-traces/ltc-area-lighting.md) | LTC lookup tables and area light integration | Complete |
 | [`code-traces/ui-rendering.md`](code-traces/ui-rendering.md) | Whiteboard widget render path | Complete |
 | [`code-traces/synth-pipeline.md`](code-traces/synth-pipeline.md) | Audio generation from MVX data | Complete |
+| [`code-traces/noise-generation.md`](code-traces/noise-generation.md) | Perlin noise implementation trace | Complete |
+| [`code-traces/operator-evaluation.md`](code-traces/operator-evaluation.md) | Texgen operator dispatch | Complete |
+| [`code-traces/timeline-frame.md`](code-traces/timeline-frame.md) | Frame iteration and event dispatch | Complete |
+| [`code-traces/spline-evaluation.md`](code-traces/spline-evaluation.md) | Keyframe interpolation trace | Complete |
+| [`code-traces/tree-generation.md`](code-traces/tree-generation.md) | Arbaro L-system execution | Complete |
+| [`code-traces/scene-update.md`](code-traces/scene-update.md) | Scene graph traversal and matrices | Complete |
+| [`code-traces/particle-frame.md`](code-traces/particle-frame.md) | Particle simulation step | Complete |
 
 ### Pattern Documents ✓
 
@@ -213,6 +220,72 @@ apex-public/
 |----------|-------------|--------|
 | [`patterns/ui-patterns.md`](patterns/ui-patterns.md) | Transferable UI design patterns | Complete |
 | [`patterns/engine-patterns.md`](patterns/engine-patterns.md) | 64k engine architecture patterns | Complete |
+
+### Texture Generation System ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`texgen/overview.md`](texgen/overview.md) | Procedural texture architecture | Complete |
+| [`texgen/operators.md`](texgen/operators.md) | Operator types and parameters | Complete |
+| [`texgen/generators.md`](texgen/generators.md) | Pattern generators (noise, cells, etc.) | Complete |
+| [`texgen/transforms.md`](texgen/transforms.md) | UV transforms and distortion | Complete |
+| [`texgen/color-blend.md`](texgen/color-blend.md) | Color operations and blending | Complete |
+| [`texgen/pipeline.md`](texgen/pipeline.md) | Evaluation and caching | Complete |
+| [`texgen/shaders.md`](texgen/shaders.md) | HLSL shader patterns | Complete |
+| [`texgen/examples.md`](texgen/examples.md) | Clean Slate texture examples | Complete |
+
+### Timeline System ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`timeline/overview.md`](timeline/overview.md) | Event types and architecture | Complete |
+| [`timeline/events.md`](timeline/events.md) | 7 event types with render methods | Complete |
+| [`timeline/sequencing.md`](timeline/sequencing.md) | Frame iteration and time mapping | Complete |
+| [`timeline/render-targets.md`](timeline/render-targets.md) | RT management and viewports | Complete |
+| [`timeline/examples.md`](timeline/examples.md) | Clean Slate timeline analysis | Complete |
+
+### Spline Animation ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`spline/overview.md`](spline/overview.md) | Animation system architecture | Complete |
+| [`spline/interpolation.md`](spline/interpolation.md) | 4 interpolation modes | Complete |
+| [`spline/waveforms.md`](spline/waveforms.md) | 5 waveform modifiers | Complete |
+| [`spline/integration.md`](spline/integration.md) | 57 spline types for materials/transforms | Complete |
+
+### Arbaro Tree Generation ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`arbaro/overview.md`](arbaro/overview.md) | L-system architecture | Complete |
+| [`arbaro/parameters.md`](arbaro/parameters.md) | 30+ tree parameters | Complete |
+| [`arbaro/generation.md`](arbaro/generation.md) | Procedural algorithm | Complete |
+| [`arbaro/shapes-taper.md`](arbaro/shapes-taper.md) | 9 shape types and taper | Complete |
+| [`arbaro/mesh-output.md`](arbaro/mesh-output.md) | Mesh integration | Complete |
+
+### Scene Graph ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`scene/overview.md`](scene/overview.md) | Object types and hierarchy | Complete |
+| [`scene/objects.md`](scene/objects.md) | 12 object types | Complete |
+| [`scene/rendering.md`](scene/rendering.md) | Matrix transforms and lights | Complete |
+| [`scene/examples.md`](scene/examples.md) | Clean Slate scene analysis | Complete |
+
+### Particle System ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`particles/overview.md`](particles/overview.md) | Emitter architecture | Complete |
+| [`particles/emitters.md`](particles/emitters.md) | Spawn logic and parameters | Complete |
+| [`particles/affectors.md`](particles/affectors.md) | 4 force types | Complete |
+| [`particles/simulation.md`](particles/simulation.md) | Fixed timestep physics | Complete |
+
+### Shader Reference ✓
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [`shaders/index.md`](shaders/index.md) | Complete 71-shader inventory | Complete |
 
 ---
 
