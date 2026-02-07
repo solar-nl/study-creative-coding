@@ -2,9 +2,9 @@
 
 Clean Slate employs five distinct reflection techniques, each optimized for specific scenarios. Unlike general-purpose engines that commit to one dominant approach—typically screen-space reflections (SSR) or cubemap-based image-based lighting (IBL)—a 64k demo meticulously selects the cheapest sufficient technique for each visual requirement. A planar floor needs simple 2D UV flipping, not expensive ray marching. A brushed metal surface needs sharp specular from area lights, not blurred environment sampling.
 
-This multi-technique approach enables Phoenix to deliver convincing reflections across varied materials and lighting conditions without the memory overhead of baked environment maps or the uniform cost of applying SSR to every surface. The G-Buffer's reflection mask gates expensive techniques to reflective materials only. Area lights contribute specular highlights through either analytical integration or LTC-based polygon evaluation. Post-processing layers add dynamic reflections from visible geometry and planar mirrors for water and floors.
+This multi-technique approach enables Phoenix to deliver convincing reflections across varied materials and lighting conditions without the memory overhead of baked environment maps or the uniform cost of applying SSR to every surface. A reflection mask in the Main RT's alpha channel gates expensive techniques to reflective materials only. SSR adds dynamic reflections from visible geometry within the Solid Layer. Area lights contribute specular highlights through either analytical integration or LTC-based polygon evaluation during the Lighting Layer. Post-processing adds planar mirror reflections for water and floors.
 
-The result is a layered reflection pipeline where techniques compose rather than compete. The lighting layer adds area light specular. The ambient pass contributes diffuse and specular IBL from fake cubemaps. Post-processing applies SSR to reflective surfaces and mirror reflections to designated planes. Each technique operates on what it handles best, with the final frame accumulating all contributions.
+The result is a layered reflection pipeline where techniques compose rather than compete. Each technique runs at a specific stage of the four-layer rendering pipeline (Shadow → Solid → Lighting → Transparent), followed by post-processing. SSR runs within the Solid Layer, reflecting the forward-rendered scene content before deferred lighting. Area lights and IBL add their contributions during the Lighting Layer via additive blending. The mirror shader runs last, in post-processing, reflecting the fully composited frame. This ordering is deliberate: SSR captures the base appearance of objects without double-counting the deferred lighting that area light techniques handle directly.
 
 ## Reflection Technique Inventory
 
@@ -38,7 +38,7 @@ SSR operates as a post-processing pass on the G-Buffer, ray-marching in view spa
 - `acceptBias` — Hit detection tolerance (× 0.1)
 - `radiusMultiplier` — Scale factor for radius
 
-**Reflection mask**: The G-Buffer's color buffer alpha channel stores a reflection mask. SSR early-exits for pixels with `alpha <= 0`, avoiding computation on matte surfaces.
+**Reflection mask**: The Main RT's alpha channel (`SV_TARGET0.a`) stores a per-pixel reflection mask, written by materials during the geometry pass. This is not part of the G-Buffer (which occupies `SV_TARGET1` and `SV_TARGET2`) — it rides in the alpha of the final color output buffer, which is otherwise unused for opaque rendering. SSR early-exits for pixels with `alpha <= 0`, avoiding computation on matte surfaces.
 
 **Roughness-aware sampling**: The shader selects mip level as `roughness × 16`, blurring reflections on rough surfaces to approximate the increased solid angle of the reflection cone.
 
@@ -184,33 +184,51 @@ This formula, from the Frostbite paper (Lagarde & de Rousiers, SIGGRAPH 2014), e
 
 ## When Each Technique Is Used
 
-| Technique | Render Phase | Target Layer | Use Case | Cost | Quality |
-|-----------|-------------|--------------|----------|------|---------|
-| SSR | Post-processing | Solid Layer | Dynamic scene reflections of visible geometry | Medium (ray march) | High (limited by visibility) |
-| Fake Cubemap | Lighting | Lighting Layer | Ambient/sky fill, distant reflections | High (96 samples) | Medium (2D unwrap artifacts) |
-| Mirror | Post-processing | Solid Layer | Flat surfaces (floors, water, architectural mirrors) | Low (single sample) | High (for planes) |
-| LTC Area Lights | Lighting | Lighting Layer | Soft area light reflections, smooth surfaces | Medium (polygon clip + integrate) | Very High (analytical) |
-| Non-LTC Area Lights | Lighting | Lighting Layer | Small/rough area lights | Low (single point) | Medium (approximation) |
+| Technique | Pipeline Stage | Use Case | Cost | Quality |
+|-----------|---------------|----------|------|---------|
+| SSR | Solid Layer (after G-Buffer geometry) | Dynamic scene reflections of visible geometry | Medium (ray march) | High (limited by visibility) |
+| LTC Area Lights | Lighting Layer | Soft area light reflections, smooth surfaces | Medium (polygon clip + integrate) | Very High (analytical) |
+| Non-LTC Area Lights | Lighting Layer | Small/rough area lights | Low (single point) | Medium (approximation) |
+| Fake Cubemap | Lighting Layer | Ambient/sky fill, distant reflections | High (96 samples) | Medium (2D unwrap artifacts) |
+| Mirror | Post-processing | Flat surfaces (floors, water, architectural mirrors) | Low (single sample) | High (for planes) |
 
-**SSR**: Applied selectively to reflective surfaces gated by the G-Buffer alpha mask. Provides dynamic reflections of animated objects and moving geometry but misses off-screen content.
+**SSR**: Runs within the Solid Layer immediately after geometry renders the G-Buffer. Applied selectively to reflective surfaces gated by the Main RT alpha mask. Provides dynamic reflections of animated objects and moving geometry but misses off-screen content. Because it runs before deferred lighting, SSR reflects the base scene appearance without double-counting area light contributions.
 
-**Fake Cubemap**: Runs during the lighting layer for ambient fill. Contributes both diffuse irradiance and specular reflections from the environment. Acts as fallback for SSR misses.
+**LTC Area Lights**: Evaluated per-light during the Lighting Layer. Provides physically accurate area light reflections with soft highlights. Preferred for smooth surfaces and large lights.
 
-**Mirror**: Applied in post-processing to specific UV regions defined by the mirror parameters. Used for large, flat reflective surfaces where geometric correctness matters.
+**Non-LTC Area Lights**: Alternative to LTC when performance is critical or roughness is high. Faster but less accurate. Also runs in the Lighting Layer.
 
-**LTC Area Lights**: Evaluated per-light during the lighting layer. Provides physically accurate area light reflections with soft highlights. Preferred for smooth surfaces and large lights.
+**Fake Cubemap**: Runs during the Lighting Layer for ambient fill. Contributes both diffuse irradiance and specular reflections from the environment. Acts as fallback for SSR misses since it captures the full environment sphere.
 
-**Non-LTC Area Lights**: Alternative to LTC when performance is critical or roughness is high. Faster but less accurate.
+**Mirror**: Applied in post-processing after all render layers complete. Reflects the fully composited frame for specific UV regions defined by mirror parameters. Used for large, flat reflective surfaces where geometric correctness matters.
 
 ## How They Compose Together
 
-The reflection pipeline operates in layers, with techniques accumulating contributions at different stages.
+The reflection pipeline operates across multiple render layers, with techniques accumulating contributions at specific stages. The ordering is determined by the `// Target Layer:` metadata in each shader file.
 
-### 1. G-Buffer Pass (Solid Layer)
+### 1. Solid Layer: G-Buffer Pass
 
-Materials write albedo, metalness, normal, and roughness to the G-Buffer. The color buffer's alpha channel stores the **reflection mask**—a per-pixel weight indicating how reflective the surface is. Matte surfaces write 0, mirrors write 1, intermediate materials write fractional values.
+The geometry pass writes to three render targets simultaneously via MRT (Multiple Render Targets):
 
-### 2. Lighting Layer: Area Lights
+| Target | Semantic | Contents |
+|--------|----------|----------|
+| `SV_TARGET0` | Main RT | Color.RGB + **Reflection Mask**.A |
+| `SV_TARGET1` | G-Buffer 0 | Albedo.RGB + Metalness.A |
+| `SV_TARGET2` | G-Buffer 1 | Normal.RGB + Roughness.A |
+
+The reflection mask occupies the Main RT's alpha channel — not a G-Buffer channel. The Main RT is the final color output buffer that persists across the entire pipeline and eventually becomes the displayed frame. Its alpha is otherwise unused for opaque rendering, so the mask rides there at zero extra cost. Matte surfaces write 0, mirrors write 1, intermediate materials write fractional values.
+
+### 2. Solid Layer: Screen-Space Reflections
+
+SSR runs within the Solid Layer, immediately after geometry finishes rendering. For each pixel:
+- Check reflection mask in Main RT alpha (`SV_TARGET0.a`)
+- If mask > 0, perform ray march against the depth buffer
+- Sample the Main RT color at hit location with roughness-based mip
+- Blend reflection onto the background weighted by fadeout and mask
+
+Because SSR runs before the Lighting Layer, it reflects the base scene appearance—forward-rendered geometry, albedo, and any emission—but not yet the deferred lighting contributions from area lights or IBL. This is deliberate: it prevents double-counting the specular highlights that area lights contribute in the next stage.
+
+### 3. Lighting Layer: Area Lights
 
 For each area light in the scene, the engine selects either LTC or Non-LTC based on light size and surface roughness. The shader:
 - Reads G-Buffer properties
@@ -220,7 +238,7 @@ For each area light in the scene, the engine selects either LTC or Non-LTC based
 
 This adds sharp or soft specular highlights from physical light sources.
 
-### 3. Lighting Layer: Fake Cubemap IBL
+### 4. Lighting Layer: Fake Cubemap IBL
 
 The ambient pass runs once per scene, sampling the environment in 96 directions (32 diffuse + 64 specular). It:
 - Contributes diffuse irradiance weighted by `kD = (1-F) × (1-metallic)`
@@ -229,43 +247,35 @@ The ambient pass runs once per scene, sampling the environment in 96 directions 
 
 This provides the global illumination and distant reflections that area lights don't capture.
 
-### 4. Solid Layer Post-Processing: SSR
+### 5. Post-Processing: Mirror
 
-SSR runs as a full-screen pass after lighting completes. For each pixel:
-- Check reflection mask in color buffer alpha
-- If mask > 0, perform ray march
-- Sample color buffer at hit location with roughness-based mip
-- Blend reflection onto the background weighted by fadeout and mask
-
-SSR adds reflections of nearby geometry—other objects, floor tiles, walls—that the fake cubemap doesn't capture because it's static.
-
-### 5. Solid Layer Post-Processing: Mirror
-
-The mirror effect runs after SSR for designated surfaces. It:
+The mirror shader runs in post-processing, after all four render layers (Shadow, Solid, Lighting, Transparent) have completed. It:
 - Tests if the pixel lies on the reflected side of the mirror line
 - Computes the reflected UV
-- Samples the color buffer (which now includes lighting + SSR)
+- Samples the fully composited frame buffer (which now includes SSR + lighting + transparency)
 - Replaces the pixel color if within bounds
 
-This provides pixel-perfect planar reflections for water and floors.
+This provides pixel-perfect planar reflections for water and floors, reflecting the complete scene including all lighting.
 
 ### Compositing Order Summary
 
 ```
-G-Buffer
+Solid Layer: G-Buffer + forward geometry
     ↓
-Lighting: Area Lights (LTC or Non-LTC)
+Solid Layer: Screen-Space Reflections
+    ↓ (additive blend, masked by Main RT alpha)
+Lighting Layer: Area Lights (LTC or Non-LTC)
     ↓ (additive blend)
-Lighting: Fake Cubemap IBL
+Lighting Layer: Fake Cubemap IBL
     ↓ (additive blend)
-Post: Screen-Space Reflections
-    ↓ (additive blend, masked)
-Post: Mirror
+Transparent Layer: Particles
+    ↓ (alpha blend)
+Post-Processing: Mirror
     ↓ (replace for reflected pixels)
 Final Frame
 ```
 
-The reflection mask in the G-Buffer alpha channel controls SSR participation. This prevents the expensive ray march from running on surfaces that don't need dynamic reflections, saving GPU cycles for where it matters.
+The reflection mask in the Main RT alpha controls SSR participation. Because SSR already reads the Main RT for the color it reflects, the mask comes free with that same texture fetch — no additional bandwidth cost. This prevents the expensive ray march from running on surfaces that don't need dynamic reflections, saving GPU cycles for where it matters. The placement of SSR before the Lighting Layer means it captures base geometry appearance, while area lights and IBL independently contribute their own specular through dedicated lighting passes.
 
 ## Shared Mathematical Foundations
 
@@ -379,11 +389,11 @@ const LTC_MAG_FRESNEL: &[u8] = include_bytes!("ltc_2.bin");
 
 The WGSL shader translation is straightforward—the algorithm is graphics API agnostic.
 
-### Adopt: Reflection Mask in G-Buffer Alpha
+### Adopt: Reflection Mask in Main RT Alpha
 
-Gate expensive reflection techniques (SSR, complex IBL) with a per-pixel mask. Materials declare their reflectivity, and the G-Buffer pass writes it to the color buffer alpha channel. Post-processing reads the mask to early-exit on non-reflective pixels.
+Gate expensive reflection techniques (SSR, complex IBL) with a per-pixel mask. Materials declare their reflectivity, and the geometry pass writes it to the Main RT's alpha channel via MRT — not to a G-Buffer target. The Main RT alpha is otherwise unused for opaque rendering, so the mask occupies free storage. SSR already reads the Main RT for the color it reflects, so the mask comes at zero additional bandwidth cost.
 
-This provides fine-grained control over where GPU cycles are spent without requiring separate render passes or stencil masking.
+This provides fine-grained control over where GPU cycles are spent without requiring a third G-Buffer target, separate render passes, or stencil masking. Alternatively, for a general-purpose framework, the mask can be derived entirely from roughness and metalness (e.g., `should_reflect = roughness < 0.7 || metalness > 0.5`), avoiding the need for explicit artist-authored mask values.
 
 ### Modify: Use Actual Cubemaps for IBL
 

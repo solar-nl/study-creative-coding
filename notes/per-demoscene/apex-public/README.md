@@ -196,6 +196,7 @@ apex-public/
 | [`rendering/deferred.md`](rendering/deferred.md) | G-Buffer layout and reconstruction | Complete |
 | [`rendering/examples.md`](rendering/examples.md) | Clean Slate production examples | Complete |
 | [`rendering/post-processing.md`](rendering/post-processing.md) | Post-processing effects pipeline | Complete |
+| [`rendering/reflections.md`](rendering/reflections.md) | 5 reflection techniques: SSR, IBL, mirror, LTC, non-LTC | Complete |
 
 ### Code Traces ✓
 
@@ -213,6 +214,9 @@ apex-public/
 | [`code-traces/tree-generation.md`](code-traces/tree-generation.md) | Arbaro L-system execution | Complete |
 | [`code-traces/scene-update.md`](code-traces/scene-update.md) | Scene graph traversal and matrices | Complete |
 | [`code-traces/particle-frame.md`](code-traces/particle-frame.md) | Particle simulation step | Complete |
+| [`code-traces/reflections-ssr.md`](code-traces/reflections-ssr.md) | Screen-space reflections ray march | Complete |
+| [`code-traces/reflections-ibl.md`](code-traces/reflections-ibl.md) | Fake cubemap IBL with GGX importance sampling | Complete |
+| [`code-traces/reflections-mirror.md`](code-traces/reflections-mirror.md) | 2D planar mirror reflection | Complete |
 
 ### Pattern Documents ✓
 
