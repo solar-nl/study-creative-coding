@@ -6,6 +6,8 @@ Sphere area lights are visually distinct from point lights: they produce soft sh
 
 This document traces how Clean Slate implements LTC-based sphere lights, from pre-computed lookup tables through horizon clipping to the final edge integration. The technique transforms the BRDF into a clamped cosine distribution that has a closed-form solution for polygonal light sources.
 
+**See also**: [LTC Reference Library](../../per-library/universal/ltc/README.md) for the original selfshadow/ltc_code implementation, papers, and cross-platform examples.
+
 ## The Core Insight: BRDF Transformation
 
 The fundamental problem with area light integration is that the BRDF (especially GGX specular) has no closed-form integral over arbitrary shapes. However, the clamped cosine distribution does:

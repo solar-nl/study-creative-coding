@@ -223,6 +223,8 @@ For larger area lights or lower roughness where reflections are sharper, LTC pro
 
 LTC's insight: transform the GGX BRDF lobe into a clamped cosine distribution, transform the light polygon by the inverse, integrate the cosine (which has a closed form), and you get the GGX integral over the original polygon.
 
+**Reference**: See [LTC Library Notes](../../per-library/universal/ltc/README.md) for the original selfshadow/ltc_code implementation, papers (SIGGRAPH 2016/2017), and WebGL demos.
+
 #### Pre-computed Tables
 
 Phoenix embeds two lookup tables totaling 2.5KB:
