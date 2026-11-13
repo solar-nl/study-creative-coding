@@ -1,13 +1,22 @@
 {
   "permissions": {
+    "deny": [
+      "Bash(git commit*)",
+      "Bash(*&& git commit*)",
+      "Bash(*; git commit*)"
+    ],
     "allow": [
       "Read(*)",
       "Glob(*)",
       "Grep(*)",
       "Write(notes/**/*.md)",
       "Write(templates/**/*.md)",
+      "Write(insights/**/*.md)",
+      "Write(research/**/*.md)",
       "Edit(notes/**/*.md)",
       "Edit(templates/**/*.md)",
+      "Edit(insights/**/*.md)",
+      "Edit(research/**/*.md)",
       "Edit(.claude/**)",
       "Bash(cd *study-creative-coding* && git submodule add *)",
       "Bash(cd *study-creative-coding* && git submodule update *)",
@@ -17,6 +26,19 @@
       "Bash(mkdir *)",
       "Bash(ls *)",
       "Bash(find *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-submodules.sh"
+          }
+        ]
+      }
     ]
   }
 }
