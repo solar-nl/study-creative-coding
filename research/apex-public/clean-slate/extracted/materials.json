@@ -1,0 +1,92 @@
+[
+  {
+    "guid": "81962E9A00AF53D4A3345748437A11A1",
+    "name": "[PBR Mixed With Vertex Offset, forced flatshade]",
+    "technique_guid": "AECBA6264493E2316649DA3F4DF38344",
+    "technique_name": "[PBR Mixed Rendering with vertex offset]"
+  },
+  {
+    "guid": "9D7DA38871AC352A1A4670C233F4AD7F",
+    "name": "[Physically Based Mixed Rendering]",
+    "technique_guid": "E398C0C938180A8EE97E87517E6E986B",
+    "technique_name": "[PBR Mixed Rendering]"
+  },
+  {
+    "guid": "8BD5B82483EB479268A8E082AF11CD73",
+    "name": "Deferred Ambient Light",
+    "technique_guid": "07D72FA094C9ACA3EA268BA044F3E496",
+    "technique_name": "Deferred Ambient Light"
+  },
+  {
+    "guid": "AAF30F711109BDB4F0C38A185C0B25B0",
+    "name": "Deferred Area Light Sphere (diffuse only)",
+    "technique_guid": "9644C93D8CDBDB4A456B25B09E6F73B8",
+    "technique_name": "[Area] Sphere Light diffuseOnly"
+  },
+  {
+    "guid": "2F05F5897D359A22731888F877BAFCE7",
+    "name": "Deferred Area Light Sphere (faster)",
+    "technique_guid": "C276B9A01961CCA3210802EC0B5E022F",
+    "technique_name": "[Area body] Sphere Light Body"
+  },
+  {
+    "guid": "CAA61A558F5384916F195F4C5A17B0CF",
+    "name": "Deferred Area Light Sphere (nonscalable)",
+    "technique_guid": "C276B9A01961CCA3210802EC0B5E022F",
+    "technique_name": "[Area body] Sphere Light Body"
+  },
+  {
+    "guid": "1E1F9CEFD2E4ADA87C2F0B4759A9CAF2",
+    "name": "Deferred Area Light Sphere (slow)",
+    "technique_guid": "F0294D91A2D2960E1B439636690FABD8",
+    "technique_name": "[Area] Sphere Light LTC"
+  },
+  {
+    "guid": "35DD17BA55A365FD08208885CC32627C",
+    "name": "Deferred Fake Cubemap",
+    "technique_guid": "168625FA5DABA54CC9795DAE67349F4E",
+    "technique_name": "Deferred Fake Cubemap"
+  },
+  {
+    "guid": "A84A65F1626DC961D09A5F4D0677DD08",
+    "name": "Hide Object",
+    "technique_guid": "",
+    "technique_name": "Unknown"
+  },
+  {
+    "guid": "C680FE4C7EBBFC8160D412B805EF4268",
+    "name": "Mapped Fresnel",
+    "technique_guid": "07BB59072BA1AB798DC667BE9DB88EEF",
+    "technique_name": "Mapped Fresnel"
+  },
+  {
+    "guid": "8292D87F58D901672AA035F6204873BE",
+    "name": "Mapped Fresnel With Shadow",
+    "technique_guid": "07BB59072BA1AB798DC667BE9DB88EEF",
+    "technique_name": "Mapped Fresnel"
+  },
+  {
+    "guid": "0DA9620A5D8A63D92C8152F5454BB5FB",
+    "name": "Particle Material",
+    "technique_guid": "D9BCB25B70726C223C6F5F322777287C",
+    "technique_name": "Default Particle"
+  },
+  {
+    "guid": "12D5FB8DDBDFAABA4C5755702B02FD76",
+    "name": "textured (noshade, alphatest)",
+    "technique_guid": "E29A95A4D3FD630C418CF73778137606",
+    "technique_name": "Colored Texture"
+  },
+  {
+    "guid": "E8722AA072FEBEF775EEA0E615E770FE",
+    "name": "textured (noshade, alphatest, uv anim, offset anim)",
+    "technique_guid": "8186E44C83B8493DDD4E7E6462EF1BEC",
+    "technique_name": "Colored Texture (uv, offset anim)"
+  },
+  {
+    "guid": "2AB14C9F5E1625A6C4F39766B33F013E",
+    "name": "Wireframe",
+    "technique_guid": "2A9BCBB81A1352D113B8B5BF0982D887",
+    "technique_name": "Wireframe"
+  }
+]

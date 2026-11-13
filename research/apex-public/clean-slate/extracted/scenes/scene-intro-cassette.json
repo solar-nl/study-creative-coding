@@ -1,0 +1,1759 @@
+{
+  "guid": "5E8B1B1522A9A362EF7AA44656E99887",
+  "name": "++scene / intro cassette",
+  "clips": [
+    {
+      "guid": "3EB27603F18C778463CA98CC5B628438",
+      "name": "1"
+    }
+  ],
+  "objects": [
+    {
+      "guid": "67C25782D7FA633EFAB10FE96653308E",
+      "name": "++asset / cassette",
+      "object_type": 4,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 3,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 159,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      59,
+                      59
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 235,
+                    "values": [
+                      48233,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 3,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 159,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 235,
+                    "values": [
+                      9130,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 159,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 2,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 32,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 43,
+                    "values": [
+                      15360,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 47,
+                    "values": [
+                      0,
+                      14760,
+                      32768,
+                      14760
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 79,
+                    "values": [
+                      32768,
+                      34294,
+                      0,
+                      15359
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 95,
+                    "values": [
+                      39247,
+                      45247,
+                      45169,
+                      15317
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      0,
+                      45700,
+                      0,
+                      15317
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 5,
+              "spline": {
+                "interpolation": 0,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 6,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 86,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      18432,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 55,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 56,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "guid": "BEAF90169BE2CD43558B9AB12A9EC6BB",
+      "name": "--- lights ---",
+      "object_type": 4,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  15360
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 5,
+              "spline": {
+                "interpolation": 0,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      18176,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 6,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 55,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 56,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "guid": "72381802578A48343991E8D7FAED358E",
+      "name": "Dummy",
+      "object_type": 3,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 31,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 0,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      20480,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 31,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 3,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      53208,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      55,
+                      55
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 235,
+                    "values": [
+                      16268,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      16783,
+                      16783,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 47,
+                    "values": [
+                      0,
+                      0,
+                      14760,
+                      14760
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 79,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      15359
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 95,
+                    "values": [
+                      46006,
+                      0,
+                      32768,
+                      15299
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      45909,
+                      0,
+                      0,
+                      15305
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "guid": "E6AC463ABD5AB52FF350B06DCE2CE871",
+      "name": "Dummy",
+      "object_type": 3,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 2,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 160,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 240,
+                    "values": [
+                      47816,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 3,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      57207,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      2,
+                      2
+                    ],
+                    "control_values": [
+                      21711,
+                      21711,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 31,
+                    "values": [
+                      54104,
+                      0,
+                      0,
+                      0
+                    ],
+                    "control_pos": [
+                      18,
+                      18
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  20936,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  20936,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  20936,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 143,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      15359
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 192,
+                    "values": [
+                      45559,
+                      32768,
+                      0,
+                      15324
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "guid": "900B3ED13E865B92F70535BA78146F4D",
+      "name": "special/flare",
+      "object_type": 0,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15360,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      0,
+                      0,
+                      0,
+                      15359
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      0,
+                      0,
+                      15360,
+                      33297
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "guid": "1E464741BBB97B1DBDADCB54C17C8408",
+      "name": "special/flare",
+      "object_type": 0,
+      "clip_data": [
+        {
+          "target_clip": "3EB27603F18C778463CA98CC5B628438",
+          "randseed": 0,
+          "turbulence_freq": 10,
+          "splines": [
+            {
+              "spline_type": 8,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 9,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 10,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 1,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15543,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 2,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15543,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 3,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 15360,
+                "wf_frequency": 18688,
+                "wf_randseed": 0,
+                "values": [
+                  15543,
+                  0,
+                  0,
+                  0
+                ],
+                "keys": []
+              }
+            },
+            {
+              "spline_type": 4,
+              "spline": {
+                "interpolation": 1,
+                "loop": 0,
+                "waveform": 0,
+                "multiplicative_waveform": 0,
+                "wf_amplitude": 0,
+                "wf_frequency": 0,
+                "wf_randseed": 0,
+                "values": [],
+                "keys": [
+                  {
+                    "time": 0,
+                    "values": [
+                      0,
+                      0,
+                      46818,
+                      15160
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 127,
+                    "values": [
+                      0,
+                      0,
+                      13657,
+                      15242
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "time": 255,
+                    "values": [
+                      0,
+                      0,
+                      15160,
+                      14049
+                    ],
+                    "control_pos": [
+                      15,
+                      15
+                    ],
+                    "control_values": [
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

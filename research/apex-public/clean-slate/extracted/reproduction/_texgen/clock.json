@@ -1,0 +1,233 @@
+{
+  "name": "clock",
+  "resolution": {
+    "width": 1024,
+    "height": 1024
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 1.0,
+        "center_y": 0.902,
+        "width": 0.2588,
+        "height": 0.0588,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 1.0,
+        "center_y": 0.8784,
+        "width": 0.0941,
+        "height": 0.1098,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 60,
+        "tile_y": 1
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 12,
+        "tile_y": 1
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        2,
+        3
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 255,
+        "color1_g": 255,
+        "color1_b": 255,
+        "color1_a": 255,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.9804,
+        "width": 1.0,
+        "height": 0.0196,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        5,
+        6
+      ]
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        7
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        8,
+        9
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        10,
+        11
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 255,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 0,
+        "channel": "R"
+      },
+      "inputs": [
+        12
+      ]
+    }
+  ],
+  "outputs": {
+    "clockface": 13
+  }
+}

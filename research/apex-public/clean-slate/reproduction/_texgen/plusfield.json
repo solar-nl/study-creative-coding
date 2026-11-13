@@ -1,0 +1,28 @@
+{
+  "name": "plusfield",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 0.1294
+      },
+      "inputs": []
+    }
+  ],
+  "outputs": {
+    "plusalbedo": 0
+  }
+}

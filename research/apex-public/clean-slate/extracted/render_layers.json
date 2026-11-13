@@ -1,0 +1,66 @@
+[
+  {
+    "guid": "FCE6163CC00DB65A95211DB17ADD9460",
+    "name": "Shadow Layer",
+    "render_targets": [
+      "777C0EC1778502D5674EEA52BFD29691"
+    ],
+    "omit_depth": false,
+    "clear_targets": true,
+    "is_voxelizer": false,
+    "ignore_helpers": true,
+    "pickable": false,
+    "render_target_names": [
+      "Shadow Map"
+    ]
+  },
+  {
+    "guid": "0B660A129B4CFDA2A5A2D3E4E0949FA6",
+    "name": "Solid Layer",
+    "render_targets": [
+      "B804E9F623AABCBA232F247216EE216B",
+      "A277553146FC64CF028CD78429CB0C26",
+      "2EAC5AF0314990354101A913294D674C"
+    ],
+    "omit_depth": false,
+    "clear_targets": true,
+    "is_voxelizer": false,
+    "ignore_helpers": false,
+    "pickable": true,
+    "render_target_names": [
+      "Backbuffer",
+      "Albedo and Metalness",
+      "Normal and roughness"
+    ]
+  },
+  {
+    "guid": "0BE1808FCCA5B61BC690EAC74EADDEA5",
+    "name": "Lighting Layer",
+    "render_targets": [
+      "B804E9F623AABCBA232F247216EE216B"
+    ],
+    "omit_depth": true,
+    "clear_targets": false,
+    "is_voxelizer": false,
+    "ignore_helpers": true,
+    "pickable": false,
+    "render_target_names": [
+      "Backbuffer"
+    ]
+  },
+  {
+    "guid": "1424586010B909EA488C988A1F5021F9",
+    "name": "Transparent Layer",
+    "render_targets": [
+      "B804E9F623AABCBA232F247216EE216B"
+    ],
+    "omit_depth": false,
+    "clear_targets": false,
+    "is_voxelizer": false,
+    "ignore_helpers": true,
+    "pickable": false,
+    "render_target_names": [
+      "Backbuffer"
+    ]
+  }
+]

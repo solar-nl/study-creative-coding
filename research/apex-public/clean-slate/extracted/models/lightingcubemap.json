@@ -1,0 +1,43 @@
+{
+  "guid": "F4DD94F7738E31E671044D8D32396431",
+  "name": "lighting/cubemap",
+  "objects": [
+    {
+      "guid": "D3440CF0F1383C677B48C9DB0BFB5012",
+      "name": "Plane",
+      "object_type": 1,
+      "transformations": {
+        "0": 15360,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 15360,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 15360,
+        "11": 0
+      },
+      "parameters": {
+        "0": 1,
+        "1": 1,
+        "2": 223,
+        "3": 2,
+        "4": 98,
+        "5": 84,
+        "6": 213,
+        "7": 1,
+        "8": 176,
+        "9": 240,
+        "10": 1,
+        "11": 15
+      },
+      "float_parameter": null,
+      "parent_guids": [],
+      "cloned_object": null,
+      "filters": []
+    }
+  ]
+}

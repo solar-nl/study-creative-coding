@@ -1,0 +1,67 @@
+{
+  "name": "Bomb",
+  "order": 25,
+  "start_frame": 7736,
+  "textures_used": [
+    "BoyC's Stuff"
+  ],
+  "objects": [
+    {
+      "mesh": "Sphere",
+      "model": "scenes/Bomb",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.709804
+      },
+      "textures": {
+        "normal_roughness": "BoyC's Stuff/bomb normal",
+        "albedo_metalness": "BoyC's Stuff/Bomb albedo"
+      }
+    },
+    {
+      "mesh": "Loft",
+      "model": "scenes/Bomb",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.909804
+      },
+      "textures": {
+        "normal_roughness": "BoyC's Stuff/fuse normal",
+        "albedo_metalness": "BoyC's Stuff/fuse albedo"
+      }
+    },
+    {
+      "mesh": "Plane",
+      "model": "scenes/bomb spark",
+      "material": "textured (noshade, alphatest)",
+      "params": {
+        "Render Priority": 127,
+        "Cullmode": "back",
+        "BlendMode": "blend(src=4, dst=1)",
+        "AlphaTest": 0.411765,
+        "Zmode": "disabled"
+      },
+      "textures": {
+        "albedo_metalness": "BoyC's Stuff/spark"
+      }
+    }
+  ]
+}

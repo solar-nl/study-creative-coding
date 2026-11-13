@@ -1,0 +1,400 @@
+{
+  "name": "tile dissolve",
+  "resolution": {
+    "width": 2048,
+    "height": 2048
+  },
+  "hdr": true,
+  "operators": [
+    {
+      "filter": "Envmap",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.0,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.498,
+        "offset_y": 0.0
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 81,
+      "params": {
+        "octaves": 11,
+        "persistence": 0.0431,
+        "frequency": 1.0,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 19,
+      "params": {
+        "octaves": 11,
+        "persistence": 0.0431,
+        "frequency": 1.0,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        4,
+        5
+      ]
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 19,
+      "params": {
+        "octaves": 11,
+        "persistence": 0.0431,
+        "frequency": 1.0,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.0,
+        "scale_x": 0.1373,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        6,
+        7
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        8
+      ]
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": [
+        9
+      ]
+    },
+    {
+      "filter": "Mix",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "amount": 0.6902
+      },
+      "inputs": [
+        9,
+        10
+      ]
+    },
+    {
+      "filter": "Tiles",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.2353,
+        "count_y": 0.0863,
+        "offset": 0.0,
+        "border": 0.0588
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        11
+      ]
+    },
+    {
+      "filter": "Pixelize",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.2353,
+        "count_y": 0.0863
+      },
+      "inputs": [
+        12
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        13
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 60,
+        "tile_y": 22
+      },
+      "inputs": [
+        14
+      ]
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        16
+      ]
+    },
+    {
+      "filter": "Mix",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "amount": 0.9608
+      },
+      "inputs": [
+        17
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        18
+      ]
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 3,
+      "params": {
+        "octaves": 4,
+        "persistence": 0.0431,
+        "frequency": 0.7451,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        19
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        20
+      ]
+    },
+    {
+      "filter": "Pixelize",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.2353,
+        "count_y": 0.0863
+      },
+      "inputs": [
+        21
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        23,
+        24
+      ]
+    }
+  ],
+  "outputs": {
+    "wire dissolve": 25,
+    "tile dissolve": 25,
+    "tile": 25
+  }
+}

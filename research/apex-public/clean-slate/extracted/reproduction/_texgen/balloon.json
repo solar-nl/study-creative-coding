@@ -1,0 +1,133 @@
+{
+  "name": "balloon",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0078,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.0,
+        "scale_x": 0.5294,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 120,
+        "color2_g": 40,
+        "color2_b": 27,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.7725,
+        "g": 0.0824,
+        "b": 0.3725,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.8431,
+        "g": 0.8353,
+        "b": 1.0,
+        "a": 0.0
+      },
+      "inputs": []
+    }
+  ],
+  "outputs": {
+    "ballooncordxform": 7,
+    "balloonxform": 7,
+    "emissive": 7,
+    "balloonalbedo": 7,
+    "cordalbedo": 7
+  }
+}

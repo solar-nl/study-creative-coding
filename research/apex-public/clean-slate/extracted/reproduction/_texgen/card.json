@@ -1,0 +1,281 @@
+{
+  "name": "card",
+  "resolution": {
+    "width": 1024,
+    "height": 512
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Noise",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 43,
+      "params": {
+        "octaves": 7,
+        "persistence": 0.0431,
+        "frequency": 0.9451,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 2,
+        "tile_y": 1
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.9294,
+        "height": 0.8588,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.9176,
+        "height": 0.8392,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 213,
+        "color1_g": 215,
+        "color1_b": 217,
+        "color1_a": 0,
+        "color2_r": 230,
+        "color2_g": 230,
+        "color2_b": 229,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        2,
+        3
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        5,
+        6
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 94,
+        "color1_g": 52,
+        "color1_b": 25,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 222,
+        "color2_b": 185,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        8
+      ]
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        9
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        10
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 44,
+        "color2_g": 32,
+        "color2_b": 31,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.502
+      },
+      "inputs": [
+        11
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 57,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        12
+      ]
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        14,
+        15
+      ]
+    }
+  ],
+  "outputs": {
+    "noise": 16,
+    "text": 16,
+    "albedo": 16,
+    "emissive": 16,
+    "normal": 16
+  }
+}

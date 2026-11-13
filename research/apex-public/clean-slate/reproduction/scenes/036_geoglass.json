@@ -1,0 +1,38 @@
+{
+  "name": "geoglass",
+  "order": 36,
+  "start_frame": 9642,
+  "textures_used": [],
+  "objects": [
+    {
+      "mesh": "GeoSphere",
+      "model": "scenes/geoglass",
+      "material": "Mapped Fresnel With Shadow",
+      "params": {
+        "ZMode": "disabled",
+        "Cullmode": "back",
+        "Invert Normals": 0.0,
+        "BlendMode": "blend(src=4, dst=1)",
+        "Zmode": "disabled",
+        "Shadowmap Culling": "front",
+        "Render Priority": 126
+      },
+      "textures": {}
+    },
+    {
+      "mesh": "GeoSphere",
+      "model": "scenes/geoglass greeble",
+      "material": "Mapped Fresnel With Shadow",
+      "params": {
+        "ZMode": "disabled",
+        "Cullmode": "back",
+        "Invert Normals": 0.0,
+        "BlendMode": "blend(src=4, dst=1)",
+        "Zmode": "disabled",
+        "Shadowmap Culling": "front",
+        "Render Priority": 125
+      },
+      "textures": {}
+    }
+  ]
+}

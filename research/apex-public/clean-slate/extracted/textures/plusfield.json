@@ -1,0 +1,38 @@
+{
+  "guid": "",
+  "name": "plusfield",
+  "xres": 8,
+  "yres": 8,
+  "hdr": false,
+  "operators": [
+    {
+      "guid": "35AD956DCC759CCAC08F0F1B0E0CCFED",
+      "x1": 20,
+      "y1": 19,
+      "x2": 25,
+      "y2": 20,
+      "filter_guid": "743EC986A0A46B1C288ADFB64F131C23",
+      "resolution": 136,
+      "seed": 0,
+      "parameters": {
+        "0": 255,
+        "1": 255,
+        "2": 255,
+        "3": 33,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0
+      },
+      "filter_name": "Solid Color"
+    }
+  ]
+}

@@ -1,0 +1,402 @@
+{
+  "title": "Clean Slate",
+  "scene_count": 66,
+  "timeline": [
+    {
+      "order": 1,
+      "name": "intro cassette",
+      "file": "scenes/001_intro-cassette.json",
+      "start_frame": 341
+    },
+    {
+      "order": 2,
+      "name": "titles",
+      "file": "scenes/002_titles.json",
+      "start_frame": 3601
+    },
+    {
+      "order": 3,
+      "name": "turbulence sticks",
+      "file": "scenes/003_turbulence-sticks.json",
+      "start_frame": 5461
+    },
+    {
+      "order": 4,
+      "name": "bubbles",
+      "file": "scenes/004_bubbles.json",
+      "start_frame": 5461
+    },
+    {
+      "order": 5,
+      "name": "geoglass greeble",
+      "file": "scenes/005_geoglass-greeble.json",
+      "start_frame": 5461
+    },
+    {
+      "order": 6,
+      "name": "spiral",
+      "file": "scenes/006_spiral.json",
+      "start_frame": 5518
+    },
+    {
+      "order": 7,
+      "name": "crystals",
+      "file": "scenes/007_crystals.json",
+      "start_frame": 5574
+    },
+    {
+      "order": 8,
+      "name": "triforce",
+      "file": "scenes/008_triforce.json",
+      "start_frame": 5688
+    },
+    {
+      "order": 9,
+      "name": "ring twister",
+      "file": "scenes/009_ring-twister.json",
+      "start_frame": 5688
+    },
+    {
+      "order": 10,
+      "name": "rings",
+      "file": "scenes/010_rings.json",
+      "start_frame": 5802
+    },
+    {
+      "order": 11,
+      "name": "greeble",
+      "file": "scenes/011_greeble.json",
+      "start_frame": 5916
+    },
+    {
+      "order": 12,
+      "name": "tetra",
+      "file": "scenes/012_tetra.json",
+      "start_frame": 6143
+    },
+    {
+      "order": 13,
+      "name": "dns",
+      "file": "scenes/013_dns.json",
+      "start_frame": 6200
+    },
+    {
+      "order": 14,
+      "name": "turbulence cubes",
+      "file": "scenes/014_turbulence-cubes.json",
+      "start_frame": 6229
+    },
+    {
+      "order": 15,
+      "name": "yesno",
+      "file": "scenes/015_yesno.json",
+      "start_frame": 6303
+    },
+    {
+      "order": 16,
+      "name": "dissolve",
+      "file": "scenes/016_dissolve.json",
+      "start_frame": 6371
+    },
+    {
+      "order": 17,
+      "name": "zebra heights",
+      "file": "scenes/017_zebra-heights.json",
+      "start_frame": 6598
+    },
+    {
+      "order": 18,
+      "name": "blob",
+      "file": "scenes/018_blob.json",
+      "start_frame": 6769
+    },
+    {
+      "order": 19,
+      "name": "ring subrot",
+      "file": "scenes/019_ring-subrot.json",
+      "start_frame": 6826
+    },
+    {
+      "order": 20,
+      "name": "spiral 2",
+      "file": "scenes/020_spiral-2.json",
+      "start_frame": 7053
+    },
+    {
+      "order": 21,
+      "name": "house of cards",
+      "file": "scenes/021_house-of-cards.json",
+      "start_frame": 7167
+    },
+    {
+      "order": 22,
+      "name": "reel2reel",
+      "file": "scenes/022_reel2reel.json",
+      "start_frame": 7281
+    },
+    {
+      "order": 23,
+      "name": "pills",
+      "file": "scenes/023_pills.json",
+      "start_frame": 7423
+    },
+    {
+      "order": 24,
+      "name": "card",
+      "file": "scenes/024_card.json",
+      "start_frame": 7566
+    },
+    {
+      "order": 25,
+      "name": "Bomb",
+      "file": "scenes/025_bomb.json",
+      "start_frame": 7736
+    },
+    {
+      "order": 26,
+      "name": "Paper Planes",
+      "file": "scenes/026_paper-planes.json",
+      "start_frame": 7736
+    },
+    {
+      "order": 27,
+      "name": "eyeliner",
+      "file": "scenes/027_eyeliner.json",
+      "start_frame": 8010
+    },
+    {
+      "order": 28,
+      "name": "wavecube",
+      "file": "scenes/028_wavecube.json",
+      "start_frame": 8191
+    },
+    {
+      "order": 29,
+      "name": "amiga",
+      "file": "scenes/029_amiga.json",
+      "start_frame": 8533
+    },
+    {
+      "order": 30,
+      "name": "osci",
+      "file": "scenes/030_osci.json",
+      "start_frame": 8646
+    },
+    {
+      "order": 31,
+      "name": "Lego",
+      "file": "scenes/031_lego.json",
+      "start_frame": 8721
+    },
+    {
+      "order": 32,
+      "name": "bulb ending",
+      "file": "scenes/032_bulb-ending.json",
+      "start_frame": 9101
+    },
+    {
+      "order": 33,
+      "name": "squaresphere",
+      "file": "scenes/033_squaresphere.json",
+      "start_frame": 9386
+    },
+    {
+      "order": 34,
+      "name": "popcorn",
+      "file": "scenes/034_popcorn.json",
+      "start_frame": 9557
+    },
+    {
+      "order": 35,
+      "name": "globe",
+      "file": "scenes/035_globe.json",
+      "start_frame": 9557
+    },
+    {
+      "order": 36,
+      "name": "geoglass",
+      "file": "scenes/036_geoglass.json",
+      "start_frame": 9642
+    },
+    {
+      "order": 37,
+      "name": "hexa cylinder",
+      "file": "scenes/037_hexa-cylinder.json",
+      "start_frame": 10012
+    },
+    {
+      "order": 38,
+      "name": "screw particles",
+      "file": "scenes/038_screw-particles.json",
+      "start_frame": 10125
+    },
+    {
+      "order": 39,
+      "name": "choccie",
+      "file": "scenes/039_choccie.json",
+      "start_frame": 10182
+    },
+    {
+      "order": 40,
+      "name": "coin",
+      "file": "scenes/040_coin.json",
+      "start_frame": 10467
+    },
+    {
+      "order": 41,
+      "name": "sodacan",
+      "file": "scenes/041_sodacan.json",
+      "start_frame": 10751
+    },
+    {
+      "order": 42,
+      "name": "donut",
+      "file": "scenes/042_donut.json",
+      "start_frame": 10854
+    },
+    {
+      "order": 43,
+      "name": "floppies",
+      "file": "scenes/043_floppies.json",
+      "start_frame": 11196
+    },
+    {
+      "order": 44,
+      "name": "squareticles",
+      "file": "scenes/044_squareticles.json",
+      "start_frame": 11456
+    },
+    {
+      "order": 45,
+      "name": "glitter",
+      "file": "scenes/045_glitter.json",
+      "start_frame": 11832
+    },
+    {
+      "order": 46,
+      "name": "fairydust",
+      "file": "scenes/046_fairydust.json",
+      "start_frame": 12685
+    },
+    {
+      "order": 47,
+      "name": "terrain",
+      "file": "scenes/047_terrain.json",
+      "start_frame": 12742
+    },
+    {
+      "order": 48,
+      "name": "thin rings flat",
+      "file": "scenes/048_thin-rings-flat.json",
+      "start_frame": 13197
+    },
+    {
+      "order": 49,
+      "name": "squiggle",
+      "file": "scenes/049_squiggle.json",
+      "start_frame": 14108
+    },
+    {
+      "order": 50,
+      "name": "future screw",
+      "file": "scenes/050_future-screw.json",
+      "start_frame": 14563
+    },
+    {
+      "order": 51,
+      "name": "gravity break",
+      "file": "scenes/051_gravity-break.json",
+      "start_frame": 14790
+    },
+    {
+      "order": 52,
+      "name": "invader",
+      "file": "scenes/052_invader.json",
+      "start_frame": 15473
+    },
+    {
+      "order": 53,
+      "name": "balloon",
+      "file": "scenes/053_balloon.json",
+      "start_frame": 15700
+    },
+    {
+      "order": 54,
+      "name": "clock",
+      "file": "scenes/054_clock.json",
+      "start_frame": 15928
+    },
+    {
+      "order": 55,
+      "name": "butterflies",
+      "file": "scenes/055_butterflies.json",
+      "start_frame": 21803
+    },
+    {
+      "order": 56,
+      "name": "cucu coins",
+      "file": "scenes/056_cucu-coins.json",
+      "start_frame": 22301
+    },
+    {
+      "order": 57,
+      "name": "floppy",
+      "file": "scenes/057_floppy.json",
+      "start_frame": 23210
+    },
+    {
+      "order": 58,
+      "name": "donuts",
+      "file": "scenes/058_donuts.json",
+      "start_frame": 23266
+    },
+    {
+      "order": 59,
+      "name": "thin rings",
+      "file": "scenes/059_thin-rings.json",
+      "start_frame": 24120
+    },
+    {
+      "order": 60,
+      "name": "filmCamera",
+      "file": "scenes/060_filmcamera.json",
+      "start_frame": 24575
+    },
+    {
+      "order": 61,
+      "name": "record",
+      "file": "scenes/061_record.json",
+      "start_frame": 26555
+    },
+    {
+      "order": 62,
+      "name": "turbulence arrows",
+      "file": "scenes/062_turbulence-arrows.json",
+      "start_frame": 26566
+    },
+    {
+      "order": 63,
+      "name": "colorplates",
+      "file": "scenes/063_colorplates.json",
+      "start_frame": 27498
+    },
+    {
+      "order": 64,
+      "name": "Ace",
+      "file": "scenes/064_ace.json",
+      "start_frame": 28898
+    },
+    {
+      "order": 65,
+      "name": "license plate",
+      "file": "scenes/065_license-plate.json",
+      "start_frame": 29097
+    },
+    {
+      "order": 66,
+      "name": "casette",
+      "file": "scenes/066_casette.json",
+      "start_frame": 30036
+    }
+  ]
+}

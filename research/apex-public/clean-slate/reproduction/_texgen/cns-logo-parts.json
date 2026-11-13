@@ -1,0 +1,336 @@
+{
+  "name": "CNS Logo Parts",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 1.0,
+        "height": 0.5765,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.1373,
+        "g": 0.1765,
+        "b": 0.2667,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.5333,
+        "g": 0.5333,
+        "b": 0.5333,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        2
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 35,
+        "color2_g": 45,
+        "color2_b": 68,
+        "color2_a": 0,
+        "channel": "A"
+      },
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 136,
+        "color2_g": 136,
+        "color2_b": 136,
+        "color2_a": 0,
+        "channel": "R"
+      },
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        5,
+        6
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        7,
+        8
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        9,
+        10
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        11,
+        12
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.2941,
+        "center_y": 0.498,
+        "width": 0.1529,
+        "height": 1.0,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 8,
+        "tile_y": 1
+      },
+      "inputs": [
+        17
+      ]
+    }
+  ],
+  "outputs": {
+    "blue": 18,
+    "white": 18,
+    "line2": 18,
+    "line": 18,
+    "CNSStar - MapXForm": 18
+  }
+}

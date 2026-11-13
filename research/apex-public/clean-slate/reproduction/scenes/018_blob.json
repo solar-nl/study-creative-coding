@@ -1,0 +1,57 @@
+{
+  "name": "blob",
+  "order": 18,
+  "start_frame": 6769,
+  "textures_used": [
+    "colors & gradients",
+    "emissive alpha",
+    "offset patterns"
+  ],
+  "objects": [
+    {
+      "mesh": "geo1",
+      "model": "scenes/blob1",
+      "material": "[PBR Mixed With Vertex Offset, forced flatshade]",
+      "params": {
+        "two sided rendering": 0.0,
+        "Render Priority": 127,
+        "Shadowmap Culling": "front",
+        "Shadow Bias": 0.501961,
+        "ZMode": "disabled",
+        "Metalness Modifier": 0.215686,
+        "Roughness Modifier": 0.188235,
+        "Culling": "back",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/green",
+        "texture4": "offset patterns/plasma2"
+      }
+    },
+    {
+      "mesh": "geo2",
+      "model": "scenes/blob1",
+      "material": "[PBR Mixed With Vertex Offset, forced flatshade]",
+      "params": {
+        "two sided rendering": 1.0,
+        "Render Priority": 127,
+        "Shadowmap Culling": "front",
+        "Shadow Bias": 0.501961,
+        "ZMode": "disabled",
+        "Metalness Modifier": 0.0,
+        "Roughness Modifier": 0.133333,
+        "Culling": "back",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white",
+        "texture4": "offset patterns/plasma2",
+        "emissive_alpha": "emissive alpha/line"
+      }
+    }
+  ]
+}

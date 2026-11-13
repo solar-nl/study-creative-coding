@@ -1,0 +1,68 @@
+{
+  "guid": "DD92401217BBBDC3C3131691F2357210",
+  "name": "lighting/SphereLightBody",
+  "objects": [
+    {
+      "guid": "1062406EEAF4BF25B55D7ACBD8A48B5D",
+      "name": "GeoSphere",
+      "object_type": 11,
+      "transformations": {
+        "0": 15360,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 15360,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 15360,
+        "11": 0
+      },
+      "parameters": {
+        "0": 5,
+        "1": 0,
+        "2": 0,
+        "3": 248,
+        "4": 3,
+        "5": 1,
+        "6": 4,
+        "7": 0,
+        "8": 231,
+        "9": 1,
+        "10": 0,
+        "11": 0
+      },
+      "float_parameter": null,
+      "parent_guids": [],
+      "cloned_object": null,
+      "filters": [
+        {
+          "filter_type": 4,
+          "name": "",
+          "transformations": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 15360,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          },
+          "parameters": {
+            "0": 255,
+            "1": 0,
+            "2": 105
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

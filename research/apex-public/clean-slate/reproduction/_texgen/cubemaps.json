@@ -1,0 +1,108 @@
+{
+  "name": "cubemaps",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.5882,
+        "height": 1.0,
+        "softness": 0.4745,
+        "rotation": 360.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.2784,
+        "g": 0.2784,
+        "b": 0.2784,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 2,
+        "tile_y": 0
+      },
+      "inputs": [
+        2
+      ]
+    }
+  ],
+  "outputs": {
+    "sides": 5,
+    "bottom": 5,
+    "top": 5
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "name": "amiga",
+  "resolution": {
+    "width": 512,
+    "height": 512
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.7529,
+        "center_y": 0.7529,
+        "width": 0.498,
+        "height": 0.498,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        0,
+        1
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.251,
+        "center_y": 0.251,
+        "width": 0.5059,
+        "height": 0.5059,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        2,
+        3
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 7,
+        "tile_y": 4
+      },
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 65,
+        "color1_g": 65,
+        "color1_b": 65,
+        "color1_a": 0,
+        "color2_r": 230,
+        "color2_g": 230,
+        "color2_b": 230,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.1725
+      },
+      "inputs": [
+        6
+      ]
+    }
+  ],
+  "outputs": {
+    "output": 8,
+    "labelalbedo": 8,
+    "labelnormal": 8
+  }
+}

@@ -1,0 +1,758 @@
+{
+  "name": "colors & gradients",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Envmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.0,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.502,
+        "g": 0.4745,
+        "b": 0.5725,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0784,
+        "g": 0.0863,
+        "b": 0.1961,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "octaves": 1,
+        "persistence": 0.0431,
+        "frequency": 0.7529,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0078,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.7686,
+        "g": 1.0,
+        "b": 0.5529,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 0.4863,
+        "b": 0.451,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.4196,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        5
+      ]
+    },
+    {
+      "filter": "DirBlur",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R",
+        "amount": 0.2706
+      },
+      "inputs": [
+        6,
+        7
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.502
+      },
+      "inputs": [
+        12
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        13
+      ]
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        14
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        15,
+        16
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        19
+      ]
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        20,
+        21
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.1961,
+        "g": 0.1961,
+        "b": 0.1961,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.3137,
+        "g": 0.3137,
+        "b": 0.3137,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.5961,
+        "g": 0.5961,
+        "b": 0.5961,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical_mirror"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        27
+      ]
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "octaves": 11,
+        "persistence": 0.0431,
+        "frequency": 1.0,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 1,
+        "tile_y": 64
+      },
+      "inputs": [
+        28
+      ]
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal_mirror"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.7294,
+        "g": 0.5922,
+        "b": 0.5176,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Scale",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "min_r": 0.4392,
+        "min_g": 0.4392,
+        "min_b": 0.4392,
+        "min_a": 0.0,
+        "max_r": 0.5451,
+        "max_g": 0.5451,
+        "max_b": 0.5451,
+        "max_a": 1.0
+      },
+      "inputs": [
+        32
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.2471
+      },
+      "inputs": [
+        33
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 255,
+        "color1_g": 255,
+        "color1_b": 255,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        34
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.6824
+      },
+      "inputs": [
+        36
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.0
+      },
+      "inputs": [
+        36
+      ]
+    },
+    {
+      "filter": "Scale",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "min_r": 0.0,
+        "min_g": 0.0,
+        "min_b": 0.0,
+        "min_a": 0.0,
+        "max_r": 0.0,
+        "max_g": 0.0,
+        "max_b": 0.0,
+        "max_a": 1.0
+      },
+      "inputs": [
+        36
+      ]
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        39
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        41,
+        42
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 144,
+        "color1_g": 92,
+        "color1_b": 255,
+        "color1_a": 0,
+        "color2_r": 62,
+        "color2_g": 44,
+        "color2_b": 101,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        43
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        47
+      ]
+    }
+  ],
+  "outputs": {
+    "light blue": 48,
+    "blue": 48,
+    "radial inverse soft": 48,
+    "black": 48,
+    "green": 48,
+    "red pure": 48,
+    "red": 48,
+    "white": 48,
+    "normal": 48,
+    "radial inverse": 48,
+    "alphatest": 48,
+    "bg bender": 48,
+    "red dissolve": 48,
+    "dark grey": 48,
+    "grey": 48,
+    "light grey": 48,
+    "V gradient": 48,
+    "H gradient": 48,
+    "gold": 48,
+    "normal lines": 48,
+    "gradient alphatest": 48,
+    "noisenormal": 48,
+    "purple glow": 48,
+    "glitternormal": 48,
+    "butterflymover": 48
+  }
+}

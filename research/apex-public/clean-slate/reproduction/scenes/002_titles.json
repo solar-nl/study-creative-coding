@@ -1,0 +1,862 @@
+{
+  "name": "titles",
+  "order": 2,
+  "start_frame": 3601,
+  "textures_used": [
+    "CNS Logo Parts",
+    "colors & gradients",
+    "distort"
+  ],
+  "objects": [
+    {
+      "mesh": "c",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "S",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "l",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "E",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "a",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "n",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "l2",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "a",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "t",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "e",
+      "model": "title/text_cleanslate",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "c",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "i",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "o",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "n",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "s",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "r",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "a",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "c",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "y",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "p",
+      "model": "title/text_cns",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "a",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "t",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.035294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "r",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "e",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "v",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "I",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "s",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "*I",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "o",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "n",
+      "model": "title/text_revision",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.047059,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.086275
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    },
+    {
+      "mesh": "CNS Star",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 1.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.141176
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/line",
+        "emissive_alpha": "CNS Logo Parts/line"
+      }
+    },
+    {
+      "mesh": "StarBurst",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.235294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/blue",
+        "emissive_alpha": "CNS Logo Parts/blue"
+      }
+    },
+    {
+      "mesh": "CenterPiece",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.235294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/blue",
+        "emissive_alpha": "CNS Logo Parts/blue"
+      }
+    },
+    {
+      "mesh": "*CNS Star",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.235294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/line2",
+        "emissive_alpha": "CNS Logo Parts/line2"
+      }
+    },
+    {
+      "mesh": "*StarBurst",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.235294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/white",
+        "emissive_alpha": "CNS Logo Parts/white"
+      }
+    },
+    {
+      "mesh": "*CenterPiece",
+      "model": "title/CNS Logo",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 126,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.235294
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "CNS Logo Parts/white",
+        "emissive_alpha": "CNS Logo Parts/white"
+      }
+    },
+    {
+      "mesh": "CNS Star",
+      "model": "title/CNS Logo Wire",
+      "material": "Wireframe",
+      "params": {
+        "Contrast": 0.113725,
+        "Width": 0.196078,
+        "OverDrive": 0.0,
+        "Color": {
+          "r": 0.2863,
+          "g": 0.651,
+          "b": 1.0,
+          "a": 1.0
+        },
+        "Render Priority": 127,
+        "Z Mode": "greater",
+        "BlendMode": "blend(src=4, dst=1)"
+      },
+      "textures": {
+        "albedo_metalness": "distort/distort1"
+      }
+    },
+    {
+      "mesh": "StarBurst",
+      "model": "title/CNS Logo Wire",
+      "material": "Wireframe",
+      "params": {
+        "Contrast": 0.113725,
+        "Width": 0.380392,
+        "OverDrive": 0.0,
+        "Color": {
+          "r": 0.0,
+          "g": 0.4549,
+          "b": 1.0,
+          "a": 1.0
+        },
+        "Render Priority": 127,
+        "Z Mode": "greater",
+        "BlendMode": "blend(src=4, dst=1)"
+      },
+      "textures": {
+        "albedo_metalness": "distort/distort1"
+      }
+    },
+    {
+      "mesh": "*StarBurst",
+      "model": "title/CNS Logo Wire",
+      "material": "Wireframe",
+      "params": {
+        "Contrast": 0.113725,
+        "Width": 0.27451,
+        "OverDrive": 0.0,
+        "Color": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        },
+        "Render Priority": 127,
+        "Z Mode": "greater",
+        "BlendMode": "blend(src=4, dst=1)"
+      },
+      "textures": {
+        "albedo_metalness": "colors & gradients/H gradient"
+      }
+    },
+    {
+      "mesh": "*CenterPiece",
+      "model": "title/CNS Logo Wire",
+      "material": "Wireframe",
+      "params": {
+        "Contrast": 0.113725,
+        "Width": 0.27451,
+        "OverDrive": 0.0,
+        "Color": {
+          "r": 1.0,
+          "g": 1.0,
+          "b": 1.0,
+          "a": 1.0
+        },
+        "Render Priority": 127,
+        "Z Mode": "greater",
+        "BlendMode": "blend(src=4, dst=1)"
+      },
+      "textures": {
+        "albedo_metalness": "distort/distort1"
+      }
+    }
+  ]
+}

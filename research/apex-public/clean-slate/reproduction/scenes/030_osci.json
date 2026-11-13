@@ -1,0 +1,55 @@
+{
+  "name": "osci",
+  "order": 30,
+  "start_frame": 8646,
+  "textures_used": [
+    "colors & gradients",
+    "offset patterns"
+  ],
+  "objects": [
+    {
+      "mesh": "Loft",
+      "model": "scenes/osci",
+      "material": "[PBR Mixed With Vertex Offset, forced flatshade]",
+      "params": {
+        "two sided rendering": 0.0,
+        "Render Priority": 127,
+        "Shadowmap Culling": "front",
+        "Shadow Bias": 0.501961,
+        "ZMode": "disabled",
+        "Metalness Modifier": 1.0,
+        "Roughness Modifier": 0.368627,
+        "Culling": "back",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/red pure",
+        "texture4": "offset patterns/plasma2"
+      }
+    },
+    {
+      "mesh": "Loft",
+      "model": "scenes/osci 2",
+      "material": "[PBR Mixed With Vertex Offset, forced flatshade]",
+      "params": {
+        "two sided rendering": 0.0,
+        "Render Priority": 127,
+        "Shadowmap Culling": "front",
+        "Shadow Bias": 0.501961,
+        "ZMode": "disabled",
+        "Metalness Modifier": 1.0,
+        "Roughness Modifier": 0.368627,
+        "Culling": "back",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/white",
+        "texture4": "offset patterns/plasma2"
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "choccie",
+  "order": 39,
+  "start_frame": 10182,
+  "textures_used": [
+    "choc"
+  ],
+  "objects": [
+    {
+      "mesh": "Scatter",
+      "model": "scenes/chocciebar",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.043137,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.239216
+      },
+      "textures": {
+        "normal_roughness": "choc/chocnormal",
+        "albedo_metalness": "choc/chocalb"
+      }
+    },
+    {
+      "mesh": "Cube",
+      "model": "scenes/chocciewrapper",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.498039,
+        "Render Priority": 127,
+        "Culling": "none",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.658824
+      },
+      "textures": {
+        "normal_roughness": "choc/wrapnormal",
+        "albedo_metalness": "choc/chocwrap",
+        "emissive_alpha": "choc/chocemisalp"
+      }
+    }
+  ]
+}

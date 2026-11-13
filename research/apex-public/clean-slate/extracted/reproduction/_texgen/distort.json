@@ -1,0 +1,155 @@
+{
+  "name": "distort",
+  "resolution": {
+    "width": 1024,
+    "height": 512
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.498,
+        "height": 0.498,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Tiles",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.0314,
+        "count_y": 0.0157,
+        "offset": 0.7882,
+        "border": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Tiles",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.0039,
+        "count_y": 0.0118,
+        "offset": 0.7569,
+        "border": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Turbulence",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R",
+        "amount": 0.4275
+      },
+      "inputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "filter": "Tiles",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "count_x": 0.0235,
+        "count_y": 0.0431,
+        "offset": 0.6392,
+        "border": 0.0
+      },
+      "inputs": [
+        2
+      ]
+    },
+    {
+      "filter": "Mapdistort",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R",
+        "amount_x": 0.0,
+        "amount_y": 1.0
+      },
+      "inputs": [
+        3,
+        4
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 0,
+        "tile_y": 2
+      },
+      "inputs": [
+        5
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "darken"
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 1,
+        "tile_y": 2
+      },
+      "inputs": [
+        7
+      ]
+    }
+  ],
+  "outputs": {
+    "distort1": 8,
+    "distort2": 8
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "guid": "6C3C51DC3198D385B28BB53A23929448",
+  "name": "generic/cube",
+  "objects": [
+    {
+      "guid": "185FC5EA825073C3C86ACF5BD5E23943",
+      "name": "Cube",
+      "object_type": 0,
+      "transformations": {
+        "0": 15360,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 15360,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 15360,
+        "11": 0
+      },
+      "parameters": {
+        "0": 7,
+        "1": 0,
+        "2": 0,
+        "3": 248,
+        "4": 3,
+        "5": 1,
+        "6": 4,
+        "7": 0,
+        "8": 231,
+        "9": 1,
+        "10": 0,
+        "11": 0
+      },
+      "float_parameter": null,
+      "parent_guids": [],
+      "cloned_object": null,
+      "filters": []
+    }
+  ]
+}

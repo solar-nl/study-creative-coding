@@ -1,0 +1,43 @@
+{
+  "guid": "3F1FAD0BD94BF5DC878CD903588DE75D",
+  "name": "generic/squareticle",
+  "objects": [
+    {
+      "guid": "56432F3757D5AE1EA55E8561D1A2A917",
+      "name": "Plane",
+      "object_type": 1,
+      "transformations": {
+        "0": 9767,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 66,
+        "6": 42534,
+        "7": 0,
+        "8": 0,
+        "9": 15359,
+        "10": 101,
+        "11": 0
+      },
+      "parameters": {
+        "0": 1,
+        "1": 1,
+        "2": 98,
+        "3": 0,
+        "4": 117,
+        "5": 0,
+        "6": 102,
+        "7": 0,
+        "8": 102,
+        "9": 0,
+        "10": 101,
+        "11": 0
+      },
+      "float_parameter": null,
+      "parent_guids": [],
+      "cloned_object": null,
+      "filters": []
+    }
+  ]
+}

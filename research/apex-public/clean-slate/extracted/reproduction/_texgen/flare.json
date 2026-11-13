@@ -1,0 +1,158 @@
+{
+  "name": "flare",
+  "resolution": {
+    "width": 128,
+    "height": 1024
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Noise",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 43,
+      "params": {
+        "octaves": 3,
+        "persistence": 0.0431,
+        "frequency": 0.9137,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 0,
+        "tile_y": 1
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "type": "horizontal"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        2,
+        3
+      ]
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        5,
+        6
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 25,
+        "color1_b": 107,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        7
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        128,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.0,
+        "radius_y": 0.0039
+      },
+      "inputs": [
+        8
+      ]
+    }
+  ],
+  "outputs": {
+    "flare": 9
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "name": "record label",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Text",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 0.2784,
+        "inner_radius": 0.2471,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        3
+      ]
+    }
+  ],
+  "outputs": {
+    "record label": 4
+  }
+}

@@ -1,0 +1,1285 @@
+{
+  "name": "reel2reel",
+  "resolution": {
+    "width": 1024,
+    "height": 1024
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 1.0,
+        "g": 0.3137,
+        "b": 0.1765,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        0,
+        1
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.6784,
+        "width": 0.2667,
+        "height": 0.498,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.498,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.8235,
+        "g": 0.8235,
+        "b": 0.8235,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rotozoom",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "angle": 180.71,
+        "zoom": 0.251,
+        "center_x": 0.502,
+        "center_y": 0.502
+      },
+      "inputs": [
+        2
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 3,
+        "tile_y": 1
+      },
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0118,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Invert",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        4
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        5,
+        6
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.498,
+        "g": 0.498,
+        "b": 0.498,
+        "a": 0.0
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        7
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 6,
+        "tile_y": 1
+      },
+      "inputs": [
+        8
+      ]
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 1,
+        "tile_y": 108
+      },
+      "inputs": [
+        9
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        10
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        11,
+        12
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "inputs": [
+        12
+      ]
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.0,
+        "offset_y": 0.3294
+      },
+      "inputs": [
+        14
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        15
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        16
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.1804,
+        "center_y": 0.8118,
+        "width": 0.1608,
+        "height": 0.098,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        17
+      ]
+    },
+    {
+      "filter": "MixMap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R"
+      },
+      "inputs": [
+        18,
+        19
+      ]
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        20
+      ]
+    },
+    {
+      "filter": "MixMap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R"
+      },
+      "inputs": [
+        21,
+        22
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 239,
+        "color2_g": 228,
+        "color2_b": 157,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        24
+      ]
+    },
+    {
+      "filter": "Rotozoom",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "angle": 235.76,
+        "zoom": 0.0824,
+        "center_x": 0.2667,
+        "center_y": 0.3961
+      },
+      "inputs": [
+        25
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 0.2706,
+        "inner_radius": 0.1176,
+        "scale_x": 0.4863,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        26,
+        27
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.502
+      },
+      "inputs": [
+        28
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        29,
+        30
+      ]
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.3137,
+        "offset_y": 0.6353
+      },
+      "inputs": [
+        31
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        34,
+        35
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        35
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        36,
+        37
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.9059,
+        "g": 0.898,
+        "b": 0.8941,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.9059,
+        "g": 0.0824,
+        "b": 0.0471,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        39
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.0078,
+        "radius_y": 0.0078
+      },
+      "inputs": [
+        42
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 1.0
+      },
+      "inputs": [
+        43
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0078,
+        "g": 0.0078,
+        "b": 0.0157,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0431,
+        "g": 0.0314,
+        "b": 0.0275,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.9608,
+        "height": 0.9608,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "MixMap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R"
+      },
+      "inputs": [
+        45,
+        46,
+        47
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.3098,
+        "width": 0.9412,
+        "height": 0.549,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.2706,
+        "center_y": 0.7843,
+        "width": 0.4824,
+        "height": 0.3608,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        48,
+        49
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        50,
+        51
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.749,
+        "center_y": 0.7843,
+        "width": 0.4392,
+        "height": 0.3608,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": [
+        51
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        52
+      ]
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.8196,
+        "offset_y": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        53,
+        54
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.1804,
+        "center_y": 0.8118,
+        "width": 0.1608,
+        "height": 0.098,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": [
+        54
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        55,
+        56
+      ]
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        56
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        57,
+        58
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.3647,
+        "center_y": 0.8118,
+        "width": 0.1608,
+        "height": 0.098,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": [
+        58
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 0.1804,
+        "inner_radius": 0.1647,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        59,
+        60
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 0.1804,
+        "inner_radius": 0.0,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        61,
+        62
+      ]
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.1098,
+        "offset_y": 0.5647
+      },
+      "inputs": [
+        63
+      ]
+    },
+    {
+      "filter": "Translate",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "rotate45": false,
+        "offset_x": 0.1098,
+        "offset_y": 0.5647
+      },
+      "inputs": [
+        65
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        66,
+        67
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sub"
+      },
+      "inputs": [
+        68
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.0039,
+        "radius_y": 0.0039
+      },
+      "inputs": [
+        69
+      ]
+    },
+    {
+      "filter": "Scale",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "min_r": 0.4902,
+        "min_g": 0.4431,
+        "min_b": 0.4235,
+        "min_a": 0.0,
+        "max_r": 1.0,
+        "max_g": 1.0,
+        "max_b": 1.0,
+        "max_a": 0.0
+      },
+      "inputs": [
+        70
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.4431
+      },
+      "inputs": [
+        71
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.0863,
+        "g": 0.0235,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.2471,
+        "g": 0.2471,
+        "b": 0.2392,
+        "a": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 130,
+        "color2_g": 130,
+        "color2_b": 130,
+        "color2_a": 0,
+        "channel": "R"
+      },
+      "inputs": [
+        75
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        76,
+        77
+      ]
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0275,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.5765,
+        "width": 1.0,
+        "height": 0.0549,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "add"
+      },
+      "inputs": [
+        79,
+        80
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.4353
+      },
+      "inputs": [
+        81
+      ]
+    }
+  ],
+  "outputs": {
+    "reelmask": 82,
+    "reelalpha": 82,
+    "reelalbedo": 82,
+    "reelnormal": 82,
+    "dial": 82,
+    "pin": 82,
+    "redbut": 82,
+    "reeldivots": 82,
+    "playeralbedo": 82,
+    "playernorm": 82,
+    "tapealb": 82,
+    "headalbedo": 82,
+    "headnormal": 82
+  }
+}

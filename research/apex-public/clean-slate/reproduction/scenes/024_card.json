@@ -1,0 +1,78 @@
+{
+  "name": "card",
+  "order": 24,
+  "start_frame": 7566,
+  "textures_used": [
+    "BoyC's Stuff",
+    "card",
+    "colors & gradients"
+  ],
+  "objects": [
+    {
+      "mesh": "Cube",
+      "model": "scenes/card",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.258824,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.721569
+      },
+      "textures": {
+        "normal_roughness": "card/normal",
+        "albedo_metalness": "card/albedo",
+        "emissive_alpha": "card/emissive"
+      }
+    },
+    {
+      "mesh": "front",
+      "model": "scenes/house of cards",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.156863,
+        "Shadow Bias": 0.505882,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "none",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.498039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "BoyC's Stuff/card front",
+        "emissive_alpha": "BoyC's Stuff/Card Alpha"
+      }
+    },
+    {
+      "mesh": "back",
+      "model": "scenes/house of cards",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.156863,
+        "Shadow Bias": 0.505882,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "none",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.498039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "BoyC's Stuff/card back",
+        "emissive_alpha": "BoyC's Stuff/Card Alpha"
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "zebra heights",
+  "order": 17,
+  "start_frame": 6598,
+  "textures_used": [
+    "offset patterns",
+    "zebra"
+  ],
+  "objects": [
+    {
+      "mesh": "Plane",
+      "model": "scenes/zebra",
+      "material": "[PBR Mixed With Vertex Offset, forced flatshade]",
+      "params": {
+        "two sided rendering": 0.0,
+        "Render Priority": 127,
+        "Shadowmap Culling": "none",
+        "Shadow Bias": 0.501961,
+        "ZMode": "disabled",
+        "Metalness Modifier": 0.498039,
+        "Roughness Modifier": 0.498039,
+        "Culling": "back",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039
+      },
+      "textures": {
+        "normal_roughness": "zebra/zebranormal",
+        "albedo_metalness": "zebra/zebra",
+        "texture4": "offset patterns/plasma",
+        "emissive_alpha": "zebra/emissive"
+      }
+    }
+  ]
+}

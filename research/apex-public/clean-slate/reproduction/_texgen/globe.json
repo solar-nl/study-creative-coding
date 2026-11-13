@@ -1,0 +1,76 @@
+{
+  "name": "globe",
+  "resolution": {
+    "width": 1024,
+    "height": 1024
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Text",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 255,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 0,
+        "channel": "R"
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.502
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        1024,
+        1024
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.0039,
+        "radius_y": 0.0039
+      },
+      "inputs": [
+        2
+      ]
+    }
+  ],
+  "outputs": {
+    "globe": 3,
+    "globenormal": 3
+  }
+}

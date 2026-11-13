@@ -1,0 +1,184 @@
+{
+  "name": "brushed metal",
+  "resolution": {
+    "width": 2048,
+    "height": 2048
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Noise",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "octaves": 1,
+        "persistence": 0.0431,
+        "frequency": 0.7294,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 0,
+        "tile_y": 1
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Rotozoom",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "angle": 62.12,
+        "zoom": 0.251,
+        "center_x": 0.502,
+        "center_y": 0.502
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Rotozoom",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "angle": 148.24,
+        "zoom": 0.2824,
+        "center_x": 0.4627,
+        "center_y": 0.502
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "To Polar",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.0,
+        "center_y": 0.0
+      },
+      "inputs": [
+        1
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "unknown(9)"
+      },
+      "inputs": [
+        2,
+        3
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "overlay"
+      },
+      "inputs": [
+        5
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "unknown(9)"
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.0
+      },
+      "inputs": [
+        7
+      ]
+    },
+    {
+      "filter": "Scale",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {
+        "min_r": 0.4392,
+        "min_g": 0.0,
+        "min_b": 0.0,
+        "min_a": 0.0,
+        "max_r": 0.6314,
+        "max_g": 0.0,
+        "max_b": 0.0,
+        "max_a": 0.0
+      },
+      "inputs": [
+        7
+      ]
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        2048,
+        2048
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        8,
+        9
+      ]
+    }
+  ],
+  "outputs": {
+    "metal normal": 10
+  }
+}

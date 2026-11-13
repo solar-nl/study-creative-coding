@@ -1,0 +1,12 @@
+{
+  "materials": [
+    "Deferred Area Light Sphere (diffuse only)",
+    "Deferred Fake Cubemap",
+    "Mapped Fresnel",
+    "Mapped Fresnel With Shadow",
+    "Wireframe",
+    "[PBR Mixed With Vertex Offset, forced flatshade]",
+    "[Physically Based Mixed Rendering]",
+    "textured (noshade, alphatest)"
+  ]
+}

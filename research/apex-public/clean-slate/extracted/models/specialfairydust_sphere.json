@@ -1,0 +1,43 @@
+{
+  "guid": "F48F57A34A9A3C68A1BE0B3CF7D28928",
+  "name": "special/fairydust_sphere",
+  "objects": [
+    {
+      "guid": "466A1A9D78E85E30926253C3718A8415",
+      "name": "GeoSphere",
+      "object_type": 11,
+      "transformations": {
+        "0": 15360,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 15360,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 15360,
+        "11": 0
+      },
+      "parameters": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 1,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0
+      },
+      "float_parameter": null,
+      "parent_guids": [],
+      "cloned_object": null,
+      "filters": []
+    }
+  ]
+}

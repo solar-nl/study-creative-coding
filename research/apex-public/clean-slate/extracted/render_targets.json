@@ -1,0 +1,119 @@
+[
+  {
+    "guid": "B804E9F623AABCBA232F247216EE216B",
+    "name": "Backbuffer",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": false
+  },
+  {
+    "guid": "A277553146FC64CF028CD78429CB0C26",
+    "name": "Albedo and Metalness",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "2EAC5AF0314990354101A913294D674C",
+    "name": "Normal and roughness",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "66B8BAA646D228338C523F1351543A11",
+    "name": "Back X/2 Y/1",
+    "resolution": 136,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "ABE9AC938257A0207A4C164AF72306A0",
+    "name": "Back X/2 Y/2",
+    "resolution": 137,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "672E7FB08DEB05C9B52B4F78FC2B30F4",
+    "name": "Back X/4 Y/2",
+    "resolution": 145,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "290A7AC85C535BCB4E3FA01128C3433B",
+    "name": "Back X/4 Y/4",
+    "resolution": 147,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "BE215926557E4997FE98ABB3D6817364",
+    "name": "Back X/8 Y/4",
+    "resolution": 154,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "D2375BBF84EB0121216AE6397E0E31C4",
+    "name": "Back X/8 Y/8",
+    "resolution": 155,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "9DE2A20DCA6371A7D7731C30E7A870A1",
+    "name": "Internal",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "777C0EC1778502D5674EEA52BFD29691",
+    "name": "Shadow Map",
+    "resolution": 128,
+    "pixel_format": 1,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "89B6D1BE3363599A89BCE8D9B4012C76",
+    "name": "Internal 2",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": true
+  },
+  {
+    "guid": "1B9BF4E84AA95B3000ADD9652C11D8F2",
+    "name": "temp 2",
+    "resolution": 128,
+    "pixel_format": 0,
+    "is_cubemap": false,
+    "z_resolution": 0,
+    "hidden": false
+  }
+]

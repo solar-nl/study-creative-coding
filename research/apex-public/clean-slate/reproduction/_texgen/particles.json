@@ -1,0 +1,28 @@
+{
+  "name": "particles",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Envmap",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 1.0,
+        "inner_radius": 0.0,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    }
+  ],
+  "outputs": {
+    "dot": 0
+  }
+}

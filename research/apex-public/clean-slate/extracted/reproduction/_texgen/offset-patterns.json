@@ -1,0 +1,225 @@
+{
+  "name": "offset patterns",
+  "resolution": {
+    "width": 256,
+    "height": 256
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0078,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 7,
+      "params": {
+        "octaves": 1,
+        "persistence": 0.0431,
+        "frequency": 0.1137,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 13,
+      "params": {
+        "octaves": 1,
+        "persistence": 0.0235,
+        "frequency": 0.6353,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 21,
+      "params": {
+        "density": 0.0078,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "mul"
+      },
+      "inputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        5
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "density": 0.0118,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Gradient",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "type": "vertical"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        10
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        256,
+        256
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 255,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        11
+      ]
+    }
+  ],
+  "outputs": {
+    "plasma": 12,
+    "noise": 12,
+    "plasma2": 12,
+    "wave": 12,
+    "background": 12
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "dissolve",
+  "order": 16,
+  "start_frame": 6371,
+  "textures_used": [
+    "colors & gradients"
+  ],
+  "objects": [
+    {
+      "mesh": "GeoSphere",
+      "model": "scenes/dissolve sphere",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "ShadowMap Alpha Test Cutoff": 0.082353,
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.972549,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "none",
+        "Two sided rendering": 1.0,
+        "Roughness Modifier": 0.498039
+      },
+      "textures": {
+        "normal_roughness": "colors & gradients/normal",
+        "albedo_metalness": "colors & gradients/red dissolve",
+        "emissive_alpha": "colors & gradients/red dissolve"
+      }
+    }
+  ]
+}

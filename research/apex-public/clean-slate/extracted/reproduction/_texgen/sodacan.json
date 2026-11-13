@@ -1,0 +1,611 @@
+{
+  "name": "sodacan",
+  "resolution": {
+    "width": 512,
+    "height": 512
+  },
+  "hdr": false,
+  "operators": [
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.4902,
+        "center_y": 0.498,
+        "width": 0.1176,
+        "height": 0.1176,
+        "softness": 1.0,
+        "rotation": 22.59
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Text",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": []
+    },
+    {
+      "filter": "SubPlasma",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 24,
+      "params": {
+        "density": 0.0039,
+        "linear": false
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.4941,
+        "center_y": 0.4941,
+        "width": 0.3216,
+        "height": 1.0,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        0
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.0902,
+        "height": 0.0902,
+        "softness": 1.0,
+        "rotation": 33.88
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Turbulence",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "channel": "R",
+        "amount": 0.0235
+      },
+      "inputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.3647,
+        "g": 0.5294,
+        "b": 0.549,
+        "a": 1.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Loop",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "tile_x": 7,
+        "tile_y": 1
+      },
+      "inputs": [
+        3
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        4,
+        5
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.051,
+        "radius_y": 0.051
+      },
+      "inputs": [
+        6
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        7,
+        8
+      ]
+    },
+    {
+      "filter": "Sprinkle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "quantity": 0.3529,
+        "min_size": 0.4745,
+        "max_size": 1.0
+      },
+      "inputs": [
+        9
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.498,
+        "height": 0.498,
+        "softness": 1.0,
+        "rotation": 7.06
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        10
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        11,
+        12
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 0,
+        "color2_g": 0,
+        "color2_b": 0,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        13
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 15,
+        "color2_g": 110,
+        "color2_b": 46,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        14
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        15,
+        16
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.498,
+        "width": 0.4706,
+        "height": 0.4706,
+        "softness": 1.0,
+        "rotation": 22.59
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        17
+      ]
+    },
+    {
+      "filter": "Envmap",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "outer_radius": 0.8549,
+        "inner_radius": 0.0,
+        "scale_x": 0.498,
+        "scale_y": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        18,
+        19
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.0,
+        "width": 1.0,
+        "height": 0.1529,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Curves",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        21
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        22
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 133,
+        "color2_g": 133,
+        "color2_b": 131,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        23
+      ]
+    },
+    {
+      "filter": "Rectangle",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "center_x": 0.498,
+        "center_y": 0.9569,
+        "width": 1.0,
+        "height": 0.098,
+        "softness": 0.0,
+        "rotation": 0.0
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        25,
+        26
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 0,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 133,
+        "color2_g": 133,
+        "color2_b": 131,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        27
+      ]
+    },
+    {
+      "filter": "Combine",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "max"
+      },
+      "inputs": [
+        28,
+        29
+      ]
+    },
+    {
+      "filter": "Solid Color",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "r": 0.498,
+        "g": 0.498,
+        "b": 0.498,
+        "a": 0.498
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Noise",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "octaves": 11,
+        "persistence": 0.0431,
+        "frequency": 1.0,
+        "mode": "smoothstep"
+      },
+      "inputs": []
+    },
+    {
+      "filter": "Normalmap",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "mode": "sobel",
+        "strength": 0.0
+      },
+      "inputs": [
+        32
+      ]
+    },
+    {
+      "filter": "Colorize",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "color1_r": 115,
+        "color1_g": 0,
+        "color1_b": 0,
+        "color1_a": 0,
+        "color2_r": 97,
+        "color2_g": 255,
+        "color2_b": 255,
+        "color2_a": 255,
+        "channel": "R"
+      },
+      "inputs": [
+        32
+      ]
+    },
+    {
+      "filter": "Blur",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {
+        "radius_x": 0.0157,
+        "radius_y": 0.0157
+      },
+      "inputs": [
+        33
+      ]
+    },
+    {
+      "filter": "Replace Alpha",
+      "resolution": [
+        512,
+        512
+      ],
+      "seed": 0,
+      "params": {},
+      "inputs": [
+        35
+      ]
+    }
+  ],
+  "outputs": {
+    "xfor": 36,
+    "canalbedo": 36,
+    "rim": 36,
+    "normal": 36
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "name": "floppy",
+  "order": 57,
+  "start_frame": 23210,
+  "textures_used": [
+    "BoyC's Stuff",
+    "colors & gradients"
+  ],
+  "objects": [
+    {
+      "mesh": "Cube",
+      "model": "scenes/Floppy",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.4,
+        "Render Priority": 127,
+        "Culling": "none",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 1.0,
+        "Roughness Modifier": 0.431373
+      },
+      "textures": {
+        "normal_roughness": "BoyC's Stuff/floppy normal",
+        "albedo_metalness": "BoyC's Stuff/floppy texture",
+        "emissive_alpha": "BoyC's Stuff/floppy alpha"
+      }
+    },
+    {
+      "mesh": "Plane",
+      "model": "scenes/Floppy",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 0.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 1.0,
+        "Roughness Modifier": 0.207843
+      },
+      "textures": {
+        "normal_roughness": "BoyC's Stuff/floppy blank normmal",
+        "albedo_metalness": "BoyC's Stuff/floppy blank"
+      }
+    },
+    {
+      "mesh": "Cylinder",
+      "model": "scenes/Floppy",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 1.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 0.0,
+        "Roughness Modifier": 0.670588
+      },
+      "textures": {
+        "albedo_metalness": "colors & gradients/white",
+        "emissive_alpha": "BoyC's Stuff/floppy center alpha"
+      }
+    },
+    {
+      "mesh": "*Plane",
+      "model": "scenes/Floppy",
+      "material": "[Physically Based Mixed Rendering]",
+      "params": {
+        "ZMode": "disabled",
+        "Invert Normals": 0.0,
+        "Shadow Softness": 0.098039,
+        "Shadow Bias": 0.501961,
+        "Metalness Modifier": 1.0,
+        "Render Priority": 127,
+        "Culling": "back",
+        "Shadowmap Culling": "front",
+        "Two sided rendering": 1.0,
+        "Roughness Modifier": 0.333333
+      },
+      "textures": {
+        "normal_roughness": "BoyC's Stuff/floppy blank normmal",
+        "albedo_metalness": "colors & gradients/white"
+      }
+    }
+  ]
+}
