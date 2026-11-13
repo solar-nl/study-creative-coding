@@ -147,11 +147,11 @@ What about very large counts? All iterations run synchronously within a single f
 
 ## The Trigger Stack Revisited
 
-The trigger stack (covered in architecture.md) tracks which operators are currently executing. For iteration, two implications matter:
+The trigger stack (covered in architecture.md) tracks which operators are currently executing. It is **debug telemetry only** — `Port.trigger()` pushes/pops onto it, but nothing ever reads it to make a decision. Its single consumer is `printTriggerStack()`.
 
 **Debugging.** You can call `patch.printTriggerStack()` from within an operator to see the current execution chain. Useful for understanding why an operator is running.
 
-**No cycle protection during iteration.** The trigger stack prevents A→B→A infinite loops, but iteration *intentionally* calls the same downstream path multiple times. The stack grows with each nested level. Very deep nesting (hundreds of levels) could cause JavaScript stack overflow.
+**No cycle protection — by anyone.** The trigger stack does *not* prevent A→B→A infinite loops; there is no `includes()` check in the trigger path. A true trigger cycle recurses until JavaScript throws a stack-overflow `RangeError`, which the `try/catch` around the trigger loop then catches, disabling the crashing operator. Iteration is safe not because of the stack but because `Repeat` re-enters *downstream* paths, never itself — each downstream subtree completes and unwinds before the next iteration. The real risk is depth: every nesting level adds real JS stack frames, so hundreds of nested levels can overflow the stack on their own.
 
 ---
 

@@ -130,6 +130,7 @@ With the core concepts in place, let us explore the details. This documentation 
 | [rendering-pipeline.md](rendering-pipeline.md) | The frame lifecycle, state stacks, and how rendering actually happens |
 | [api-design.md](api-design.md) | How operators are defined, shader module injection, and extension points |
 | [trigger-system.md](trigger-system.md) | Deep dive into triggers, trigger-pumped iteration, and error handling |
+| [code-traces/graph-evaluation.md](code-traces/graph-evaluation.md) | Value flow vs. control flow: how the graph "runs" with no evaluator |
 
 Each document answers the question: "What patterns here could improve a Rust creative coding framework?"
 

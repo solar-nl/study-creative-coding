@@ -109,11 +109,11 @@ The patch is the container for everything. It holds operators, manages their con
 
 ### The Dual Execution Model
 
-Here is where Cables gets interesting. The framework uses two complementary execution strategies:
+Here is where Cables gets interesting. The framework uses two complementary execution strategies — but, importantly, *neither is a graph evaluator*. There is no scheduler, no topological sort, and no dirty-set. `core_patch.js` has no `exec()` or `update()` method. Both strategies are **eager and synchronous push**; they differ only in *what* they push and *when*.
 
-**Value-driven (Pull)**: When you need data, you ask for it. If a port's value has changed, it recomputes. If not, it returns the cached result. This is lazy evaluation with dirty flags.
+**Value-driven (eager push on change)**: When an output value port is `set()`, the new value is immediately and synchronously written down every outgoing link into the connected input ports — which fire those operators' `onChange` handlers in the same call stack. There is no pull, no laziness, and no value cache: `Port.get()` simply returns the stored `value` field. The only pull-style computation in the whole system is *animation* — an animated port lazily samples its keyframe curve once per frame inside `get()`. A connected value port is therefore *always already current*, because every upstream change pushed it there the instant it happened.
 
-**Trigger-driven (Push)**: Every frame, a mainloop operator fires a trigger. This cascades through connected trigger ports, causing operators to execute in order. This is the animation heartbeat.
+**Trigger-driven (push every frame)**: A mainloop operator's `requestAnimationFrame` callback fires a trigger. This cascades synchronously, depth-first, through connected trigger ports, causing operators to execute in order. This is the animation heartbeat.
 
 ```
                     ┌─────────────┐
@@ -135,24 +135,15 @@ Here is where Cables gets interesting. The framework uses two complementary exec
                     └───────────┘
 ```
 
-Why both? Consider a slider controlling rotation speed. The slider value rarely changes (value-driven is efficient). But the rotation itself must update every frame (trigger-driven is necessary). The dual model lets each part work optimally.
+Why both? Consider a slider controlling rotation speed. The slider value is pushed into the graph only when the artist drags it — between drags, no value-flow work happens at all. But the rotation itself must advance every frame, so it hangs off the trigger heartbeat. The split lets the two kinds of change ride their own clocks: values move on edit, triggers move on `requestAnimationFrame`. When a trigger reaches an operator, that operator's value inputs have *already* been kept current by earlier pushes — the two flows meet without any dependency tracking.
 
-### Preventing Infinite Recursion
+### Cycles Are Not Prevented
 
-Visual programming has a dangerous trap: cycles. If Op A triggers Op B which triggers Op A, you get infinite recursion. Cables prevents this with a **trigger stack**:
+Visual programming has a dangerous trap: cycles. If Op A triggers Op B which triggers Op A, you get infinite recursion. It is worth being precise here, because Cables is often described as having cycle protection — **it does not**.
 
-```javascript
-// Conceptually, the trigger mechanism works like this:
-triggerStack.push(currentOp);
-if (triggerStack.includes(targetOp)) {
-    // Already in the stack - would cause recursion
-    return; // Skip this trigger
-}
-targetOp.execute();
-triggerStack.pop();
-```
+`Patch` keeps a `_triggerStack` array (`core_patch.js`), and `Port.trigger()` pushes/pops onto it around each downstream call. But nothing ever consults it to skip a re-entrant trigger — its *only* consumer is `printTriggerStack()`, a `console.table` debug dump. There is no `triggerStack.includes(op)` guard anywhere in the core.
 
-The stack tracks which operators are currently executing. If a trigger would re-enter an operator already on the stack, it is silently skipped. This makes cyclic patches safe, though the artist may not get the behavior they expected.
+A genuine A→B→A trigger cycle therefore recurses on the JavaScript call stack until the engine throws a stack-overflow `RangeError`. The `try/catch` wrapping the trigger loop catches it, sets `op.enabled = false` on the crashing operator, and aborts the rest of that fan-out. So a cyclic patch does not hard-lock the browser — but that is incidental crash *recovery*, not cycle *prevention*. (Iteration operators like `Repeat` are fine: they re-enter *downstream* paths, never themselves.)
 
 With the patch layer handling node execution, we now need a way to translate those node actions into actual GPU commands.
 
@@ -325,13 +316,13 @@ impl MatrixStack {
 
 ## Key Patterns Summary
 
-1. **Dual execution model**: Values propagate on change (pull); triggers fire every frame (push). Use both for efficiency.
+1. **Dual execution model**: Values are pushed eagerly on change; triggers are pushed every frame. Both are synchronous — there is no graph evaluator, scheduler, or dirty-set.
 
 2. **Stack-based state management**: Push before modifying, pop to restore. Works for matrices and GPU state alike.
 
-3. **Trigger stack for cycle prevention**: Track executing operators to detect and prevent infinite recursion.
+3. **No cycle prevention**: The trigger stack is debug-only telemetry. Trigger cycles recurse until a JS stack overflow, which `try/catch` turns into disabling the crashed operator.
 
-4. **Lazy evaluation with dirty flags**: Only recompute when inputs actually change.
+4. **Eager push, not lazy evaluation**: A value is propagated the instant it is set; `get()` just returns a stored field. Animation sampling (once per frame) is the only lazy path.
 
 5. **API abstraction layer**: Write operators once, run on multiple backends.
 
