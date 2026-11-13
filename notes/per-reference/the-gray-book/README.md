@@ -66,6 +66,7 @@ The documentation itself is pedagogically excellent — it explains concepts pro
 | [tixl](../../per-framework/tixl/) | Implements VL — The Gray Book explains what tixl does |
 | [cables](../../per-framework/cables/) | Another node-based system — compare patching models |
 | [nannou](../../per-framework/nannou/) | Target paradigm — extract VL concepts for Rust |
+| [VL.StandardLibs](../../per-library/vvvv-ecosystem/vl-standardlibs/) | The library source the Gray Book documents — VL.Core identity types, VL.Skia 2D layers |
 
 ---
 
