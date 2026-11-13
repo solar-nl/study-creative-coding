@@ -92,4 +92,5 @@ Symbol (Definition)
 
 ## Related Resources
 
+- **[Editor documentation](editor/00-architecture.md)** — Deep dives into the ImGui editor: [MagGraph](editor/maggraph/00-index.md) (node graph, 20 chapters), [OutputUi](editor/outputui/), and [ImGui craft](editor/imgui/00-index.md) (11 chapters: undo, input routing, canvas, retained state, ID stack, theming, popups and drag-drop, frame loop and DPI, docking, performance, and an audit of tixl's written UI rules; each with a Rust/dear-imgui-rs translation). Progress in [editor/PROGRESS.md](editor/PROGRESS.md).
 - **[The Gray Book](../../per-reference/the-gray-book/)** — Reference manual for vvvv gamma and VL. Explains the conceptual model behind visual programming that tixl implements. Essential for understanding *why* the node-graph works the way it does.

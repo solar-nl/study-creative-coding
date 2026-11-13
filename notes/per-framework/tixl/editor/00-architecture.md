@@ -161,6 +161,7 @@ OutputUiFactory.Entries[typeof(Texture2D)] = typeof(Texture2dOutputUi);
 | Section | Location | Status |
 |---------|----------|--------|
 | MagGraph | [docs/maggraph/](../maggraph/) | ✅ Complete (20 chapters + 3 appendices) |
+| ImGui craft | [imgui/](imgui/00-index.md) | ✅ Complete (11 chapters, each with a Rust/dear-imgui-rs translation) |
 
 ### Planned Documentation
 

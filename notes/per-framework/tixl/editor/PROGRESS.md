@@ -2,7 +2,7 @@
 
 > *Track documentation status for all Editor subsystems*
 
-Last updated: 2026-01-08
+Last updated: 2026-10-15
 
 ---
 
@@ -27,6 +27,12 @@ Last updated: 2026-01-08
 | 1 | **MagGraph** | ~11K | 20 + 3 appendices | ✅ Complete | [maggraph/](maggraph/) |
 | 2 | **Timeline/Dopesheet** | ~6K | 0/8 | ⬚ Not started | *timeline/* |
 | 3 | **Graph (legacy)** | ~10K | 2/6 | 🔄 In progress | [graph/](graph/) |
+
+### Cross-Cutting: ImGui Craft
+
+| # | Subsystem | LOC | Chapters | Status | Location |
+|---|-----------|-----|----------|--------|----------|
+| 11 | **ImGui craft (all of Editor/Gui)** | ~134K | 11/11 | ✅ Complete | [imgui/](imgui/00-index.md) |
 
 ### Priority 2: Infrastructure
 

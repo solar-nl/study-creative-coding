@@ -1,4 +1,4 @@
-# tixl - Rendering Pipeline
+# tixl — Rendering Pipeline
 
 ## Key Insight
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-tixl uses **DirectX 11** via SharpDX for GPU rendering, with a focus on real-time performance for motion graphics and VJ applications.
+tixl uses **DirectX 11** via SharpDX for GPU rendering, with a focus on real-time performance for motion graphics and VJ applications. The rendering pipeline is documented across eleven deep-dive documents organized by subsystem.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -30,254 +30,68 @@ tixl uses **DirectX 11** via SharpDX for GPU rendering, with a focus on real-tim
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## Graphics Backend
+## Deep-Dive Documents
 
-### SharpDX Components
+### Architecture & State Management
 
-| Component | Purpose |
-|-----------|---------|
-| `SharpDX.Direct3D11` | Core rendering API |
-| `SharpDX.D3DCompiler` | Runtime HLSL compilation |
-| `SharpDX.Direct2D1` | 2D rendering overlay |
-| `SharpDX.MediaFoundation` | Video decode/encode |
-| `SharpDX.Mathematics` | Vector/matrix math |
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[rendering/overview.md](rendering/overview.md)** | 535 | DX11 device lifecycle, command pattern (PrepareAction/RestoreAction), EvaluationContext rendering state, pull-based lazy evaluation, comparison with immediate-mode and retained-mode |
+| **[rendering/render-targets.md](rendering/render-targets.md)** | 546 | RenderTarget operator, multi-buffer pattern, MSAA support, state save/restore, resolution propagation, texture formats, render-to-texture workflows |
+| **[rendering/command-nodes.md](rendering/command-nodes.md)** | 340 | Primitive GPU command nodes (Draw, SetShaderStage, OutputMerger, Rasterizer, InputAssembler), Execute vs Group composition primitives, compound operator structure (.t3 sub-graphs), user-facing editor workflow |
 
-### Shader Types
+### Lighting & Shading
 
-tixl supports all DirectX 11 shader stages:
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[rendering/pbr-pipeline.md](rendering/pbr-pipeline.md)** | 588 | Cook-Torrance BRDF (GGX NDF, Schlick geometry, Fresnel), ComputePbr() 8-light loop, IBL split-sum, mesh-Draw.hlsl VS/PS, cbuffer layout (b0–b5), metalness workflow, template injection |
+| **[rendering/shadows.md](rendering/shadows.md)** | 317 | Shadow map generation, 3×3 PCF kernel, normal offset bias, configurable shadow color, spotlight cone masking, particle shadow maps, integration with PBR |
 
-```csharp
-// Core/DataTypes/Shader.cs
-public sealed class ComputeShader : Shader<SharpDX.Direct3D11.ComputeShader>
-public sealed class PixelShader : Shader<SharpDX.Direct3D11.PixelShader>
-public sealed class VertexShader : Shader<SharpDX.Direct3D11.VertexShader>
-public sealed class GeometryShader : Shader<SharpDX.Direct3D11.GeometryShader>
-```
+### Post-Processing & Utilities
 
-**Shader compilation:**
-- HLSL source code compiled at runtime via D3DCompiler
-- Bytecode caching for performance
-- Error reporting with line numbers
-- Reflection for compute shader thread group sizes
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[rendering/post-processing.md](rendering/post-processing.md)** | 521 | Bloom (multi-stage pyramid), tone mapping (ACES/Reinhard/Filmic/AgX), ColorGrade with OkLab, FXAA, 100+ image operator catalog, post-processing chain architecture |
+| **[rendering/shared-hlsl-library.md](rendering/shared-hlsl-library.md)** | 860 | All 12 shared HLSL files: BRDF, lighting, color spaces (OkLab/OkLCh), noise (simplex/Perlin/curl), hash functions, quaternion math, blend modes, bias functions |
 
-## Scene Structure
+### Graph Engine & Operator Interface
 
-### SceneSetup (Hierarchical Nodes)
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[rendering/graph-evaluation-engine.md](rendering/graph-evaluation-engine.md)** | 1047 | 9-question deep dive: two-phase evaluation loop (invalidate → pull), DirtyFlag counter system (Reference/Target), Slot/InputSlot/MultiInputSlot hierarchy, ConnectedUpdate vs GetValue call chain, EvaluationContext (full field inventory, shared mutable, manual save/restore), dirty propagation across compound boundaries, command/value slot interaction, connection storage (GUID quadruplets → direct slot pointers), fan-out/fan-in rules |
+| **[rendering/operator-gpu-interface.md](rendering/operator-gpu-interface.md)** | 591 | 8-question deep dive: operator self-description ([Input]/[Output] attributes, reflection registry), shader binding (file-path reference, file-watched hot-reload), parameter storage (3-layer: type default → instance override → animation), manual cbuffer packing ([StructLayout] → HLSL), positional SRV binding (connection order = register), bufferless vertex fetch (StructuredBuffer + SV_VertexID), pipeline state as typed inputs, multi-pass composition (compound + C# executor), GUID-only serialization |
 
-3D content is organized in a hierarchical scene graph:
+### Design Analysis
 
-```csharp
-// Core/DataTypes/SceneSetup.cs
-public class SceneSetup
-{
-    public SceneNode[] RootNodes;
-}
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[rendering/graph-for-rendering.md](rendering/graph-for-rendering.md)** | 290 | Why tixl's command-flow graph works for rendering where pure dataflow fails — shared mutable targets, imperative draw calls, command timing, conditional passes, resource lifetimes |
+| **[rendering/compound-mechanics.md](rendering/compound-mechanics.md)** | 410 | 12-question deep dive: Symbol loading phases, port bridging (direct slot pointers), Execute three-phase lifecycle, Group transform propagation, RenderTarget command→value bridge, multi-pass patterns (Bloom/shadows), shader compilation, ICompoundWithUpdate |
 
-public class SceneNode
-{
-    public string Name;
-    public Vector3 Translation;
-    public Quaternion Rotation;
-    public Vector3 Scale;
-    public Matrix4x4 CombinedTransform;  // Computed world matrix
-    public MeshBuffers MeshBuffers;
-    public SceneMaterial Material;
-    public SceneNode[] ChildNodes;       // Recursive children
-}
-```
+### End-to-End Trace
 
-### MeshBuffers (GPU Data)
+| Document | Lines | Covers |
+|----------|-------|--------|
+| **[code-traces/rendering-frame.md](code-traces/rendering-frame.md)** | 835 | 13-step frame trace from main loop → DirtyFlag propagation → Camera → RenderTarget → DrawMesh → VS/PS → ComputePbr → MSAA resolve → SwapChain.Present |
 
-```csharp
-// Core/Rendering/MeshBuffers.cs
-public class MeshBuffers
-{
-    // Vertex data
-    public Vector3[] Positions;
-    public Vector3[] Normals;
-    public Vector2[] UVs;
-    public Vector4[] Colors;
+## Particle & Point Rendering
 
-    // Index data
-    public int[] Indices;
+tixl's point/particle rendering is documented separately as part of the particle system study:
 
-    // GPU buffers
-    public Buffer VertexBuffer;
-    public Buffer IndexBuffer;
-}
-```
+- **[particles/rendering.md](particles/rendering.md)** — 16 draw modes, VS expansion via SV_VertexID, gradient textures, FxTexture modulation
+- **[code-traces/particle-frame.md](code-traces/particle-frame.md)** — End-to-end particle rendering trace
 
-### Vertex Formats
-
-```csharp
-// PBR vertex format
-public struct PbrVertex
-{
-    public Vector3 Position;
-    public Vector3 Normal;
-    public Vector3 Tangent;
-    public Vector3 Bitangent;
-    public Vector2 TexCoord;
-    public float Selected;  // For vertex selection in editor
-}
-
-// Transform buffer for instancing
-public struct TransformBufferLayout
-{
-    public Matrix4x4 WorldMatrix;
-    public Matrix4x4 WorldMatrixInverseTranspose;
-}
-```
-
-## Material System
-
-### PBR Materials
-
-tixl uses a **physically-based rendering** material model:
-
-```csharp
-// Core/Rendering/Material/PbrMaterial.cs
-public class PbrMaterial
-{
-    // Base properties
-    public Vector4 BaseColor;
-    public float Metallic;
-    public float Roughness;
-    public float EmissiveIntensity;
-
-    // Texture maps
-    public Texture2D AlbedoMap;
-    public Texture2D NormalMap;
-    public Texture2D RoughnessMap;
-    public Texture2D MetallicMap;
-    public Texture2D EmissiveMap;
-    public Texture2D AmbientOcclusionMap;
-}
-```
-
-### Lighting
-
-```csharp
-// Core/Rendering/PointLightStack.cs
-public class PointLightStack
-{
-    public List<PointLight> Lights;
-
-    public struct PointLight
-    {
-        public Vector3 Position;
-        public Vector3 Color;
-        public float Intensity;
-        public float Range;
-    }
-}
-
-// Fog settings in EvaluationContext
-public FogSettings Fog;
-public struct FogSettings
-{
-    public Vector4 Color;
-    public float Density;
-    public float Start;
-    public float End;
-}
-```
-
-## Transform Stack
-
-The `EvaluationContext` maintains transform matrices:
-
-```csharp
-public sealed class EvaluationContext
-{
-    // Camera transforms
-    public Matrix4x4 CameraToClipSpace;   // Projection matrix
-    public Matrix4x4 WorldToCamera;        // View matrix
-
-    // Object transforms
-    public Matrix4x4 ObjectToWorld;        // Model matrix
-
-    // Combined (computed)
-    public Matrix4x4 ObjectToClipSpace => ObjectToWorld * WorldToCamera * CameraToClipSpace;
-}
-```
-
-Operators can push/pop transforms by modifying `ObjectToWorld` before evaluating children.
-
-## Command Pattern
-
-Rendering operations are encapsulated as `Command` objects:
-
-```csharp
-// Command output slot (common pattern)
-[Output(Guid = "...")]
-public readonly Slot<Command> Output = new();
-
-// Commands set GPU state and issue draw calls
-public class Command
-{
-    public Action<EvaluationContext> Execute;
-}
-```
-
-This allows:
-- Deferred execution
-- Command composition
-- Render-to-texture workflows
-
-## Render Targets
-
-tixl supports multiple render target configurations:
-
-```csharp
-// Texture types
-public Texture2D CreateRenderTarget(int width, int height, Format format);
-public Texture2D CreateDepthStencil(int width, int height);
-
-// Common formats
-Format.R8G8B8A8_UNorm      // Standard color
-Format.R16G16B16A16_Float  // HDR color
-Format.R32_Float           // Depth/data
-Format.R32G32B32A32_Float  // Full precision
-```
-
-## Output Paths
-
-### Window Output
-- Silk.NET window with DirectX swap chain
-- Dear ImGui overlay for editor UI
-
-### Texture Sharing
-- **Spout**: GPU texture sharing (Windows)
-- **NDI**: Network video streaming
-- Video file export via MediaFoundation
-
-## Performance Considerations
-
-| Technique | Purpose |
-|-----------|---------|
-| **Dirty flags** | Only re-render when inputs change |
-| **Shader caching** | Compiled bytecode stored on disk |
-| **GPU instancing** | TransformBufferLayout for many objects |
-| **Lazy evaluation** | Pull-based graph only computes visible outputs |
-| **Texture atlasing** | Reduce draw call overhead |
-
-## Patterns for Rust Framework
-
-1. **Command abstraction** - Rust could use closures or a trait-based command system
-2. **PBR material struct** - Direct translation to Rust struct with [wgpu](https://github.com/gfx-rs/wgpu) textures
-3. **Transform stack** - Could use a stack of matrices or a scene graph
-4. **Shader compilation** - [wgpu](https://github.com/gfx-rs/wgpu) handles this cross-platform; cache SPIR-V
-5. **Render-to-texture** - [wgpu](https://github.com/gfx-rs/wgpu) `TextureView` as render target
-
-## Key Files to Study
+## Key Source Files
 
 | File | Purpose |
 |------|---------|
-| `Core/DataTypes/SceneSetup.cs` | Scene hierarchy |
-| `Core/Rendering/MeshBuffers.cs` | GPU mesh data |
-| `Core/Rendering/Material/PbrMaterial.cs` | PBR material system |
-| `Core/Resource/ShaderCompiler.cs` | HLSL compilation |
-| `Operators/Lib/render/Camera.cs` | Camera implementation |
-| `Operators/Lib/render/Draw.cs` | Basic draw commands |
-| `Operators/Lib/mesh/` | Mesh generation operators |
+| `Operators/Lib/Assets/shaders/shared/pbr.hlsl` | BRDF functions, PbrVertex, FragmentMaterial |
+| `Operators/Lib/Assets/shaders/shared/pbr-render.hlsl` | ComputePbr(), IBL split-sum, fog |
+| `Operators/Lib/Assets/shaders/shared/point-light.hlsl` | PointLight struct (48 bytes) |
+| `Operators/Lib/Assets/shaders/shared/color-functions.hlsl` | OkLab/OkLCh conversions |
+| `Operators/Lib/Assets/shaders/3d/mesh/mesh-Draw.hlsl` | Full PBR draw shader |
+| `Operators/Lib/render/_/RenderTarget.cs` | Framebuffer operator |
+| `Operators/Lib/Symbols/render/camera/Camera.cs` | Camera operator |
+| `Core/Resource/ResourceManager.cs` | DX11 device lifecycle |
+| `Core/Operator/EvaluationContext.cs` | Rendering state context |
+| `Core/Rendering/Material/PbrMaterial.cs` | C# material struct |

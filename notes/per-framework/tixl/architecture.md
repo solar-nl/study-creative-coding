@@ -196,6 +196,58 @@ public sealed class EvaluationContext
 | **Attribute-driven metadata** | Declarative operator definition; reflection at compile/load time only |
 | **Package system** | Operators grouped into reloadable packages with dependencies |
 
+## Particle System Architecture
+
+tixl's particle system is a **GPU-first compute shader pipeline** — all simulation runs on the GPU, with the CPU-side limited to graph evaluation and dispatch setup. This is architecturally the polar opposite of CPU-based particle systems like Phoenix's.
+
+### Core Design
+
+- **Dual-buffer pattern**: `RWStructuredBuffer<Particle>` for simulation, `RWStructuredBuffer<Point>` for rendering — same 64-byte stride, different semantic field names
+- **NAN-based death**: Dead particles have `BirthTime = NAN`; NAN propagation naturally prevents rendering without dead-list management
+- **Circular buffer emission**: `CollectCycleIndex` monotonically increments per frame, wrapping emission around the fixed-size buffer
+- **Force chaining**: Forces are independent compute shader dispatches connected via `MultiInputSlot<ParticleSystem>`, each modifying the shared particle buffer in place
+- **Template-based shader generation**: SDF/vector field functions are injected into force shaders at runtime via `/*{FIELD_FUNCTIONS}*/` placeholder replacement
+
+### Key Data Types
+
+```csharp
+// Core/DataTypes/ParticleSystem.cs
+public class ParticleSystem {
+    public BufferWithViews ParticleBuffer;  // GPU buffer + SRV/UAV
+    public float SpeedFactor;               // Frame-rate independence
+    public bool IsReset;
+}
+```
+
+The `EvaluationContext.ParticleSystem` field carries particle state through the operator graph, allowing forces to access the shared particle buffer without direct node connections.
+
+### Rendering
+
+16 draw modes (Billboards, Lines, Ribbons, Tubes, MeshAtPoints, etc.) all consume the same `Point` buffer. All use **VS-based vertex expansion** via `SV_VertexID` arithmetic — no geometry shaders.
+
+### Detailed Documentation
+
+- **[particles/overview.md](particles/overview.md)** — Architecture overview, Point/Particle duality, buffer management
+- **[particles/simulation.md](particles/simulation.md)** — Core compute shader: emission, integration, death, dual-buffer copy
+- **[particles/forces.md](particles/forces.md)** — 16 forces: chaining, template injection, per-force analysis
+- **[particles/rendering.md](particles/rendering.md)** — 16 draw modes: VS expansion, atlas/FX textures, PBR integration
+- **[code-traces/particle-frame.md](code-traces/particle-frame.md)** — End-to-end frame trace
+
+## Rendering Architecture
+
+tixl's DX11 rendering pipeline is documented across seven deep-dive documents in the [`rendering/`](rendering/) subdirectory, plus an end-to-end frame trace. The pipeline centers on the **Command pattern** — each rendering operator produces PrepareAction/RestoreAction delegate pairs that save and restore GPU state, enabling composable render-to-texture workflows in the operator graph.
+
+Key subsystems:
+- **[rendering/overview.md](rendering/overview.md)** — DX11 device lifecycle, EvaluationContext state (transforms, lights, materials, fog), command pattern, dirty flag evaluation
+- **[rendering/pbr-pipeline.md](rendering/pbr-pipeline.md)** — Cook-Torrance BRDF, 8-light loop, IBL split-sum, mesh-Draw.hlsl VS/PS, cbuffer layout (b0–b5)
+- **[rendering/shadows.md](rendering/shadows.md)** — Shadow map generation, 3×3 PCF, normal offset bias, configurable shadow color
+- **[rendering/render-targets.md](rendering/render-targets.md)** — RenderTarget operator, MSAA resolve (color + compute shader depth), multi-output (Color/Depth/Normal)
+- **[rendering/post-processing.md](rendering/post-processing.md)** — Bloom, tone mapping (6 modes), ColorGrade with OkLab, FXAA, 100+ image operators
+- **[rendering/shared-hlsl-library.md](rendering/shared-hlsl-library.md)** — All 12 shared HLSL files (BRDF, noise, color spaces, quaternions, blend modes)
+- **[code-traces/rendering-frame.md](code-traces/rendering-frame.md)** — 13-step frame trace from main loop to SwapChain.Present
+
+See also **[rendering-pipeline.md](rendering-pipeline.md)** for the index page with summary tables.
+
 ## Patterns Applicable to Rust Framework
 
 1. **Separation of definition and instance** - Could use Rust traits for definitions, structs for instances

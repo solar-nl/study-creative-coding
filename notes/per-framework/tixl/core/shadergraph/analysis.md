@@ -92,7 +92,7 @@ float4 p1b = p;  float4 f1b = f;
 f.w = min(f1a.w, f1b.w);
 ```
 
-### 4. GenerateShaderGraphCode (Operators/Lib/field/render/_/GenerateShaderGraphCode.cs)
+### 4. GenerateShaderGraphCode (Operators/Lib/Symbols/field/render/_/GenerateShaderGraphCode.cs)
 
 The **orchestrator** that triggers the whole process:
 
