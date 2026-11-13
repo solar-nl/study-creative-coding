@@ -39,7 +39,8 @@ Target audience: Artists, designers, students, educators.
 ## Related Documents
 
 - [Architecture](./architecture.md)
-- [Rendering Pipeline](./rendering-pipeline.md)
+- [Rendering Pipeline](./rendering-pipeline.md) — Java2D vs P2D/P3D: who owns geometry and anti-aliasing
+- [Code trace: shape to pixels](./code-traces/shape-to-pixels.md) — `beginShape/vertex/endShape` through both renderers, with `file:line`
 - [API Design](./api-design.md)
 
 ## See Also

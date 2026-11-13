@@ -27,7 +27,7 @@ Target audience: Kotlin developers, creative coders wanting modern JVM.
 openrndr/
 ├── openrndr-application/    # Application lifecycle
 ├── openrndr-draw/           # Drawing API
-├── openrndr-gl3/            # OpenGL backend
+├── openrndr-jvm/openrndr-gl3/  # OpenGL 3.3 backend (DriverGL3.kt)
 ├── openrndr-math/           # Math utilities
 ├── openrndr-color/          # Color handling
 └── openrndr-shape/          # Shape/path utilities
@@ -37,7 +37,7 @@ openrndr/
 
 1. **`openrndr-application/`** — Application structure
 2. **`openrndr-draw/`** — Drawer class and drawing API
-3. **`openrndr-gl3/`** — OpenGL 3 rendering
+3. **`openrndr-jvm/openrndr-gl3/`** — OpenGL 3.3 rendering (`DriverGL3.kt`); `openrndr-js/openrndr-webgl/` is the WebGL driver
 
 ## Study Questions
 
@@ -50,12 +50,13 @@ openrndr/
 ## Related Documents
 
 - [Architecture](./architecture.md)
-- [Rendering Pipeline](./rendering-pipeline.md)
+- [Rendering Pipeline](./rendering-pipeline.md) — NanoVG-style expansion, stencil fills, AA fringe
+- [Code trace: contour to pixels](./code-traces/contour-to-pixels.md) — `drawer.contour()` through `Expansion`, `ExpansionDrawer` and `DriverGL3`, with `file:line`
 - [API Design](./api-design.md)
 
 ## See Also
 
-- [orx](../../per-library/orx/) — Extensions library for openrndr (color, noise, shapes, etc.)
+- [orx](../../per-library/openrndr-ecosystem/orx/) — Extensions library for openrndr (color, noise, shapes, etc.)
 - [Processing](../processing/) — Original creative coding framework that inspired many designs
 - [Cinder](../cinder/) — C++ framework with similar professional focus
 - [wgpu](https://github.com/gfx-rs/wgpu) — Modern GPU abstraction used by Rust creative coding tools
