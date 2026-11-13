@@ -1,6 +1,7 @@
 [submodule "frameworks/p5js"]
 	path = frameworks/p5js
 	url = https://github.com/processing/p5.js.git
+	branch = v1
 [submodule "frameworks/processing"]
 	path = frameworks/processing
 	url = https://github.com/processing/processing4.git
@@ -49,9 +50,6 @@
 [submodule "libraries/babylonjs"]
 	path = libraries/web/babylonjs
 	url = https://github.com/BabylonJS/Babylon.js.git
-[submodule "libraries/controlp5"]
-	path = libraries/processing-ecosystem/controlp5
-	url = https://github.com/sojamo/controlp5.git
 [submodule "frameworks/drawbot"]
 	path = frameworks/drawbot
 	url = https://github.com/typemytype/drawbot.git
@@ -73,3 +71,15 @@
 [submodule "libraries/ltc_code"]
 	path = libraries/ltc_code
 	url = https://github.com/selfshadow/ltc_code
+[submodule "libraries/cpp/filament"]
+	path = libraries/cpp/filament
+	url = https://github.com/google/filament
+[submodule "libraries/rust/vello"]
+	path = libraries/rust/vello
+	url = https://github.com/linebender/vello.git
+[submodule "libraries/vvvv-ecosystem/VL.StandardLibs"]
+	path = libraries/vvvv-ecosystem/VL.StandardLibs
+	url = https://github.com/vvvv/VL.StandardLibs.git
+[submodule "frameworks/harfang3d"]
+	path = frameworks/harfang3d
+	url = https://github.com/harfang3d/harfang3d.git
