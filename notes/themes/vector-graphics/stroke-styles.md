@@ -147,10 +147,10 @@ Common defaults:
 | Processing | ✓ | ✓ | ✓ | — | No control |
 | OpenFrameworks | Limited | Limited | Limited | — | Needs Cairo |
 | Cinder | ✓ | ✓ | ✓ | — | In calcStroke() |
-| openrndr | ✓ | ✓ | ✓ | ✓ | miterLimit |
+| openrndr | ✓ | ✓ | ✓ | — | miterLimit |
 | nannou | ✓ | ✓ | ✓ | ✓ | miter_limit() |
 
-**MITER_CLIP** (openrndr, nannou): A variant that clips the miter at a specified length instead of falling back to bevel. Preserves the miter shape for moderate angles.
+**MITER_CLIP** (nannou via Lyon's `LineJoin::MiterClip`): A variant that clips the miter at a specified length instead of falling back to bevel. Preserves the miter shape for moderate angles. openrndr's `LineJoin` enum has only MITER, BEVEL and ROUND (`openrndr-draw/src/commonMain/kotlin/org/openrndr/draw/DrawStyle.kt:12-16`).
 
 ---
 
@@ -637,4 +637,4 @@ gl::draw(shape);
 
 ---
 
-*This document is part of the [Vector Graphics Theme](vector-graphics.md) research.*
+*This document is part of the [Vector Graphics Theme](README.md) research.*

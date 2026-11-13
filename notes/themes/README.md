@@ -19,6 +19,7 @@ Path rendering, tessellation, and 2D geometry operations.
 - [Boolean Operations](./vector-graphics/boolean-ops.md) — Union, intersection, difference
 - [SVG Interop](./vector-graphics/svg-interop.md) — SVG import/export patterns
 - [Stroke Styles](./vector-graphics/stroke-styles.md) — Caps, joins, dashes
+- [Rasterization Strategies](./vector-graphics/rasterization-strategies.md) — Five ways to turn a path into coverage: platform rasterizers, tessellation, stencil + fringe, analytic primitives, sparse-strip coverage
 
 ### [Rendering](./rendering/)
 Graphics pipelines, batching, and shader management.
@@ -41,7 +42,7 @@ Foundational framework design patterns.
 Runtime concerns and framework infrastructure.
 - [Event Systems](./systems/event-systems.md) — Input handling, callbacks
 - [Animation & Timing](./systems/animation-timing.md) — Frame loops, easing, delta time
-- [Asset Loading](./systems/asset-loading.md) — Images, fonts, models, async patterns
+- [Asset Loading](./systems/asset-loading.md) — Images, fonts, models, async patterns; format support is surveyed in [`research/open-formats/`](../../research/open-formats/README.md)
 - [Cross-Platform](./systems/cross-platform.md) — Desktop, mobile, web targeting
 - [Extension Systems](./systems/extension-systems.md) — Plugins, addons, middleware
 

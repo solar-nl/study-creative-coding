@@ -426,6 +426,8 @@ struct CubicBezierInstance {
 
 **Practical approach:** Tessellate on CPU (using Lyon, etc.), accumulate into single mesh.
 
+> **Note (2026-10-21):** for Flux's 2D path layer, [ADR-005](../../../insights/architecture-decisions.md) replaces this accumulate tier with sparse-strip coverage rendering (see [rasterization-strategies.md](../vector-graphics/rasterization-strategies.md)). Tiers 1-3 stand; Tier 4 applies when a triangle mesh is the goal (extrusion, custom vertex effects).
+
 ```rust
 let mut mesh = Mesh::new();
 for curve in &curves {
@@ -674,4 +676,4 @@ A well-designed framework routes primitives to the optimal strategy automaticall
 
 ---
 
-*This document is part of the [Rendering Modes](rendering-modes.md) research.*
+*This document is part of the [Rendering Modes](README.md) research.*

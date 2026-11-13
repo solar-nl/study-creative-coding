@@ -4,7 +4,7 @@
 
 ## Key Insight
 
-> **The core challenge:** GPUs only understand triangles, so every curve, circle, and complex polygon must be tessellated into triangles before rendering—a computationally expensive step that most frameworks hide from you.
+> **The core challenge:** The GPU's rasterizer takes triangles, so most frameworks tessellate every curve, circle and complex polygon into triangles before drawing, a computationally expensive step they hide from you. That is a choice, not a law: openrndr covers paths with a stencil fan and an anti-aliasing fringe, and Vello computes per-pixel coverage without triangulating at all. See [Rasterization Strategies](rasterization-strategies.md) for the comparison.
 
 ---
 
@@ -510,6 +510,37 @@ impl FillGeometryBuilder for MeshBuilder {
 
 ---
 
+### Vello: The Coverage Renderer
+
+**The approach:** Vello (a Rust library studied under `notes/per-library/rust/vello/`) never turns a path into triangles. Its Sparse Strips renderers flatten curves to lines on the CPU, bin the lines into 4x4-pixel tiles, and accumulate exact signed-area coverage per pixel column. Only tiles that an edge crosses get 16 coverage bytes; the solid interior between two edge runs is a flag on the next strip. The GPU then draws one instanced quad per strip and reads the coverage from a texture.
+
+**The key insight:** anti-aliasing is exact and free of MSAA, the per-frame GPU work is a handful of instanced draws with no required wgpu features, and the cost moves to the CPU, which re-flattens every path every frame unless the caller keeps the scene.
+
+The data that reaches the GPU is small and uniform:
+
+```rust
+// vello_gpu/src/render/common.rs:284 — one 24-byte instance per strip segment
+pub struct GpuStrip {
+    pub x: u16, pub y: u16, pub width: u16,
+    pub dense_width_or_rect_height: u16,   // 0 => solid span, no alpha lookup
+    pub col_idx_or_rect_frac: u32,          // first coverage column in the alpha texture
+    pub payload: u32,                       // packed premultiplied RGBA8 or paint coordinates
+    pub paint_and_rect_flag: u32,
+    pub depth_index: u32,
+}
+```
+
+**Why this matters:** it is the first renderer in this study that treats "GPUs need triangles" as an implementation detail of other people's renderers. The original Vello did the same work in compute shaders; the project moved to the CPU-preprocessing split so WebGL2 and older GPUs stay reachable.
+
+**Key files:**
+- `vello_common/src/{flatten,tile,strip}.rs` — flatten, bin, accumulate coverage
+- `vello_gpu/src/scene.rs`, `vello_gpu/src/draw.rs` — record paths, encode strips as instances
+- `vello_gpu_shaders/shaders/render.wesl` — one quad per strip, coverage read in the fragment stage
+
+See [sparse-strips.md](../../per-library/rust/vello/sparse-strips.md) and the [fill_path code-trace](../../per-library/rust/vello/code-traces/fill-path.md).
+
+---
+
 ## The Trade-offs, Visualized
 
 ```
@@ -530,8 +561,9 @@ impl FillGeometryBuilder for MeshBuilder {
 | Processing | PShape (retained) | Java2D/OpenGL | No | GROUP hierarchies |
 | OpenFrameworks | ofPath + ofPolyline | libtess2 | No | Rich path math |
 | Cinder | Shape2d/Path2d | GLU tessellator | No | SVG-compatible API |
-| openrndr | Shape/ShapeContour | kartifex | **Yes** | Boolean operations |
+| openrndr | Shape/ShapeContour | None (stencil fan + AA fringe) | **Yes** | Boolean operations |
 | nannou | geom + lyon | Lyon | No | Pure Rust, [wgpu](https://github.com/gfx-rs/wgpu) |
+| Vello | kurbo `BezPath` | None (CPU coverage into sparse strips) | No | Exact AA without MSAA, no required wgpu features |
 
 ---
 
@@ -670,6 +702,9 @@ pub struct Shape {
 
 ### Suggested Tessellation Strategy (use Lyon)
 
+> **Superseded for Flux's path rasterizer (2026-10-21):** [ADR-005](../../../insights/architecture-decisions.md) and [2d-rendering-strategy.md](../../../insights/2d-rendering-strategy.md) recommend sparse-strip coverage rendering for paths and text. Lyon remains the choice wherever a triangle mesh is the actual goal. See [rasterization-strategies.md](rasterization-strategies.md).
+
+
 Lyon is battle-tested and handles edge cases well:
 
 ```rust
@@ -737,19 +772,21 @@ let cutout = shape_a.difference(&shape_b);
 
 These topics warranted their own detailed analysis:
 
-- **[Tessellation](vector-graphics-tessellation.md)** — How lyon, libtess2, and GLU tessellators work. CPU vs GPU tessellation trade-offs. Adaptive subdivision strategies.
+- **[Tessellation](tessellation.md)** — How lyon, libtess2, and GLU tessellators work. CPU vs GPU tessellation trade-offs. Adaptive subdivision strategies.
 
-- **[Boolean Operations](vector-graphics-boolean-ops.md)** — How openrndr implements union/intersection/difference via kartifex. Why this is computationally hard. Options for Rust (geo crate, i_overlay).
+- **[Boolean Operations](boolean-ops.md)** — How openrndr implements union/intersection/difference via kartifex. Why this is computationally hard. Options for Rust (geo crate, i_overlay).
 
-- **[SVG Interop](vector-graphics-svg-interop.md)** — How frameworks handle SVG import/export. Path data format. The subset of SVG that matters for creative coding.
+- **[SVG Interop](svg-interop.md)** — How frameworks handle SVG import/export. Path data format. The subset of SVG that matters for creative coding.
 
-- **[Stroke Styles](vector-graphics-stroke-styles.md)** — How strokes become filled geometry. Caps, joins, dashes, variable width. Why OpenGL makes this hard.
+- **[Rasterization Strategies](rasterization-strategies.md)** — Who computes coverage: platform rasterizers, tessellation + MSAA, stencil + fringe (openrndr), analytic primitives, sparse-strip coverage (Vello). The comparison that frames the Flux decision.
+
+- **[Stroke Styles](stroke-styles.md)** — How strokes become filled geometry. Caps, joins, dashes, variable width. Why OpenGL makes this hard.
 
 ---
 
 ## Where to Go Next
 
-- **If implementing vector graphics in Rust:** Start with [Lyon](https://github.com/nical/lyon) for tessellation. Consider [kurbo](https://github.com/linebender/kurbo) for path math.
+- **If implementing vector graphics in Rust:** Start with [Lyon](https://github.com/nical/lyon) for tessellation when you need a mesh; for on-screen paths and text, [ADR-005](../../../insights/architecture-decisions.md) now points at sparse-strip coverage rendering (Vello). Use [kurbo](https://github.com/linebender/kurbo) for path math either way.
 
 - **If you need boolean operations:** Look at openrndr's kartifex integration, or explore Rust's [geo](https://crates.io/crates/geo) or [i_overlay](https://crates.io/crates/i_overlay) crates.
 

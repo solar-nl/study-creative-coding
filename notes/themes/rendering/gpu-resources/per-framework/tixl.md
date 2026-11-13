@@ -315,7 +315,7 @@ tixl's patterns suggest several approaches:
 | `Core/Operator/Slots/DirtyFlagTrigger.cs` | 1-11 | Trigger modes |
 | `Core/DataTypes/BufferWithViews.cs` | 5-23 | GPU buffer wrapper |
 | `Core/Rendering/ResourceUtils.cs` | 48-64 | Buffer reuse |
-| `Core/Resource/ShaderCompiler.Caching.cs` | 113-178 | Shader caching |
+| `Core/Resource/ShaderCompiling/ShaderCompiler.Caching.cs` | 113-178 | Shader caching |
 
 ---
 

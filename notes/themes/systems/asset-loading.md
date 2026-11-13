@@ -1,6 +1,6 @@
 # Theme: Asset Loading
 
-> Not yet complete. This theme document needs cross-framework analysis.
+> Not yet complete. This theme document needs cross-framework analysis of loading *patterns* (sync vs async, preload, caching). The *format* half is done: [`research/open-formats/framework-support-matrix.md`](../../../research/open-formats/framework-support-matrix.md) records which framework reads and writes which format and through what mechanism, [`research/open-formats/README.md`](../../../research/open-formats/README.md) is the landscape of open formats, and [`insights/open-formats.md`](../../../insights/open-formats.md) is the Flux tiering.
 
 Cross-cutting analysis of how frameworks load external resources.
 

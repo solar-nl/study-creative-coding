@@ -23,6 +23,7 @@ Creative coding frameworks need to render graphics. How they abstract the underl
 | openrndr | OpenGL | Drawer |
 | nannou | [wgpu](https://github.com/gfx-rs/wgpu) | Draw → [wgpu](https://github.com/gfx-rs/wgpu) |
 | [wgpu](https://github.com/gfx-rs/wgpu) | Vulkan/Metal/DX12/WebGPU | Direct |
+| Filament | Vulkan/Metal/OpenGL/WebGL | Command stream abstraction |
 
 ## Key Questions
 

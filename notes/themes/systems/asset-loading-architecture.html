@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset &amp; File-Loading Architecture — Comparative Study for Flux</title>
+<style>
+  :root {
+    --ink: #1a1c22;
+    --ink-soft: #4a4e5a;
+    --ink-faint: #797f8d;
+    --bg: #fbfaf8;
+    --panel: #ffffff;
+    --line: #e3e1da;
+    --accent: #3b46c4;
+    --accent-soft: #eef0fb;
+    --green: #2f7d50;
+    --green-soft: #e9f4ec;
+    --amber: #9a6a14;
+    --amber-soft: #faf1dd;
+    --red: #b03b3b;
+    --red-soft: #f9e9e7;
+    --code-bg: #f1f0ec;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.62;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px 120px; }
+  header.hero {
+    border-bottom: 1px solid var(--line);
+    padding: 56px 0 30px;
+    margin-bottom: 14px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 2.35rem;
+    line-height: 1.18;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .lede { font-size: 1.12rem; color: var(--ink-soft); max-width: 46em; margin: 0 0 20px; }
+  .meta {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+  }
+  h2 {
+    font-size: 1.6rem;
+    margin: 64px 0 6px;
+    padding-top: 18px;
+    letter-spacing: -0.015em;
+    border-top: 2px solid var(--ink);
+  }
+  h2 .num { color: var(--accent); font-family: var(--mono); font-size: 1.05rem; margin-right: 10px; }
+  h3 { font-size: 1.18rem; margin: 38px 0 4px; letter-spacing: -0.01em; }
+  h4 { font-size: 1rem; margin: 26px 0 2px; color: var(--ink-soft); }
+  p { margin: 12px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 1.5px 5px;
+    border-radius: 4px;
+  }
+  pre {
+    background: #20232b;
+    color: #e6e6e6;
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+  ul, ol { padding-left: 24px; }
+  li { margin: 6px 0; }
+  strong { font-weight: 650; }
+
+  /* ---- table of contents ---- */
+  nav.toc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 26px 0 10px;
+  }
+  nav.toc h2 { border: none; margin: 0 0 10px; padding: 0; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); }
+  nav.toc ol { columns: 2; column-gap: 38px; margin: 0; padding-left: 20px; font-size: 0.93rem; }
+  nav.toc li { margin: 4px 0; }
+
+  /* ---- callouts ---- */
+  .box {
+    border-radius: 9px;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border: 1px solid var(--line);
+    font-size: 0.96rem;
+  }
+  .box .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .box p:first-of-type { margin-top: 2px; }
+  .box p:last-child { margin-bottom: 2px; }
+  .flux { background: var(--accent-soft); border-color: #c9cdef; }
+  .flux .tag { color: var(--accent); }
+  .novel { background: var(--green-soft); border-color: #c5e0cc; }
+  .novel .tag { color: var(--green); }
+  .anti { background: var(--red-soft); border-color: #eccac6; }
+  .anti .tag { color: var(--red); }
+  .note { background: var(--amber-soft); border-color: #e6d2a6; }
+  .note .tag { color: var(--amber); }
+
+  /* ---- comparison table ---- */
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin: 22px 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  table.matrix {
+    border-collapse: collapse;
+    font-size: 12.5px;
+    line-height: 1.42;
+    min-width: 1640px;
+  }
+  table.matrix th, table.matrix td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    vertical-align: top;
+    text-align: left;
+  }
+  table.matrix thead th {
+    background: #20232b;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  table.matrix thead th:first-child { z-index: 4; }
+  table.matrix th.fw, table.matrix td.fw {
+    position: sticky;
+    left: 0;
+    background: var(--panel);
+    z-index: 2;
+    min-width: 168px;
+    font-weight: 650;
+    box-shadow: 1px 0 0 var(--line);
+  }
+  table.matrix thead th.fw { background: #20232b; }
+  table.matrix td { background: var(--panel); min-width: 178px; }
+  table.matrix tr.grp td {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    position: sticky;
+    left: 0;
+  }
+  table.matrix td.fw .sub { display: block; font-weight: 400; color: var(--ink-faint); font-size: 11px; }
+  .star { color: var(--accent); }
+
+  /* ---- inline badges ---- */
+  .badge {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .b-clean { background: var(--green-soft); color: var(--green); border: 1px solid #bcdcc4; }
+  .b-fused { background: var(--red-soft); color: var(--red); border: 1px solid #e6c2bd; }
+  .b-mixed { background: var(--amber-soft); color: var(--amber); border: 1px solid #e0cb9c; }
+  .b-na    { background: var(--code-bg); color: var(--ink-faint); border: 1px solid var(--line); }
+  .b-sync  { background: var(--green-soft); color: var(--green); border: 1px solid #bcdcc4; }
+  .b-async { background: var(--red-soft); color: var(--red); border: 1px solid #e6c2bd; }
+  .b-both  { background: var(--amber-soft); color: var(--amber); border: 1px solid #e0cb9c; }
+
+  /* general-knowledge marker */
+  .gk {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--amber);
+    background: var(--amber-soft);
+    border: 1px solid #e6d2a6;
+    border-radius: 3px;
+    padding: 0 4px;
+    vertical-align: 1.5px;
+    margin-left: 2px;
+  }
+  .src {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  /* ---- flow diagram ---- */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    font-size: 13px;
+  }
+  .flow .node {
+    background: var(--panel);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    flex: 1 1 150px;
+    min-width: 150px;
+  }
+  .flow .node.r { border-color: var(--accent); background: var(--accent-soft); }
+  .flow .node.d { border-color: var(--green); background: var(--green-soft); }
+  .flow .arrow { display: flex; align-items: center; padding: 0 8px; color: var(--ink-faint); font-size: 20px; }
+  .flow .node b { display: block; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .flow .node.r b { color: var(--accent); }
+  .flow .node.d b { color: var(--green); }
+  .flow .node .swap { display: block; margin-top: 6px; font-size: 11px; color: var(--ink-faint); }
+
+  .verdict {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 5px;
+    margin-left: 8px;
+    vertical-align: 2px;
+  }
+  .v-anchor { background: var(--accent); color: #fff; }
+  .v-lang { background: var(--green); color: #fff; }
+  .v-warn { background: var(--red); color: #fff; }
+
+  footer {
+    margin-top: 80px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    font-size: 0.86rem;
+    color: var(--ink-faint);
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; margin: 10px 0 0; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  hr.soft { border: none; border-top: 1px solid var(--line); margin: 30px 0; }
+  table.mini { border-collapse: collapse; font-size: 0.9rem; margin: 16px 0; width: 100%; }
+  table.mini th, table.mini td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
+  table.mini th { background: var(--code-bg); font-size: 0.82rem; }
+  @media (max-width: 720px) {
+    nav.toc ol { columns: 1; }
+    h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Theme Study · Systems · Asset Loading</div>
+  <h1>Asset &amp; File-Loading Architecture<br>in Creative-Coding Frameworks</h1>
+  <p class="lede">A comparative study of how fourteen frameworks resolve, decode, cache, hot-reload
+  and bundle external assets — assembled to pressure-test a proposed <em>resolution / decode</em>
+  split for <strong>Flux</strong>, a Rust node-graph framework with a synchronous evaluator and an
+  editor-vs-packed-runtime duality.</p>
+  <div class="meta">
+    <span>Repository: study-creative-coding</span>
+    <span>Compiled: 2026-05-15</span>
+    <span>Scope: 14 frameworks · 9 dimensions</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#problem">The design problem</a></li>
+    <li><a href="#reading">How to read this study</a></li>
+    <li><a href="#matrix">The comparison matrix</a></li>
+    <li><a href="#deep">Deep dives — what is genuinely novel</a></li>
+    <li><a href="#synthesis">Synthesis — recurring patterns</a></li>
+    <li><a href="#anti">Anti-patterns &amp; things that aged badly</a></li>
+    <li><a href="#flux">Recommendations for Flux</a></li>
+    <li><a href="#open">Open questions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="problem"><span class="num">1</span>The design problem</h2>
+
+<p>Today, file loading in Flux is ad-hoc: an operator calls <code>std::fs::read</code> with a raw
+path and decodes the bytes inline. Before that pattern spreads across <code>LoadTexture</code>,
+<code>LoadMesh</code>, <code>LoadShader</code> and the audio/CSV/JSON loaders still to come, we want
+a shared substrate. The working hypothesis splits file loading into two layers:</p>
+
+<div class="flow">
+  <div class="node r">
+    <b>Resolution</b>
+    logical asset path → raw bytes. Format-neutral.
+    <span class="swap">Backend swaps: filesystem in the editor, bundle in the packed runtime.</span>
+  </div>
+  <div class="arrow">→</div>
+  <div class="node d">
+    <b>Decode</b>
+    raw bytes → typed asset. Inherently per-type.
+    <span class="swap">Lives with each asset's domain (texture / mesh / shader).</span>
+  </div>
+  <div class="arrow">→</div>
+  <div class="node">
+    <b>Typed asset</b>
+    consumed by the operator graph as an output value or a cache handle.
+  </div>
+</div>
+
+<p>The question this study answers: <strong>does that split hold up against how established
+frameworks actually solve the problem?</strong> Each framework is examined along nine dimensions —
+path &amp; resolution model, resolution/decode separation, where the abstraction lives, handles &amp;
+lifetime, hot-reload, caching &amp; dedup, sync vs async, bundling, and error handling — with
+particular attention to three Flux constraints that frameworks routinely violate: <strong>Rust
+ownership</strong>, a <strong>synchronous graph evaluator</strong> with no async runtime in the hot
+path, and the <strong>editor + bundle duality</strong>.</p>
+
+<div class="box flux">
+  <span class="tag">Bottom line, stated up front</span>
+  <p>The split holds. It recurs — independently — in every framework that solves asset loading
+  <em>well</em>, and its absence is the single best predictor of the designs that aged badly. But
+  the split is not perfectly clean: <strong>decode is not a pure <code>bytes → asset</code>
+  function</strong> — formats like glTF, OBJ and HLSL reference sibling files, so the decode layer
+  needs a controlled capability to re-enter resolution. The detail that matters most for Flux is
+  not <em>whether</em> to split, but <em>how the synchronous evaluator obtains an asset</em> — and
+  there the closest architectural analogue (tixl) diverges sharply from the closest language
+  analogue (Bevy).</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="reading"><span class="num">2</span>How to read this study</h2>
+
+<p>This document was assembled from this repository's framework studies and submodule source code,
+supplemented with general knowledge where the repo has no material. Sourcing is marked throughout:</p>
+
+<ul>
+  <li><strong>Repo-sourced claims</strong> cite a path, e.g.
+  <span class="src">visual-programming/tixl/Core/Resource/ResourceManager.cs:25</span> or
+  <span class="src">notes/per-framework/cinder/</span>.</li>
+  <li><strong>General-knowledge claims</strong> — used where the repo has no submodule or notes for
+  a framework — are marked <span class="gk">GK</span>. This applies to most of Bevy, TouchDesigner,
+  vvvv, Unity Addressables and Unreal: the repo documents neither as a submodule.</li>
+</ul>
+
+<p>The fourteen frameworks, grouped by how relevant they are to Flux:</p>
+
+<table class="mini">
+<thead><tr><th>Group</th><th>Frameworks</th><th>Why included</th></tr></thead>
+<tbody>
+<tr><td><strong>Rust engine</strong></td><td>Bevy</td><td>Closest <em>language</em> match; solves a near-identical problem with <code>AssetServer</code>/<code>AssetReader</code>/<code>AssetLoader</code>.</td></tr>
+<tr><td><strong>Node-graph frameworks</strong></td><td>tixl, cables.gl, werkkzeug/apEx, TouchDesigner, vvvv&nbsp;gamma</td><td>Same execution model as Flux. <strong>tixl is the closest architectural analogue</strong> — node graph, editor↔export duality, synchronous evaluation.</td></tr>
+<tr><td><strong>Creative-coding toolkits</strong></td><td>openFrameworks, Cinder, Processing, p5.js</td><td>The repo's core framework studies; the historical baseline the field grew from.</td></tr>
+<tr><td><strong>Web rendering libraries</strong></td><td>three.js, Babylon.js</td><td>three.js's loader triad is almost exactly the proposed split.</td></tr>
+<tr><td><strong>Game engines</strong></td><td>Unity Addressables, Unreal</td><td>The most mature editor-vs-shipped pipelines in existence.</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="matrix"><span class="num">3</span>The comparison matrix</h2>
+
+<p>Fourteen frameworks × nine dimensions. Scroll horizontally; the framework column is pinned.
+Two columns carry quick-scan badges — <strong>D2</strong> (is resolution separated from decode?) and
+<strong>D7</strong> (does it suit a synchronous evaluator?) — because those two decide the most for
+Flux.</p>
+
+<div class="legend">
+  <span><span class="badge b-clean">clean</span> resolution &amp; decode are distinct layers</span>
+  <span><span class="badge b-fused">fused</span> one call does both</span>
+  <span><span class="badge b-mixed">temporal</span> split across build-time vs runtime</span>
+  <span><span class="badge b-sync">sync</span> blocking — fits a sync evaluator</span>
+  <span><span class="badge b-async">async</span> background — fights a sync evaluator</span>
+  <span><span class="star">★</span> highest relevance to Flux</span>
+</div>
+
+<div class="table-scroll">
+<table class="matrix">
+<thead>
+<tr>
+  <th class="fw">Framework</th>
+  <th>D1 · Path &amp; resolution model</th>
+  <th>D2 · Resolution vs decode</th>
+  <th>D3 · Where the abstraction lives</th>
+  <th>D4 · Handles &amp; lifetime</th>
+  <th>D5 · Hot-reload</th>
+  <th>D6 · Caching &amp; dedup</th>
+  <th>D7 · Sync vs async / streaming</th>
+  <th>D8 · Bundling / packaging</th>
+  <th>D9 · Error handling</th>
+</tr>
+</thead>
+<tbody>
+
+<tr class="grp"><td colspan="10">Rust engine</td></tr>
+<tr>
+  <td class="fw"><span class="star">★</span> Bevy <span class="sub">Rust ECS engine</span></td>
+  <td><code>source://path#label</code> virtual paths; named, registered <code>AssetSource</code>s; editor reads the <em>unprocessed</em> source, shipped reads the <em>processed</em> source.</td>
+  <td><span class="badge b-clean">clean</span> <code>AssetReader</code> (bytes) fully distinct from <code>AssetLoader</code> (decode); loaders dispatched by extension.</td>
+  <td>Unified layer — <code>AssetServer</code>, <code>Assets&lt;T&gt;</code>, <code>Handle&lt;T&gt;</code> — wrapping per-type <code>AssetLoader</code> plugins.</td>
+  <td><code>load()</code> returns a <code>Handle&lt;T&gt;</code> <em>immediately</em>; data arrives later. Strong handles <code>Arc</code>-refcount; last drop frees.</td>
+  <td><code>file_watcher</code> feature → re-decode → <code>AssetEvent::Modified</code>; systems react each frame via <code>EventReader</code>.</td>
+  <td>Path-keyed dedup — second <code>load()</code> of a path returns the same handle. Processed assets cached in <code>imported_assets/</code>.</td>
+  <td><span class="badge b-async">async</span> Async-first; runs on <code>IoTaskPool</code>; an asset is one future, available atomically.</td>
+  <td>No archive format — ship the <code>assets/</code> folder, or <code>embedded://</code> bakes bytes into the binary; processed pipeline emits <code>.meta</code> sidecars.</td>
+  <td><code>LoadState::Failed</code> + recursive-dependency failure state; <strong>no auto fallback</strong> — the consumer must substitute.</td>
+</tr>
+
+<tr class="grp"><td colspan="10">Node-graph frameworks</td></tr>
+<tr>
+  <td class="fw"><span class="star">★</span> tixl <span class="sub">C# node graph</span></td>
+  <td>Logical relative paths over a priority-ordered list of <code>IResourcePackage</code> roots; <code>/alias/path</code> cross-package syntax. Editor &amp; Player run the <em>same</em> resolver — only the registered packages differ.</td>
+  <td><span class="badge b-clean">clean</span> <code>TryResolvePath</code> (resolve) vs per-type <code>TryGenerate&lt;T&gt;</code> delegate (decode).</td>
+  <td>Unified <code>Resource&lt;T&gt;</code> wrapper; all types uniform at the handle level, specialised only in the factory delegate.</td>
+  <td><code>Resource&lt;T&gt;</code> holds a <code>Lazy&lt;T?&gt;</code>; <code>FileResource</code> ref-counts via <code>Claim</code>/<code>Release</code> at the path level. Synchronous.</td>
+  <td><strong>Best-in-class.</strong> Watcher → debounced main-thread drain → <code>MarkFileAsChanged</code> → <code>ForceInvalidate</code> on dependent slots → downstream operators re-evaluate.</td>
+  <td><code>FileResources</code> dict gives path-keyed dedup; <code>Lazy&lt;T?&gt;</code> caches the decoded value; shader bytecode has a 2-tier memory+disk cache.</td>
+  <td><span class="badge b-sync">sync</span> Synchronous — <code>Lazy</code> thread-safety <code>None</code>; blocks on first <code>GetValue</code>; no streaming.</td>
+  <td>Export walks the graph for <code>FilePath</code> inputs, copies files flat into <code>Operators/&lt;ns&gt;/Resources/</code>; HLSL <code>#include</code>s traced &amp; copied.</td>
+  <td><code>TryGenerate</code> returns success + reason; <code>LogErrorState</code> shows an operator error badge; falls back to null.</td>
+</tr>
+<tr>
+  <td class="fw">cables.gl <span class="sub">JS / WebGL node graph</span></td>
+  <td>No explicit path layer; shaders are <code>att_</code> attachment files bundled with the op; textures referenced by URL. Export rewrites paths relative to <code>patchDir</code>.</td>
+  <td><span class="badge b-fused">fused</span> <code>CGL.Texture.load</code> fetches <em>and</em> decodes.</td>
+  <td>Per-type (<code>CGL.Texture</code>, <code>CGL.Mesh</code>); no unified handle. Decoded resources flow as object-port values between ops.</td>
+  <td>Immediate handle; usable once the browser fetch completes; cleanup via <code>op.onDelete</code>.</td>
+  <td>Editor: whole-patch live reload over a websocket. No per-asset file hot-reload.</td>
+  <td>Shader-variant ID cache only; no unified asset cache.</td>
+  <td><span class="badge b-async">async</span> Async <code>fetch</code>/XHR; ops guard on null and re-pump triggers when assets arrive.</td>
+  <td>Export = folder/ZIP of patch JSON + op JS + assets; asset URLs rewritten relative to <code>patchDir</code>.</td>
+  <td>Missing asset → render null / skip; <code>op.setUiError</code>.</td>
+</tr>
+<tr>
+  <td class="fw">werkkzeug / apEx <span class="sub">demoscene node graph</span></td>
+  <td>The path concept is largely <em>eliminated</em> — assets are procedural or inlined by 16-bit index; the minimal player has no filesystem at runtime.</td>
+  <td><span class="badge b-na">n/a</span> Moot — there is no resolution because there is no path. The operator graph <em>is</em> the asset.</td>
+  <td>Per-type operator graphs (texgen, geometry-gen). Generation, not loading.</td>
+  <td><code>CachedResult</code> pointer — generate once, return the cached value; <code>CallId</code> keys per-invocation caches.</td>
+  <td>Not applicable — the graph is snapshotted to a flat command buffer at pack time.</td>
+  <td><code>CallId</code> context-aware caching for the same operator under different inputs.</td>
+  <td><span class="badge b-sync">sync</span> Synchronous generation at runtime; no I/O at all.</td>
+  <td>Whole graph serialised as a compact binary stream (~48-byte structs, 16-bit indices); the executable is LZMA-compressed by kkrunchy (8–10×).</td>
+  <td>Minimal — a deterministic graph has little to fail.</td>
+</tr>
+<tr>
+  <td class="fw">TouchDesigner <span class="sub">node graph</span> <span class="gk">GK</span></td>
+  <td>Raw filesystem paths typed into operator params; no logical layer. Editor and player are the <em>same binary</em>. <code>tox://</code> VFS pseudo-paths embed files inside a component.</td>
+  <td><span class="badge b-fused">fused</span> Per-operator — <code>Movie File In TOP</code> resolves and decodes in one node.</td>
+  <td>Entirely per-type operator families (TOP / SOP / CHOP / DAT); no unified layer.</td>
+  <td>The operator <em>is</em> the handle; it owns its resource for its lifetime; no cross-operator refcount.</td>
+  <td>Manual <code>Reload</code>/<code>Unload</code> pulse parameters; no automatic file-watch.</td>
+  <td>No cross-operator dedup — two nodes on the same file decode twice. Internal per-TOP frame cache.</td>
+  <td><span class="badge b-both">mixed</span> Video async (decode-thread pool); still images and geometry synchronous.</td>
+  <td><code>.tox</code>/<code>.toe</code> ZIP-like containers; the VFS embeds files; no user-facing manifest.</td>
+  <td>Missing file → red operator; the network keeps running; no fallback assets.</td>
+</tr>
+<tr>
+  <td class="fw">vvvv gamma <span class="sub">VL node graph</span> <span class="gk">GK</span></td>
+  <td>Physical paths as <code>string</code> pins; no logical layer. Deployment = copy files manually, or NuGet <code>.nuspec</code> for library assets.</td>
+  <td><span class="badge b-fused">fused</span> Per-node — <code>FileModel</code> resolves and decodes into a Stride <code>Model</code>.</td>
+  <td>Per-type library nodes (<code>FileModel</code>, <code>ImageReader</code>, <code>VL.Video</code>); no unified manager.</td>
+  <td>.NET object references; GC + <code>IDisposable</code>; the patch topology controls lifetime.</td>
+  <td><code>.sdsl</code> shaders are watched and live-update the node; asset files are <em>not</em> watched.</td>
+  <td>No explicit dedup.</td>
+  <td><span class="badge b-mixed">mixed</span> Mostly synchronous on the eval thread; video playback async.</td>
+  <td>Exported <code>.exe</code> + manual asset copy; NuGet for library assets; Stride project pipeline for 3D.</td>
+  <td>Node outputs its default/null value + a runtime warning; no fallback.</td>
+</tr>
+
+<tr class="grp"><td colspan="10">Creative-coding toolkits</td></tr>
+<tr>
+  <td class="fw">openFrameworks <span class="sub">C++</span></td>
+  <td>A single global data root — <code>ofToDataPath()</code> prepends <code>bin/data/</code>; <code>ofSetDataPathRoot()</code> overrides it. No search path.</td>
+  <td><span class="badge b-fused">fused</span> <code>ofLoadImage</code> does I/O + FreeImage decode + GPU upload in one call. (An <code>ofBuffer</code> overload is a partial seam.)</td>
+  <td>None — each type has its own top-level loader; there is no central asset manager.</td>
+  <td>Concrete value types (<code>ofImage</code> = pixels + texture); no refcounting; loads block.</td>
+  <td>None in core.</td>
+  <td>None — every <code>load()</code> re-reads and re-decodes the file.</td>
+  <td><span class="badge b-sync">sync</span> Blocking for filesystem; <code>ofURLFileLoader</code> is async for HTTP only.</td>
+  <td>Convention only — ship <code>bin/data/</code> beside the executable. No manifest, packer or compression.</td>
+  <td><code>bool</code> return + <code>ofLogError</code>; no fallbacks.</td>
+</tr>
+<tr>
+  <td class="fw">Cinder <span class="sub">C++</span></td>
+  <td>Platform-aware multi-directory search — a <code>vector&lt;fs::path&gt;</code> of asset dirs; a depth-limited walk-up finds the <code>assets/</code> folder; <code>addAssetDirectory()</code> at runtime.</td>
+  <td><span class="badge b-clean">clean</span> <code>DataSource</code> (yields bytes) is distinct from <code>loadImage(DataSourceRef)</code> (decode).</td>
+  <td><code>DataSource</code> is a uniform byte-source across all asset types; <code>ImageIoRegistrar</code> is a pluggable per-type decode registry keyed by extension.</td>
+  <td><code>shared_ptr</code> throughout (<code>DataSourceRef</code>, <code>Texture2dRef</code>). Loading is synchronous and blocking.</td>
+  <td>Built-in <code>FileWatcher</code> — background polling thread, callbacks fire on the main thread.</td>
+  <td>No global asset cache; <code>shared_ptr</code> sharing is manual. The registry holds decoders, not assets.</td>
+  <td><span class="badge b-sync">sync</span> Synchronous for filesystem and buffers; the watcher runs async.</td>
+  <td>macOS <code>.app/Resources/assets/</code>; Windows embeds Win32 resources; Android reads the APK — every platform surfaces a <code>DataSourceRef</code>.</td>
+  <td>Exception-based (<code>AssetLoadExc</code>, <code>ImageIoExceptionFailedLoad</code>, <code>FontLoadFailedExc</code>); no fallbacks.</td>
+</tr>
+<tr>
+  <td class="fw">Processing <span class="sub">Java</span></td>
+  <td><code>createInputRaw()</code> — a fixed-priority waterfall: <code>data/</code> → sketch root → JAR <code>ClassLoader</code> resource → URL. The editor-vs-shipped split is invisible to callers.</td>
+  <td><span class="badge b-fused">fused</span> <code>createInput</code> resolves to an <code>InputStream</code>; each <code>load*</code> decodes inline. No registry.</td>
+  <td><code>createInput</code> is a unified resolution layer; decoding is per-type.</td>
+  <td>Blocking on the sketch thread. <code>requestImage()</code> is the lone async variant — a "vessel" object + a 4-thread pool.</td>
+  <td>None in core — the IDE re-runs the whole sketch.</td>
+  <td>No automatic caching — the user must store the result.</td>
+  <td><span class="badge b-mixed">mixed</span> Synchronous except <code>requestImage()</code>; no streaming.</td>
+  <td>Exported apps bundle <code>data/</code> into the sketch JAR; the <code>ClassLoader</code> fallthrough makes the same code work in both modes. No manifest.</td>
+  <td><code>null</code> return + <code>System.err</code>; occasional <code>RuntimeException</code>; no typed errors.</td>
+</tr>
+<tr>
+  <td class="fw">p5.js <span class="sub">JavaScript</span></td>
+  <td>URL strings relative to the page origin; no <code>data/</code> convention; no editor/runtime split — the browser <code>fetch</code> handles every case.</td>
+  <td><span class="badge b-fused">fused</span> Fused at the <code>httpDo</code> call site; decode is inline per loader. No registry.</td>
+  <td><code>httpDo</code> is a unified HTTP layer for text/JSON/binary; <code>loadImage</code> bypasses it. The <code>preload()</code> barrier is the real unifier.</td>
+  <td>Every <code>load*</code> returns an <em>empty object immediately</em>, populated async; the <code>preload()</code> barrier gates <code>setup()</code> until all loads finish.</td>
+  <td>None — delegated to the dev server.</td>
+  <td>No automatic caching or dedup.</td>
+  <td><span class="badge b-async">async</span> All loads async via <code>fetch</code>/Promise; the <code>preload</code> barrier <em>fakes</em> synchrony for the common case.</td>
+  <td>No bundling in the library — delegated entirely to the build tool.</td>
+  <td><code>failureCallback</code> + the Friendly Error System; no typed errors.</td>
+</tr>
+
+<tr class="grp"><td colspan="10">Web rendering libraries</td></tr>
+<tr>
+  <td class="fw">three.js <span class="sub">JS rendering library</span></td>
+  <td>Per-loader <code>path</code> prefix + <code>LoadingManager.resolveURL()</code>, whose <code>setURLModifier</code> hook is a pluggable logical→physical rewrite. Data/blob/absolute URLs pass through unchanged.</td>
+  <td><span class="badge b-clean">clean</span> A three-tier split: <code>FileLoader</code> (bytes + cache) / typed loaders' <code>parse()</code> (decode) / <code>LoadingManager</code> (resolution + progress).</td>
+  <td>No unified registry; standalone loader classes sharing a base. <code>addHandler(regex, loader)</code> is a dispatch table.</td>
+  <td>No handle type; <code>load()</code> returns a placeholder (or undefined) and <code>onLoad</code> delivers the result; <code>loadAsync</code> is a promise wrapper. GC lifetime.</td>
+  <td>None — delegated to build-tool HMR.</td>
+  <td>Opt-in <code>Cache</code> module — <strong>off by default</strong> — keyed by resolved URL; <code>FileLoader</code> also dedups in-flight requests.</td>
+  <td><span class="badge b-async">async</span> Fully async (Fetch + <code>ReadableStream</code> progress); no synchronous path.</td>
+  <td>No pack format; GLB is a binary container; data-URI and buffer-view resources are embedded.</td>
+  <td><code>onError</code> callback → <code>manager.itemError</code>; soft failure (magenta texture); no fallbacks or retry.</td>
+</tr>
+<tr>
+  <td class="fw">Babylon.js <span class="sub">JS rendering library</span> <span class="gk">GK</span></td>
+  <td><code>SceneLoader</code> dispatches by file extension to registered plugins; plain URLs; no URL-modifier hook.</td>
+  <td><span class="badge b-fused">fused</span> Per plugin — an <code>ISceneLoaderPlugin</code> fetches <em>and</em> parses its format.</td>
+  <td>Unified <code>SceneLoader</code> entry; a global plugin registry keyed by extension; <code>AssetsManager</code>/<code>AssetContainer</code> orchestrate batches.</td>
+  <td><code>AbstractAssetTask</code> per load with <code>onSuccess</code>/<code>onError</code>; no immediate handle; GC lifetime.</td>
+  <td>None at the loader level.</td>
+  <td>No opt-in cache module; an engine-level texture cache dedups GPU uploads by URL.</td>
+  <td><span class="badge b-async">async</span> Fully async; the <code>.babylon</code> format supports incremental loading.</td>
+  <td>GLB handled inside the glTF plugin; <code>.babylon</code> is plain JSON; no custom bundle format.</td>
+  <td>Per-task <code>onError</code> + a global <code>SceneLoader</code> callback; no Result type.</td>
+</tr>
+
+<tr class="grp"><td colspan="10">Game engines</td></tr>
+<tr>
+  <td class="fw">Unity Addressables <span class="sub">game engine</span> <span class="gk">GK</span></td>
+  <td>String <em>addresses</em>; a content <em>catalog</em> (JSON) maps address → bundle location. Editor uses the loose asset database; the shipped build uses the catalog. The cleanest editor↔shipped split here.</td>
+  <td><span class="badge b-clean">clean</span> An <code>IResourceLocation</code> is the resolved form between address and decoded asset; <code>IResourceProvider</code>s are pluggable decoders.</td>
+  <td>Unified <code>Addressables</code> API with a generic <code>LoadAssetAsync&lt;T&gt;</code>; per-type via a provider registry.</td>
+  <td><code>AsyncOperationHandle&lt;T&gt;</code> is future-like; <strong>explicit refcounting</strong> — you must call <code>Release</code> or leak.</td>
+  <td>No native hot-reload in builds; editor re-imports; <code>UpdateCatalogs()</code> applies differential updates.</td>
+  <td>Strong dedup — the same address returns the same instance, refcount incremented; bundles disk-cached by hash.</td>
+  <td><span class="badge b-async">async</span> Aggressively async; a synchronous <code>WaitForCompletion()</code> exists but is discouraged; bundles stream compressed.</td>
+  <td>Build pipeline → <code>AssetBundle</code> files (LZ4/LZMA) + a JSON/binary catalog + a hash file. "Play Mode Scripts" switch the editor between database and catalog modes.</td>
+  <td><code>Status = Failed</code> + <code>OperationException</code> per handle; no built-in fallback asset.</td>
+</tr>
+<tr>
+  <td class="fw">Unreal Engine <span class="sub">game engine</span> <span class="gk">GK</span></td>
+  <td><code>FSoftObjectPath</code> (<code>/Game/...</code> package + object); the Asset Registry indexes everything. Cooked builds resolve the <em>same path string</em> into a <code>.pak</code>/IoStore container.</td>
+  <td><span class="badge b-mixed">temporal</span> Split across time — the cook runs importers (resolve + decode); the runtime does pure deserialization of cooked bytes.</td>
+  <td>A universal <code>UObject</code>/package loader; type logic in <code>Serialize</code>/<code>PostLoad</code>; <code>UAssetManager</code> adds Primary Asset IDs.</td>
+  <td>Hard <code>TObjectPtr</code> = always-loaded, GC-rooted; soft <code>TSoftObjectPtr</code> = path only, loaded on demand; async <code>FStreamableHandle</code> is <code>TSharedPtr</code>-counted.</td>
+  <td>Editor reimport on source change; PIE hot-reload; shipped builds patch via an overlay <code>.pak</code>.</td>
+  <td>Strong dedup via the object linker — one load per package path; deterministic cooked GUIDs.</td>
+  <td><span class="badge b-both">both</span> Sync <code>LoadObject</code> blocks; async <code>RequestAsyncLoad</code> with a priority system; level streaming.</td>
+  <td>The cook transforms <code>.uasset</code> → cooked binary, packed into <code>.pak</code> or IoStore (<code>.utoc</code>+<code>.ucas</code>); chunk IDs drive streaming install.</td>
+  <td><code>nullptr</code> / <code>Failed</code> status; <code>.ini</code> path redirectors for renames; corrupt → assert/log; games build their own fallback.</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<p class="src">D = dimension. Badge in D2/D7 is a quick-scan verdict; the cell text is the full finding.
+<span class="gk">GK</span> on a framework name = general knowledge, not repo-sourced.</p>
+
+<!-- ============================================================ -->
+<h2 id="deep"><span class="num">4</span>Deep dives — what is genuinely novel</h2>
+
+<h3>Bevy — the <code>AssetReader</code> / <code>AssetLoader</code> split <span class="verdict v-lang">closest language match</span></h3>
+
+<p>Bevy draws exactly the line Flux proposes, and a mature Rust engine converging on the same
+boundary is the strongest available evidence that the hypothesis is sound. <code>AssetReader</code>
+is a trait whose only job is "translate a logical path into a byte stream" — it is format-neutral
+and has implementations for the native filesystem, the web, binary-baked bytes
+(<code>EmbeddedAssetReader</code>) and Android's asset manager. <code>AssetLoader</code> is the
+<em>other</em> trait — <code>load(reader, settings, ctx) → Result&lt;Asset, Error&gt;</code> — and it
+is per-type. They meet only at the top, inside <code>AssetServer::load()</code>: pick a source, get
+its reader, read bytes, pick a loader by extension, decode. <span class="gk">GK</span></p>
+
+<div class="box novel">
+  <span class="tag">The boundary leaks — and the leak is the lesson</span>
+  <p>Bevy's split is <em>not</em> a pure <code>bytes → asset</code> function. A glTF file references
+  external <code>.bin</code> buffers and texture images, so <code>AssetLoader::load</code> receives a
+  <code>LoadContext</code> through which the loader can call <code>read_asset_bytes(path)</code> —
+  re-entering the resolution layer — or <code>load::&lt;T&gt;(path)</code>, which recursively kicks
+  off another full resolve+decode and registers a dependency. <strong>Decode is therefore
+  <code>bytes + a capability to resolve more paths → asset</code>.</strong> Flux must decide
+  consciously where that capability lives.</p>
+</div>
+
+<p>The editor-vs-shipped split is expressed as <em>unprocessed</em> vs <em>processed</em> readers on
+each <code>AssetSource</code>, not as a separate code path. The background <code>AssetProcessor</code>
+reads a source asset, consults a <code>.meta</code> sidecar (loader settings + chosen processor),
+runs a transform, and writes an optimised artifact into <code>imported_assets/</code>. The shipped
+game reads the processed reader. <strong>What Flux should not copy</strong> is the consequence of
+Bevy's async-first design: <code>load()</code> returns a <code>Handle&lt;T&gt;</code> instantly while
+the data arrives "some frame later" — a model that only works because an ECS world ticks every
+frame and consumers re-query via <code>AssetEvent</code>. A Flux <code>LoadTexture</code> operator
+must produce a real output <em>during</em> <code>evaluate()</code>. The "handle is a promise"
+pattern leaks async into every downstream operator.</p>
+
+<h3>tixl — resolution as packages, hot-reload through the graph <span class="verdict v-anchor">closest analogue</span></h3>
+
+<p>tixl is the single most load-bearing reference in this study because it shares all three Flux
+constraints: it is a node graph, it has the editor↔export duality, and its evaluation is
+synchronous. Its <code>ResourceManager</code> is <em>not</em> a registry of loaded assets — it is a
+path-resolution engine plus factory methods. <code>TryResolvePath</code> walks a priority-ordered
+list of <code>IResourcePackage</code> roots; <code>TryGenerate&lt;T&gt;</code> is the per-type decode
+delegate. That is Flux's split, in a shipping node-graph tool.
+<span class="src">visual-programming/tixl/Core/Resource/ResourceManager.cs:25</span></p>
+
+<div class="box novel">
+  <span class="tag">The editor↔export split is purely additive</span>
+  <p>tixl does <em>not</em> have a separate "bundle" code path. Both the editor and the exported
+  Player call the identical <code>TryResolvePath</code> algorithm. What differs is only
+  <strong>which <code>IResourcePackage</code> instances are registered</strong>: the editor
+  registers live filesystem packages each carrying a <code>ResourceFileWatcher</code>; the Player
+  registers read-only packages with <code>FileWatcher = null</code>. The export step walks the
+  graph for file-path inputs, resolves each, and copies the file into
+  <code>Operators/&lt;namespace&gt;/Resources/&lt;relative&gt;</code> — so the same relative path
+  resolves identically in both worlds. This is the cleanest answer in the entire study to Flux's
+  editor + bundle duality.</p>
+</div>
+
+<p>tixl is also the <em>only</em> framework here that propagates a file change correctly through a
+node graph. The chain: an OS <code>FileSystemWatcher</code> fires on a background thread →
+<code>ResourceFileWatcher</code> queues the event → every frame the editor drains the queue <em>on
+the main thread</em> after a 394&nbsp;ms debounce → <code>FileResource.FileChanged</code> fires →
+<code>Resource&lt;T&gt;.MarkFileAsChanged()</code> resets the <code>Lazy&lt;T?&gt;</code> and calls
+<code>DirtyFlag.ForceInvalidate()</code> on every registered dependent slot → downstream operators
+re-evaluate next frame. The async part is confined to the OS watch thread; the propagation is
+synchronous and frame-aligned. Operators explicitly declare their dependent slots
+(<code>_textureResource.AddDependentSlots(Texture)</code>). For a synchronous graph evaluator, this
+is a near drop-in template.</p>
+
+<h3>three.js — the loader triad and the <code>setURLModifier</code> hook</h3>
+
+<p>three.js implements Flux's hypothesis as three tiers with almost no overlap.
+<code>FileLoader</code> is the <em>only</em> class that touches the network — given a resolved URL it
+returns bytes; it does no type-specific logic because it cannot know the type. Typed loaders
+(<code>TextureLoader</code>, <code>GLTFLoader</code>, <code>FontLoader</code>…) each instantiate a
+<code>FileLoader</code>, then call their own <code>parse(buffer)</code> — the decode step.
+<code>LoadingManager</code> sits above both and knows nothing about formats: it tracks progress and
+rewrites URLs. <span class="src">libraries/web/threejs/src/loaders/</span></p>
+
+<div class="box novel">
+  <span class="tag">setURLModifier is a pluggable resolution layer in miniature</span>
+  <p><code>LoadingManager.setURLModifier(fn)</code> installs a single <code>(url) → url</code>
+  function called before every fetch. three.js's own documentation shows using it to map logical
+  filenames to in-memory blobs via <code>URL.createObjectURL</code> — i.e. the loaders above supply
+  logical names, the modifier rewrites them to physical sources, and the typed decoders below never
+  know the difference. That is exactly Flux's resolution layer. Its weakness is instructive too:
+  there is only <em>one</em> modifier (last-writer-wins), so it cannot express "editor backend" and
+  "bundle backend" simultaneously. Flux needs a <em>trait object</em> selected at startup, not a
+  single mutable function.</p>
+</div>
+
+<h3>Processing &amp; p5.js — making async loading look synchronous</h3>
+
+<p>Both confront the same tension Flux faces — users want <code>let img = load("x.png")</code>
+without callbacks — and solve it two different ways. Processing's <code>createInputRaw()</code> is a
+fixed-priority waterfall (<code>data/</code> folder → sketch root → JAR <code>ClassLoader</code>
+resource → URL). The fourth step is the key trick: when a file is not on disk, it falls through to
+<code>getResourceAsStream("data/"+name)</code>, so <strong>the exact same filename string resolves
+to a filesystem file in development and a JAR resource in an exported app</strong> — the
+editor-vs-shipped split is invisible to caller code. <span class="src">notes/per-framework/processing/, frameworks/processing/core</span></p>
+
+<div class="box novel">
+  <span class="tag">p5.js's preload() barrier — a load phase, not an async API</span>
+  <p>p5.js converts inherently-async web loading into a synchronous-feeling API with a
+  <em>counter-based global barrier</em>. A registry (<code>_preloadMethods</code>) lists every
+  <code>load*</code> function; before <code>preload()</code> runs, each is wrapped to increment
+  <code>_preloadCount</code>; each completion decrements it; <code>setup()</code> cannot run until
+  the count hits zero. The load functions return empty objects immediately and are populated in
+  place before the barrier lifts. The mechanism does not port to Rust — but <strong>the
+  <em>concept</em> does</strong>: a "preload phase" where all loads are initiated, followed by a
+  "run phase" where assets are guaranteed ready, is a viable model for Flux's synchronous evaluator
+  (see Recommendation R4).</p>
+</div>
+
+<h3>The demoscene — eliminate file loading entirely</h3>
+
+<p>werkkzeug and apEx answer the file-loading problem by mostly <em>not loading files</em>. A texture
+is not a PNG on disk — it is a <code>PHXTEXTUREOPERATOR</code> DAG that evaluates to a
+<code>Texture2D</code> at runtime. The graph stores ~48 bytes of parameters; the rendered texture is
+1–16&nbsp;MB. <span class="src">notes/per-demoscene/apex-public/texgen/, size-optimization.md</span></p>
+
+<div class="box novel">
+  <span class="tag">For a node-graph framework, the operator can be the asset</span>
+  <p>This is leverage a game engine does not have and Flux does. A <code>GenerateNoise</code> or
+  <code>GenerateGradient</code> operator <em>is</em> a procedural asset — no path, no resolution, no
+  decode, no bundle entry. The <code>CachedResult</code> "generate once, return cached pointer"
+  pattern maps directly to a Rust <code>OnceCell&lt;wgpu::Texture&gt;</code>. The strategic
+  consequence for Flux: the bundle only needs to contain <em>genuinely external</em> authored
+  content (user photos, custom audio clips). Every asset that can be expressed as a deterministic
+  subgraph should be — which shrinks the bundling problem from "pack everything" to "pack the
+  irreducible minimum."</p>
+</div>
+
+<h3>Game engines — the two mature editor↔shipped pipelines</h3>
+
+<p><strong>Unity Addressables</strong> reconciles editor and shipped builds with a <em>switchable
+mode</em>: "Use Asset Database" loads loose editor assets directly; "Use Existing Build" exercises
+the exact runtime path against a pre-built <em>catalog</em> (a JSON manifest mapping address →
+bundle location). The catalog is the contract between build and runtime. Its <code>AssetReference</code>
+type stores only an identifier — no script field ever holds a raw, always-loaded texture.
+<strong>Unreal</strong> instead reconciles the two worlds by <em>transformation</em>: the cook runs
+all importers once and writes cooked binary, so the runtime only deserializes — it never re-decodes.
+Its hard/soft reference distinction (<code>TObjectPtr</code> always-loaded vs
+<code>TSoftObjectPtr</code> path-only) and IoStore's export-level byte-range I/O are both worth
+filing away as future directions. <span class="gk">GK</span></p>
+
+<!-- ============================================================ -->
+<h2 id="synthesis"><span class="num">5</span>Synthesis — recurring patterns</h2>
+
+<p>Across fourteen frameworks, six patterns recur in the designs that hold up:</p>
+
+<ol>
+  <li><strong>The resolution / decode split is real where it matters.</strong> It appears
+  independently in Bevy (<code>AssetReader</code>/<code>AssetLoader</code>), Cinder
+  (<code>DataSource</code>→<code>loadImage</code>), three.js (<code>FileLoader</code> vs typed
+  <code>parse()</code>), tixl (<code>TryResolvePath</code>/<code>TryGenerate&lt;T&gt;</code>) and
+  Unity (<code>IResourceLocation</code>/<code>IResourceProvider</code>). It is <em>fused</em> in
+  openFrameworks, cables.gl, TouchDesigner, vvvv and Babylon.js — and those are precisely the
+  designs flagged as anti-patterns. <strong>Convergent independent evidence: the split is sound.</strong></li>
+
+  <li><strong>Centralised resolution + a swappable backend solves the editor↔shipped split.</strong>
+  Bevy's <code>AssetSource</code> (unprocessed/processed readers), Unity's catalog mode switch,
+  tixl's <code>IResourcePackage</code> registry, and three.js's <code>setURLModifier</code> are the
+  same idea: the <em>same logical path</em> resolves through an interchangeable backend, and
+  operators above never learn which backend answered.</li>
+
+  <li><strong>A per-type decode registry keyed by extension or MIME type.</strong> Cinder's
+  <code>ImageIoRegistrar</code>, Bevy's loader registry, three.js's <code>addHandler</code>,
+  Babylon's plugin registry and Unity's providers all let a new format be added without touching
+  call sites.</li>
+
+  <li><strong>Path-keyed deduplication.</strong> Where caching exists at all, the logical path is
+  the cache key (Bevy, tixl, Unity, three.js, Unreal). Content-addressing by hash is rare — only
+  Unreal's cooked GUIDs and Bevy's processed-asset hashing approach it.</li>
+
+  <li><strong>Pre-decoding for the shipped path.</strong> Unreal cooks; Bevy's processor writes
+  optimised artifacts. The expensive decode happens once, at build time; the runtime only
+  deserializes. The shipped runtime is faster <em>and</em> simpler than the editor.</li>
+
+  <li><strong>Sidecar metadata for import settings.</strong> Bevy's <code>.meta</code> files carry
+  per-asset loader settings and survive into the processed pipeline — the contract between the
+  editor and the packer.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id="anti"><span class="num">6</span>Anti-patterns &amp; things that aged badly</h2>
+
+<div class="box anti">
+  <span class="tag">Avoid — observed failure modes</span>
+  <ul style="margin:4px 0">
+    <li><strong>A single global resolution root</strong> (openFrameworks' <code>dataPathRoot</code>).
+    One mutable global string cannot serve an editor project root and a packed bundle
+    simultaneously. Flux needs a context-parameterised resolver, never a global.</li>
+    <li><strong>Fusing I/O + decode + GPU upload into one value object</strong> (oF's
+    <code>ofImage</code>). It makes the node-graph model impossible — you cannot put half the
+    pipeline in one operator and half in another.</li>
+    <li><strong>Fused per-operator loaders</strong> (TouchDesigner, vvvv, cables.gl). No
+    cross-operator dedup, no shared caching, and every new asset type needs a whole new operator
+    family with the resolution logic copy-pasted in.</li>
+    <li><strong>The "handle is a promise" model</strong> (Bevy's <code>Handle&lt;T&gt;</code>,
+    Unity's <code>AsyncOperationHandle</code>). It leaks async into every consumer and assumes a
+    persistent frame loop — directly incompatible with a synchronous graph evaluator.</li>
+    <li><strong>Manual refcount release</strong> (Unity's mandatory <code>Release()</code>). An
+    unreleased handle silently leaks the whole bundle. Rust's <code>Drop</code> makes this class of
+    bug structurally impossible — do not reintroduce it.</li>
+    <li><strong>Caching off by default</strong> (three.js's <code>Cache.enabled = false</code>). A
+    footgun: most users never discover it. Cache on by default; invalidate on change.</li>
+    <li><strong>Background-thread mutation of a shared object without synchronisation</strong>
+    (Processing's <code>requestImage()</code> vessel, which relies on the Java memory model to
+    eventually publish a pixel write). In Rust this is a data race the compiler rejects — it does
+    not port.</li>
+    <li><strong>A no-fallback error policy</strong> (Bevy, Unity, Unreal all leave substitution to
+    the caller). A missing asset should degrade gracefully, not blank the output or abort
+    evaluation.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="flux"><span class="num">7</span>Recommendations for Flux</h2>
+
+<p>The proposed architecture, distilled from the evidence above. The shape is tixl's
+<code>IResourcePackage</code> + <code>TryGenerate&lt;T&gt;</code>, corrected for Rust and for the
+fact that a Flux bundle may never be extracted to disk.</p>
+
+<div class="flow">
+  <div class="node">
+    <b>Operator</b>
+    <code>LoadTexture</code> holds a logical path input pin.
+  </div>
+  <div class="arrow">→</div>
+  <div class="node r">
+    <b>Resolution</b>
+    <code>dyn Resolver</code> → <code>Bytes</code>.
+    <span class="swap">FilesystemResolver (editor) ⇄ BundleResolver (packed). Selected at startup.</span>
+  </div>
+  <div class="arrow">→</div>
+  <div class="node d">
+    <b>Decode</b>
+    registry → <code>Decoder</code> → typed asset.
+    <span class="swap">Gets a <code>&amp;dyn Resolver</code> for sibling files (glTF .bin, #include).</span>
+  </div>
+  <div class="arrow">→</div>
+  <div class="node">
+    <b>Asset cache</b>
+    central pool owns the asset; operator holds an <code>AssetId</code>.
+  </div>
+</div>
+
+<h3>R1 · Keep the resolution / decode split — it is validated</h3>
+<p>Adopt it as the substrate. Resolution is a format-neutral <code>Resolver</code> trait that maps a
+logical path to bytes. Decode is per-type, co-located with each asset domain. This is confirmed by
+five independent mature designs; no evidence argues against it.</p>
+
+<h3>R2 · Resolution = a <code>Resolver</code> trait with a swappable backend</h3>
+<p>Define the trait so it abstracts the <em>I/O itself</em>, not just path strings — this is the one
+place to go further than tixl, whose <code>TryResolvePath</code> returns an absolute filesystem
+path. A Flux bundle may be a memory-mapped blob that never hits disk:</p>
+<pre><code>trait Resolver: Send + Sync {
+    fn resolve(&amp;self, path: &amp;AssetPath) -&gt; Result&lt;Bytes, AssetError&gt;;
+}
+struct FilesystemResolver { roots: Vec&lt;PathBuf&gt; }   // editor
+struct BundleResolver     { catalog: Catalog, blob: Mmap }  // packed runtime</code></pre>
+<p>Select the implementation once, at startup, by execution context. Adopt a Bevy-style path grammar
+— <code>scheme://path#label</code> — so <code>embedded://shaders/blur.wgsl</code> (built-in shaders
+baked into the binary) and sub-asset labels (a glTF mesh/material) need no new operator types.</p>
+
+<h3>R3 · Decode = a per-type registry, given a controlled re-entry into resolution</h3>
+<p>A <code>HashMap&lt;&amp;str, Box&lt;dyn Decoder&gt;&gt;</code> keyed by extension/MIME (Cinder's
+<code>ImageIoRegistrar</code> pattern) lets third-party crates add formats. Critically, hand each
+decoder a <code>&amp;dyn Resolver</code> — Bevy's <code>LoadContext</code> lesson — so a glTF or OBJ
+decoder can pull in its sibling buffers and textures. Express <em>intra-format</em> dependencies via
+this re-entry, not as graph nodes; reserve graph nodes for user-authored composition. (This boundary
+is genuinely unsettled — see Open Question 1.)</p>
+
+<h3>R4 · Synchronous loading: block-on-first-use, with an optional pre-warm pass</h3>
+<div class="box flux">
+  <span class="tag">The decision that matters most</span>
+  <p>Every async-first design here (Bevy, Unity, Unreal, three.js) conflicts with Flux's
+  synchronous evaluator. The closest analogue, <strong>tixl, is synchronous</strong> — its
+  <code>Lazy&lt;T?&gt;</code> blocks on first <code>GetValue</code> and caches thereafter — and it
+  works. <strong>Default to that.</strong> A <code>LoadTexture</code> operator resolves+decodes
+  synchronously the first time it evaluates, caches the typed asset, and returns the cached value on
+  every subsequent frame.</p>
+  <p>Layer one optimisation on top: a <strong>pre-warm pass</strong> — p5.js's <code>preload()</code>
+  barrier, generalised. Before graph evaluation, walk the graph for <code>Load*</code> operators and
+  resolve+decode them on a worker pool (Bevy's <code>IoTaskPool</code> is a fine <em>mechanism</em>
+  to borrow). By <code>evaluate()</code> time the assets are cache hits and the hot path stays
+  synchronous. <strong>Do not</strong> adopt the async-handle model where a downstream operator must
+  handle a <code>Loading | Ready(T)</code> value — that reintroduces the frame-loop assumption Flux
+  exists to avoid. The packed runtime has local assets anyway, so blocking is cheap there.</p>
+</div>
+
+<h3>R5 · Lifetime: a central asset cache; operators hold IDs</h3>
+<p>The project memory already records that Flux rejected operator-owns-resources for GPU resources
+and wants centralised resource management. The asset layer should follow suit: a central cache/pool
+owns decoded assets and keys them by logical path for dedup; operators hold a lightweight
+<code>AssetId</code>, not an <code>Arc&lt;Asset&gt;</code>. Do <em>not</em> copy Bevy's distributed
+"last strong handle drop frees it" model — it scatters lifetime across the graph. tixl's
+<code>FileResource</code> <code>Claim</code>/<code>Release</code> refcounting <em>at the cache
+layer</em> is the right altitude for that logic.</p>
+
+<h3>R6 · Hot-reload: copy tixl's watcher → dirty-flag propagation</h3>
+<p>It is the only studied mechanism that propagates a file change correctly through a node graph,
+and it is synchronous-friendly. OS watcher on a background thread → debounced event queue → drained
+on the main thread at frame start → invalidate the cache entry by stable <code>AssetId</code> →
+mark dependent operator output slots dirty → the existing Flux dirty-propagation re-evaluates
+downstream. The async is confined to the OS watch thread. Editor only — the packed
+<code>BundleResolver</code> registers no watcher (tixl ships the Player with
+<code>FileWatcher = null</code>).</p>
+
+<h3>R7 · Bundling: a content catalog + a packed blob, with optional pre-decode</h3>
+<p>tixl copies raw files flat; the demoscene embeds a compact binary; Unreal cooks; Unity ships a
+catalog. Target the middle: a <strong>catalog</strong> (manifest mapping logical path → offset,
+length, content hash, format hint) plus a <strong>packed blob</strong> the
+<code>BundleResolver</code> memory-maps and resolves by offset. Consider moving Decode to pack time
+for the shipped runtime — transcode PNG → BCn, pre-compile shaders — so the runtime only
+deserializes (Unreal's cook, Bevy's processed assets). That makes "decode" have a <em>bake</em>
+variant. Carry per-asset import settings in a Bevy-style <code>.meta</code> sidecar.</p>
+
+<h3>R8 · Make procedural-generation operators first-class peers of <code>Load*</code></h3>
+<p>The demoscene insight, applied: a node-graph framework should treat <code>GenerateNoise</code>,
+<code>GenerateGradient</code> and similar as first-class assets, not afterthoughts. Every asset
+expressible as a deterministic subgraph costs bytes of parameters instead of megabytes of data, and
+needs no bundle entry, no resolution and no decode. This shrinks the bundling problem to its
+irreducible core — the genuinely external, authored content.</p>
+
+<h3>R9 · Error handling: deterministic fallback assets, never an aborted evaluation</h3>
+<p>Improve on Bevy/Unity/Unreal here. The Decode layer should own deterministic fallback assets — a
+magenta checkerboard texture, a unit-cube mesh, an identity shader — so a synchronous graph
+evaluation <em>always</em> produces a frame even when a file is missing or corrupt. Surface the
+failure to the editor as an operator error badge (tixl's <code>LogErrorState</code>, TouchDesigner's
+red node), but never let a missing asset crash a packed runtime. Operator output type is
+<code>Result&lt;Asset, AssetError&gt;</code> with a typed enum — <code>NotFound</code>,
+<code>DecodeFailed</code>, <code>BundleKeyMissing</code> — so the evaluator can mark downstream
+operators errored without panicking.</p>
+
+<table class="mini">
+<thead><tr><th>Copy from…</th><th>Deliberately do NOT copy</th></tr></thead>
+<tbody>
+<tr>
+<td>
+  <ul style="margin:4px 0;padding-left:18px">
+    <li>Bevy's <code>AssetReader</code>/<code>AssetLoader</code> split &amp; <code>scheme://path#label</code> grammar</li>
+    <li>tixl's <code>IResourcePackage</code> registry, sync <code>Lazy</code> load, and graph hot-reload propagation</li>
+    <li>Cinder's <code>DataSource</code> byte-source abstraction &amp; <code>ImageIoRegistrar</code> decode registry</li>
+    <li>three.js's <code>FileLoader</code>/<code>LoadingManager</code>/typed-loader triad &amp; in-flight dedup</li>
+    <li>Unity's catalog as the build↔runtime contract; Unreal's cook-time pre-decode</li>
+    <li>Bevy's <code>.meta</code> sidecars; <code>IoTaskPool</code> as a pre-warm mechanism</li>
+  </ul>
+</td>
+<td>
+  <ul style="margin:4px 0;padding-left:18px">
+    <li>Async-first "handle is a promise" (Bevy, Unity) — assumes a frame loop</li>
+    <li>Bevy's <code>AssetEvent</code>/<code>EventReader</code> polling as the readiness mechanism</li>
+    <li>Unity's manual <code>Release()</code> refcounting — Rust <code>Drop</code> + central pool replace it</li>
+    <li>openFrameworks' global <code>dataPathRoot</code> and fused load+decode+upload</li>
+    <li>three.js's cache-off-by-default; p5.js's unsynchronised vessel mutation</li>
+    <li>TouchDesigner/vvvv per-operator fused loaders; Cinder's implicit walk-up search</li>
+  </ul>
+</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="open"><span class="num">8</span>Open questions</h2>
+
+<p>Questions this research surfaced but could not settle:</p>
+
+<ol>
+  <li><strong>Where does decode-time sibling resolution live?</strong> Loader-driven recursion
+  (Bevy's <code>LoadContext</code>, tixl tracing HLSL <code>#include</code>s) keeps the graph clean
+  but couples decode to resolution and hides dependencies from the graph. Graph-expressed
+  dependencies (separate <code>LoadTexture</code> nodes) are explicit but explode the node count
+  for a glTF referencing a dozen textures. R3 proposes a hybrid — loader recursion for intra-format
+  deps, graph nodes for user composition — but the exact boundary is unproven.</li>
+
+  <li><strong>Does block-on-first-use cause unacceptable editor hitches?</strong> tixl's synchronous
+  <code>Lazy</code> works, but tixl-scale assets may be smaller than Flux's targets. A first-frame
+  block on a large mesh or 8K texture could stutter the editor. The pre-warm pass mitigates it — at
+  the cost of complexity. No measurements exist yet.</li>
+
+  <li><strong>Path-keyed vs content-addressed bundle keys.</strong> Path keys are simple and
+  universal here; content hashes (Unreal's cooked GUIDs) enable cross-path dedup and incremental
+  patch bundles. Whether Flux's bundle needs patchability is a product decision not yet made.</li>
+
+  <li><strong>Is pre-decode (cooking) mandatory or optional for the packed runtime?</strong> Cooking
+  gives fast loads and a small, simple runtime, but a slow pack step and a hard coupling between the
+  packer and the runtime's format version. Bevy makes processing optional
+  (<code>AssetMetaMode</code>); Unreal makes it mandatory. Undecided.</li>
+
+  <li><strong>Do small data assets (CSV/JSON) want the same substrate?</strong> Texture/mesh/shader
+  assets are large, decode-expensive and cache-friendly. A small JSON file is cheap to parse and may
+  want to behave as a live-editable <em>value</em> in the graph rather than a cached binary asset.
+  Whether one substrate fits both, or data files deserve a lighter path, is unresolved.</li>
+
+  <li><strong>Streaming genuinely large media.</strong> None of the synchronous-friendly references
+  (tixl, Processing) actually stream. If Flux needs video or large point clouds, the synchronous
+  model breaks down and likely needs a TouchDesigner-style escape hatch — background decode that
+  presents the latest-ready frame. That is a deliberate exception to R4, not covered by the
+  current design.</li>
+
+  <li><strong>Where does GPU upload happen?</strong> Decoding a texture yields bytes; turning them
+  into a <code>wgpu::Texture</code> needs a device and queue. openFrameworks fuses upload into
+  decode (an anti-pattern). Whether upload belongs in the Decode layer or is a separate step — and
+  how it interacts with Flux's existing command-flow design for GPU work — needs to be reconciled
+  with that adjacent work.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id="sources"><span class="num">9</span>Sources</h2>
+
+<h4>Repository material</h4>
+<ul class="src" style="font-size:12.5px">
+  <li>notes/themes/systems/asset-loading.md — the existing theme stub this study supersedes</li>
+  <li>notes/per-framework/{openframeworks,cinder,processing,p5js,cables,tixl}/ — framework studies</li>
+  <li>notes/per-library/web/{threejs,babylonjs}/ — web rendering library studies</li>
+  <li>notes/per-demoscene/apex-public/{texgen/,size-optimization.md,architecture.md} — procedural-asset evidence</li>
+  <li>visual-programming/tixl/Core/Resource/ — ResourceManager, ResourceFileWatcher, FileResource, Resource&lt;T&gt;</li>
+  <li>visual-programming/tixl/Editor/UiModel/Exporting/ — PlayerExporter</li>
+  <li>frameworks/{openframeworks,cinder,processing,p5js}/ — submodule source</li>
+  <li>libraries/web/threejs/src/loaders/ — Loader, LoadingManager, FileLoader, Cache, typed loaders</li>
+  <li>insights/command-flow-{briefing,implementation}.md — adjacent Flux design work (GPU command flow)</li>
+</ul>
+
+<h4>General knowledge <span class="gk">GK</span> — frameworks the repo does not document as submodules</h4>
+<p class="src" style="font-size:12.5px">Bevy (verified against Bevy ≈0.14–0.16 documentation: docs.rs
+<code>bevy::asset</code>, the Asset V2 / multiple-asset-sources PRs, the official migration guides),
+TouchDesigner, vvvv gamma (the repo's gray-book submodule covers vvvv's NuGet packaging only),
+Unity Addressables and Unreal Engine. All claims for these are marked <span class="gk">GK</span> in
+the matrix and prose, per the sourcing rules of this study.</p>
+
+<footer>
+  <p>Comparative theme study · <strong>study-creative-coding</strong> · compiled 2026-05-15.
+  Prepared to inform the file-loading subsystem design for <strong>Flux</strong>. Findings were
+  assembled from this repository's framework studies and submodule source, with general-knowledge
+  supplements explicitly marked. Where frameworks diverge in ways that matter for Flux's
+  constraints — Rust ownership, synchronous graph evaluation, the editor + bundle duality — those
+  divergences are flagged inline.</p>
+</footer>
+
+</div>
+</body>
+</html>

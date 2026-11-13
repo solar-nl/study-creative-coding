@@ -8,9 +8,9 @@
 
 ---
 
-## The Problem: GPUs Only Understand Triangles
+## The Problem: Most Frameworks Hand the GPU Triangles
 
-When you draw an ellipse, your creative coding framework doesn't send "ellipse" to the GPU. GPUs have one primitive they're optimized for: **triangles**. Everything else—curves, circles, complex polygons—must be converted to triangles first.
+When you draw an ellipse, your creative coding framework doesn't send "ellipse" to the GPU. The fixed-function rasterizer takes **triangles**, and most frameworks in this study convert every curve, circle and complex polygon into triangles before drawing. That is a choice, not a law: openrndr expands paths into stencil-covered fans with an anti-aliasing fringe, and Vello computes per-pixel coverage without ever triangulating. See [rasterization-strategies.md](rasterization-strategies.md) for the full comparison. This document covers the triangle route.
 
 This conversion is called **tessellation** (or triangulation). It's computationally expensive, which is why understanding when and how it happens matters for performance.
 
@@ -144,9 +144,9 @@ tessellator.tessellate_path(
 - Memory-efficient (no intermediate allocations)
 - Customizable vertex generation via `GeometryBuilder` trait
 
-### kartifex (openrndr)
+### kartifex (openrndr): boolean operations, not tessellation
 
-Used internally by openrndr for boolean operations and tessellation.
+openrndr uses kartifex for boolean operations only. Its drawer never tessellates fills: `Drawer.contour()` expands the contour into a triangle fan covered by a non-zero stencil pass plus an anti-aliasing fringe strip (NanoVG's technique, `openrndr-draw/src/commonMain/kotlin/org/openrndr/internal/ExpansionDrawer.kt:231-363`). A GLU-based `Triangulator` exists in `openrndr-shape` but only backs the lazy `Shape.triangulation` property for users who want a mesh. The kartifex round trip below is what the boolean operations do.
 
 ```kotlin
 // Convert to kartifex primitives
@@ -209,7 +209,7 @@ Available in: OpenGL 4.0+, Direct3D 11+, Vulkan, Metal
 
 **How it works:** General-purpose compute generates vertex buffers.
 
-Used by advanced renderers like Vello for resolution-independent text and paths.
+Vello is the renderer usually cited here, but it does not tessellate at all: its compute shaders flatten paths and resolve per-pixel coverage directly, and no vertex buffer for the fill is ever produced. Its newer Sparse Strips renderers move flattening and tiling to the CPU and still never triangulate. See [vello notes](../../per-library/rust/vello/README.md) for the study plan.
 
 ---
 
@@ -311,12 +311,14 @@ gpu.draw(&combined_mesh);
 | Processing | Java2D/OpenGL | Per-renderer | PShape |
 | OpenFrameworks | libtess2 | Configurable | ofPath cache |
 | Cinder | GLU tessellator | Per-call | Manual |
-| openrndr | kartifex | Configurable | Lazy |
+| openrndr | None in the drawer (NanoVG-style stencil fan + fringe; `Triangulator` exists but is only used by `Shape.triangulation`) | Adaptive | None |
 | nannou | Lyon | Adaptive | Manual |
 
 ---
 
 ## Recommendations for Rust
+
+> **Superseded for Flux's path rasterizer (2026-10-21):** [ADR-005](../../../insights/architecture-decisions.md) and [2d-rendering-strategy.md](../../../insights/2d-rendering-strategy.md) recommend sparse-strip coverage rendering for paths and text. Lyon remains the choice wherever a triangle mesh is the actual goal. See [rasterization-strategies.md](rasterization-strategies.md).
 
 1. **Use Lyon** for fill tessellation—it's fast, correct, and pure Rust.
 
@@ -339,4 +341,4 @@ gpu.draw(&combined_mesh);
 
 ---
 
-*This document is part of the [Vector Graphics Theme](vector-graphics.md) research.*
+*This document is part of the [Vector Graphics Theme](README.md) research.*
