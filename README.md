@@ -24,6 +24,7 @@ This repository collects major creative coding frameworks as git submodules alon
 |-----------|----------|-------|
 | [OpenFrameworks](frameworks/openframeworks) | C++ | Native, addon ecosystem |
 | [Cinder](frameworks/cinder) | C++ | High-performance, excellent API |
+| [Harfang 3D](frameworks/harfang3d) | C++ (Python/Lua/Go bindings) | bgfx-backed visualization engine, generated bindings, two-tier PBR pipeline |
 
 ### openrndr Ecosystem
 | Framework | Language | Focus |
@@ -70,12 +71,18 @@ This repository collects major creative coding frameworks as git submodules alon
 | Library | Language | Focus |
 |---------|----------|-------|
 | [toxiclibs](libraries/processing-ecosystem/toxiclibs) | Java | Computational geometry, physics, color theory |
-| [ControlP5](libraries/controlp5) | Java | GUI library with 30+ widgets |
+| [ControlP5](libraries/processing-ecosystem/controlp5) | Java | GUI library with 30+ widgets |
+
+### vvvv Ecosystem
+| Library | Language | Focus |
+|---------|----------|-------|
+| [VL.StandardLibs](libraries/vvvv-ecosystem/VL.StandardLibs) | C# | Standard nodes; VL.Skia 2D layer model on SkiaSharp |
 
 ### Rust Libraries
 | Library | Language | Focus |
 |---------|----------|-------|
 | [wgpu](libraries/rust/wgpu) | Rust | WebGPU implementation (nannou backend) |
+| [vello](libraries/rust/vello) | Rust | GPU 2D vector rendering (Sparse Strips, compute) |
 
 ## Examples & Samples
 
@@ -156,14 +163,14 @@ Cross-cutting analysis organized by category. See [themes/README.md](notes/theme
 
 Some frameworks were considered but not included as submodules:
 
-- **vvvv gamma** — Main IDE is not open source; VL.StandardLibs requires git-lfs. Study via [The Gray Book](https://thegraybook.vvvv.org/) and [VL.StandardLibs](https://github.com/vvvv/VL.StandardLibs) online.
+- **vvvv gamma** — The IDE is not open source. Its documentation ([The Gray Book](references/the-gray-book)) and standard node libraries ([VL.StandardLibs](libraries/vvvv-ecosystem/VL.StandardLibs), checked out without git-lfs content) are submodules.
 
 ## Documentation Status
 
 | Category | Complete | Partial | Planned |
 |----------|----------|---------|---------|
-| **Frameworks** | p5.js, cables | nannou, tixl, drawbot | openrndr, cinder, openframeworks, processing |
-| **Libraries** | mixbox, threejs, pixijs, babylonjs | controlp5 | orx, toxiclibs, wgpu |
+| **Frameworks** | p5.js, cables | nannou, tixl, drawbot, openrndr, processing, harfang3d | cinder, openframeworks |
+| **Libraries** | mixbox, threejs, pixijs, babylonjs, vello | controlp5 | orx, toxiclibs, wgpu, VL.StandardLibs |
 | **Demoscene** | fr_public | — | — |
 | **Examples** | — | — | webgpu-samples |
 | **Themes** | typography/, vector-graphics/ | rendering/, core/ | systems/ |

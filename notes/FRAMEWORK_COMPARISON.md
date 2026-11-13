@@ -18,6 +18,7 @@ This document synthesizes insights from eight frameworks studied in depth:
 | p5.js | JavaScript | 2014 | Code-first, accessibility-focused |
 | OpenFrameworks | C++ | 2005 | Code-first, addon ecosystem |
 | Cinder | C++ | 2010 | Code-first, professional quality |
+| Harfang 3D | C++ (Python/Lua/Go) | 2021 (source; binaries earlier) | Code-first, retained scene, application-owned loop |
 | openrndr | Kotlin | 2018 | Code-first, DSL-oriented |
 | nannou | Rust | 2018 | Code-first, type-safe |
 | Cables | JavaScript | 2016 | Visual programming, dataflow |
@@ -72,11 +73,12 @@ You build a scene tree of objects, then the framework renders it. Objects persis
 
 | Framework | GPU Backend | State Model | Batching | Extensibility |
 |-----------|-------------|-------------|----------|---------------|
-| Processing | OpenGL (JOGL) | Global + per-call | Manual | Libraries |
+| Processing | Java2D (CPU) or OpenGL (JOGL) | Global + per-call | Batched until flush (P2D) | Libraries |
 | p5.js | Canvas 2D / WebGL | Global | Browser-handled | Addons |
 | OpenFrameworks | OpenGL | Push/pop stacks | Manual | Addons |
 | Cinder | OpenGL | Explicit state | Manual | Blocks |
-| openrndr | OpenGL 3.3 | Drawer context | Manual | orx extensions |
+| Harfang 3D | bgfx (Vulkan/Metal/D3D/OpenGL/GLES, WebGL 2 via Emscripten) | Explicit bgfx view ids + retained scene | bgfx sorts submissions per view | C++ SDK; FABGen bindings |
+| openrndr | OpenGL 3.3 (stencil required for shapes) | Drawer context | Manual | orx extensions |
 | nannou | [wgpu](https://github.com/gfx-rs/wgpu) | Draw context | Automatic (lyon) | Crates |
 | Cables | WebGL / WebGPU | Push/pop stacks | Manual | Operators |
 | tixl | DirectX 11 | Dirty flags | Automatic | Operators |
@@ -89,6 +91,7 @@ You build a scene tree of objects, then the framework renders it. Objects persis
 | p5.js | `preload()` / `setup()` / `draw()` | Async with preload | Friendly errors |
 | OpenFrameworks | `setup()` / `update()` / `draw()` | Manual | Exceptions |
 | Cinder | `setup()` / `update()` / `draw()` | Manual | Exceptions |
+| Harfang 3D | Application-owned loop, `SubmitSceneToPipeline` per frame | `LoadSceneFromAssets`, load queues in `PipelineResources` | Boolean returns, `IsValid`, log |
 | openrndr | `extend {}` blocks | Suspend functions | Kotlin exceptions |
 | nannou | `model()` / `update()` / `view()` | Futures | Rust Results |
 | Cables | Trigger-driven | Async loading ops | Console warnings |
@@ -102,6 +105,7 @@ You build a scene tree of objects, then the framework renders it. Objects persis
 | p5.js | `push()` / `pop()` | Built-in + GLSL | p5.Geometry |
 | OpenFrameworks | `ofPushMatrix()` / `ofPopMatrix()` | ofShader | ofMesh |
 | Cinder | Explicit matrices | ci::gl::GlslProg | ci::geom |
+| Harfang 3D | `Transform` component (TRS) on scene nodes | bgfx programs precompiled by assetc/shaderc | `Model` / `Geometry` (`model_builder.h`) |
 | openrndr | Drawer transforms | GLSL + composition | Shape/Contour |
 | nannou | Draw context transforms | wgsl | Mesh types |
 | Cables | Context stacks | Module injection | CgMesh |
@@ -383,14 +387,15 @@ Based on patterns observed across all eight frameworks:
 
 | Framework | Documentation |
 |-----------|---------------|
-| Processing | [README](per-framework/processing/README.md) · [Architecture](per-framework/processing/architecture.md) |
-| p5.js | [README](per-framework/p5js/README.md) · [Architecture](per-framework/p5js/architecture.md) |
+| Processing | [README](per-framework/processing/README.md) · [Architecture](per-framework/processing/architecture.md) · [Rendering Pipeline](per-framework/processing/rendering-pipeline.md) |
+| p5.js | [README](per-framework/p5js/README.md) · [Architecture](per-framework/p5js/architecture.md) · [Rendering Pipeline](per-framework/p5js/rendering-pipeline.md) |
 | OpenFrameworks | [README](per-framework/openframeworks/README.md) · [Architecture](per-framework/openframeworks/architecture.md) |
 | Cinder | [README](per-framework/cinder/README.md) · [Architecture](per-framework/cinder/architecture.md) |
-| openrndr | [README](per-framework/openrndr/README.md) · [Architecture](per-framework/openrndr/architecture.md) |
+| Harfang 3D | [README](per-framework/harfang3d/README.md) · [Architecture](per-framework/harfang3d/architecture.md) · [Rendering Pipeline](per-framework/harfang3d/rendering-pipeline.md) |
+| openrndr | [README](per-framework/openrndr/README.md) · [Architecture](per-framework/openrndr/architecture.md) · [Rendering Pipeline](per-framework/openrndr/rendering-pipeline.md) |
 | nannou | [README](per-framework/nannou/README.md) · [Architecture](per-framework/nannou/architecture.md) |
 | Cables | [README](per-framework/cables/README.md) · [Architecture](per-framework/cables/architecture.md) |
-| tixl | [README](per-framework/tixl/README.md) · [Architecture](per-framework/tixl/architecture.md) |
+| tixl | [README](per-framework/tixl/README.md) · [Architecture](per-framework/tixl/architecture.md) · [Rendering Pipeline](per-framework/tixl/rendering-pipeline.md) |
 
 ## Related Theme Studies
 
@@ -398,11 +403,11 @@ Cross-cutting analyses that compare frameworks on specific topics:
 
 | Theme | Document |
 |-------|----------|
-| Typography | [themes/typography.md](themes/typography.md) |
-| Rendering Backends | [themes/rendering-backends.md](themes/rendering-backends.md) |
-| Transform Stacks | [themes/transform-stacks.md](themes/transform-stacks.md) |
-| Shader Abstractions | [themes/shader-abstractions.md](themes/shader-abstractions.md) |
-| Event Systems | [themes/event-systems.md](themes/event-systems.md) |
+| Typography | [themes/typography/README.md](themes/typography/README.md) |
+| Rendering Backends | [themes/rendering/backends.md](themes/rendering/backends.md) |
+| Transform Stacks | [themes/core/transform-stacks.md](themes/core/transform-stacks.md) |
+| Shader Abstractions | [themes/rendering/shader-abstractions.md](themes/rendering/shader-abstractions.md) |
+| Event Systems | [themes/systems/event-systems.md](themes/systems/event-systems.md) |
 
 ---
 
