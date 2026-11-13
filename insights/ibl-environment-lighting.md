@@ -853,8 +853,8 @@ In WGSL, use `textureSampleLevel(env_cubemap, sampler, direction, mip)` directly
 This guide is based on Phoenix/apEx's Monte Carlo IBL implementation from the Clean Slate demo:
 
 **Source files:**
-- `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/annotated/materials/deferred-fake-cubemap.hlsl` (329 lines)
-- `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl` (231 lines, original)
+- `research/apex-public/clean-slate/extracted/shaders/annotated/materials/deferred-fake-cubemap.hlsl` (329 lines)
+- `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl` (231 lines, original)
 
 **Study notes:**
 - `notes/per-demoscene/apex-public/code-traces/reflections-ibl.md` — Detailed trace of the algorithm
