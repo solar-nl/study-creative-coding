@@ -574,6 +574,8 @@ phxContext->Unmap(VertexBuffer, NULL);
 
 Unmapping flushes CPU writes and makes the buffer available to the GPU. The rendering pipeline can now access the updated particle data. The next draw call will render the particles with this frame's simulation state.
 
+> **What happens next**: The vertex buffer is now ready for the rendering pipeline. `CreateRenderDataInstances()` assembles material state, overrides texture slot 0 with the spline curve texture, and queues a render instance to the Transparent Layer. The GPU then processes each particle through the VS→GS→PS shader pipeline: the vertex shader samples lifetime curves, the geometry shader expands each point to a rotated quad, and the pixel shader applies sprite textures with dynamic alpha test dissolution. For the complete rendering pipeline, see **[rendering.md](rendering.md)**. For a step-by-step code trace from `CreateRenderDataInstances()` through to pixel output, see **[../code-traces/particle-rendering.md](../code-traces/particle-rendering.md)**.
+
 ## Spline Texture: Baking Life-Based Animation
 
 Standard particles (billboards) animate material properties over their lifetime. Opacity fades out as particles die. Color shifts from white-hot to red-cool. Size grows then shrinks. Phoenix bakes these animation curves into a 2D texture for efficient GPU sampling.

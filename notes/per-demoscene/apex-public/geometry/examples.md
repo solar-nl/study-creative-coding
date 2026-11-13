@@ -10,7 +10,7 @@ Think of this document like studying a master painter's sketchbook. The finished
 
 ## Extraction Source
 
-Models analyzed here come from `demoscene/apex-public/Projects/Clean Slate/extracted/models/`. The extraction process parsed Clean Slate's binary project file and serialized ModelObject definitions to JSON. Each file represents one geometric object as it existed in the authoring tool before compilation into the final 64KB executable.
+Models analyzed here come from `research/apex-public/clean-slate/extracted/models/`. The extraction process parsed Clean Slate's binary project file and serialized ModelObject definitions to JSON. Each file represents one geometric object as it existed in the authoring tool before compilation into the final 64KB executable.
 
 The JSON structure follows apEx's internal representation:
 - `guid` — Unique object identifier
@@ -25,7 +25,7 @@ Parameter values are stored as unsigned bytes or 16-bit fixed-point integers. Th
 
 ## Example 1: Cassette Tape (scenescasette.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenescasette.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenescasette.json`
 **Complexity:** 11 objects, mixture of primitives and loft operations
 **Purpose:** Physical media object with mechanical detail
 
@@ -116,7 +116,7 @@ The total vertex budget for this cassette is likely under 1000 vertices—remark
 
 ## Example 2: Greebled Surface (scenesgreeble1.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenesgreeble1.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenesgreeble1.json`
 **Complexity:** Single GeoSphere with one filter
 **Purpose:** Demonstration of procedural detail generation
 
@@ -177,7 +177,7 @@ Artists vary the random seed to generate multiple unique objects from the same d
 
 ## Example 3: Organic Metaball Shapes (scenesblob1.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenesblob1.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenesblob1.json`
 **Complexity:** Two GeoSphere primitives with simple filters
 **Purpose:** Smooth organic forms for abstract scenes
 
@@ -235,7 +235,7 @@ This differs from mechanical modeling (cube + bevel + hard normals). Organic for
 
 ## Example 4: Terrain (scenesterrain.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenesterrain.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenesterrain.json`
 **Complexity:** Subdivided plane with four-filter stack
 **Purpose:** Ground surface with height variation
 
@@ -311,7 +311,7 @@ Without seeing the full scene graph, its exact purpose is unclear, but it's defi
 
 ## Example 5: Oscilloscope Visualization (scenesosci.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenesosci.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenesosci.json`
 **Complexity:** Loft primitive with two filter operations
 **Purpose:** Tube/ribbon geometry for waveform visualization
 
@@ -379,7 +379,7 @@ This same pattern applies to audio waveforms, ECG displays, seismograph outputs,
 
 ## Example 6: Spiral Form (scenesspiral.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenesspiral.json`
+**File:** `research/apex-public/clean-slate/extracted/models/scenesspiral.json`
 **Complexity:** Arc path with loft and five-filter stack
 **Purpose:** Twisted ribbon or spiral geometry
 
@@ -454,7 +454,7 @@ This creates complex spiral ribbons suitable for abstract visuals, DNA helices, 
 
 ## Example 7: Head (sceneshead.json)
 
-**File:** `demoscene/apex-public/Projects/Clean Slate/extracted/models/sceneshead.json`
+**File:** `research/apex-public/clean-slate/extracted/models/sceneshead.json`
 **Complexity:** Stored mesh with three-filter refinement stack
 **Purpose:** Organic character geometry
 
@@ -751,7 +751,7 @@ The next step is implementing these patterns in a Rust-based framework: trait-ba
 
 ## References
 
-- Model extraction files: `demoscene/apex-public/Projects/Clean Slate/extracted/models/scenes*.json`
+- Model extraction files: `research/apex-public/clean-slate/extracted/models/scenes*.json`
 - Primitive implementations: `notes/per-demoscene/apex-public/geometry/primitives.md`
 - Filter implementations: `notes/per-demoscene/apex-public/geometry/filters.md`
 - Architecture overview: `notes/per-demoscene/apex-public/architecture.md`

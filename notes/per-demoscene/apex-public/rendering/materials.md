@@ -54,6 +54,14 @@ enum MATERIALPARAMTYPE
 
 **Special parameters** (LTC1, LTC2, DEPTHTEXTURE7) bind engine-global resources. LTC textures are created once during engine initialization and shared across all materials needing area lights.
 
+**Particle parameters** (PARTICLELIFEFLOAT, PARTICLELIFE) are specific to particle system materials:
+
+- `PARAM_PARTICLELIFEFLOAT` identifies material splines that should be baked into the particle spline texture. During `UpdateSplineTexture()` (Scene.cpp:729-774), the system iterates all material splines and selects those targeting `PARAM_PARTICLELIFEFLOAT` parameters. Each selected spline gets sampled at 2048 points and stored as one row in a R32_FLOAT texture. The shader then samples these curves using particle lifetime as the U coordinate, with each row representing a different visual property (color R/G/B/A, size, chaos variants, alpha test). This type is only available in `TECH_PARTICLE` materials in the editor UI, but the engine treats it identically to `PARAM_FLOAT` for constant buffer purposes. During material spline setup (Project.cpp:1997), `PARAM_PARTICLELIFEFLOAT` splines are only created for clip ID 0.
+
+- `PARAM_PARTICLELIFE` appears in the enum (Material.h:62) but its usage differs from `PARAM_PARTICLELIFEFLOAT`. It likely represents per-particle lifetime splines evaluated on the CPU for mesh/subscene particles (where the spline texture approach doesn't apply), as opposed to `PARAM_PARTICLELIFEFLOAT` which targets GPU-sampled curve textures for billboard particles.
+
+At runtime, `CreateRenderDataInstances()` (Scene.cpp:624-625) unconditionally overrides texture slot 0 with the spline texture for all passes, regardless of what `PARAM_TEXTURE0` was originally set to. This means particle materials effectively lose their texture slot 0 — the sprite texture must use slot 1 (`PARAM_TEXTURE1`). See **[../particles/rendering.md](../particles/rendering.md)** for the full particle rendering pipeline.
+
 ### Parameter Scope
 
 The `MATERIALPARAMSCOPE` enum (Material.h:5) determines when parameters update.

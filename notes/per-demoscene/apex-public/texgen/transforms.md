@@ -871,7 +871,7 @@ This document focused on UV transform and distortion shaders. For the complete t
 
 ## Source File Reference
 
-All source paths are relative to `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/`.
+All source paths are relative to `research/apex-public/clean-slate/extracted/shaders/`.
 
 | Shader | Source Path | Annotated Path | Lines | Key Parameters |
 |--------|-------------|----------------|-------|----------------|

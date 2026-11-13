@@ -1111,12 +1111,13 @@ This overview introduces Phoenix's particle system architecture. For detailed su
 - **emitters.md** — Emission shapes, multi-source emission, hierarchical spawning patterns
 - **affectors.md** — Force calculations, area types, multi-octave turbulence, inverse transforms
 - **simulation.md** — Fixed timestep integration, particle lifecycle, sorting algorithms
-- **rendering.md** — Billboard expansion, spline textures, mesh instancing, subscene rendering
+- **[rendering.md](rendering.md)** — Billboard expansion, spline textures, mesh instancing, subscene rendering, deferred pipeline integration
+- **[gap-analysis.md](gap-analysis.md)** — Documentation gap inventory with severity and resolution status
 
 For implementation traces with source references:
 
-- **../code-traces/particle-emission.md** — Complete emission walkthrough from spawn to render
-- **../code-traces/turbulence-noise.md** — Trilinear sampling, kernel initialization, multi-octave combining
+- **[../code-traces/particle-frame.md](../code-traces/particle-frame.md)** — Complete simulation frame walkthrough
+- **[../code-traces/particle-rendering.md](../code-traces/particle-rendering.md)** — Rendering pipeline trace from CreateRenderDataInstances() to pixel output
 
 For cross-system integration:
 

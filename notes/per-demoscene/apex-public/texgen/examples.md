@@ -997,17 +997,17 @@ All source paths relative to `demoscene/apex-public/`.
 - `apEx/Phoenix/Texgen.h` (105-124) — PHXTEXTUREOPERATOR structure definition
 
 **Shader sources** (examples referenced in this document):
-- `Projects/Clean Slate/extracted/shaders/texgen/noise.hlsl` — Perlin noise generator
-- `Projects/Clean Slate/extracted/shaders/texgen/cells.hlsl` — Voronoi distance field
-- `Projects/Clean Slate/extracted/shaders/texgen/turbulence.hlsl` — Angular displacement
-- `Projects/Clean Slate/extracted/shaders/texgen/combine.hlsl` — 10 blend modes
-- `Projects/Clean Slate/extracted/shaders/texgen/colorize.hlsl` — Gradient mapping
-- `Projects/Clean Slate/extracted/shaders/texgen/blur.hlsl` — Separable blur (6 passes)
-- `Projects/Clean Slate/extracted/shaders/texgen/text.hlsl` — Text rendering wrapper
-- `Projects/Clean Slate/extracted/shaders/texgen/normalmap.hlsl` — Height-to-normal conversion
+- `research/apex-public/clean-slate/extracted/shaders/texgen/noise.hlsl` — Perlin noise generator
+- `research/apex-public/clean-slate/extracted/shaders/texgen/cells.hlsl` — Voronoi distance field
+- `research/apex-public/clean-slate/extracted/shaders/texgen/turbulence.hlsl` — Angular displacement
+- `research/apex-public/clean-slate/extracted/shaders/texgen/combine.hlsl` — 10 blend modes
+- `research/apex-public/clean-slate/extracted/shaders/texgen/colorize.hlsl` — Gradient mapping
+- `research/apex-public/clean-slate/extracted/shaders/texgen/blur.hlsl` — Separable blur (6 passes)
+- `research/apex-public/clean-slate/extracted/shaders/texgen/text.hlsl` — Text rendering wrapper
+- `research/apex-public/clean-slate/extracted/shaders/texgen/normalmap.hlsl` — Height-to-normal conversion
 
 **Annotated shader versions** (with extensive comments):
-- `Projects/Clean Slate/extracted/shaders/annotated/texgen/*.hlsl` — All operators with line-by-line explanations
+- `research/apex-public/clean-slate/extracted/shaders/annotated/texgen/*.hlsl` — All operators with line-by-line explanations
 
 Production texture graphs demonstrate that procedural generation isn't about individual operators—it's about composition. A noise generator alone produces noise. Combined with cells, distortion, colorization, and normal mapping, it produces convincing materials. The art lies not in the mathematics of each operator, but in understanding how they interact, which patterns create which visual effects, and how to orchestrate dozens of simple operations into complex results.
 

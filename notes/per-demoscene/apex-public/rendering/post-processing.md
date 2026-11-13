@@ -810,7 +810,7 @@ Effects that operate on HDR values (bloom threshold, lens flares) must execute b
 
 ## Source References
 
-Clean Slate project (`Projects/Clean Slate/extracted/shaders/materials/`):
+Clean Slate project (`research/apex-public/clean-slate/extracted/shaders/materials/`):
 
 | File | Lines | Effect |
 |------|-------|--------|

@@ -600,7 +600,7 @@ When you design a timeline system, study production data. See what artists actua
 
 ## References
 
-- **Source Data**: `/demoscene/apex-public/Projects/Clean Slate/extracted/timeline.json`
+- **Source Data**: `research/apex-public/clean-slate/extracted/timeline.json`
 - **Timeline Architecture**: `timeline/overview.md`
 - **Event Types**: `timeline/event-types.md`
 - **Time Remapping**: `timeline/time-splines.md`

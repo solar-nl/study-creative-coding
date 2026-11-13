@@ -765,9 +765,9 @@ The key insight is that Phoenix makes deliberate tradeoffs. It sacrifices genera
 
 ## References
 
-- `/Users/scjas/Developer/03 - solar-nl/02 - Github Public/study-creative-coding/notes/per-demoscene/apex-public/architecture.md` - Phoenix engine module structure and design philosophy
-- `/Users/scjas/Developer/03 - solar-nl/02 - Github Public/study-creative-coding/notes/per-demoscene/apex-public/rendering/pipeline.md` - Complete rendering pipeline trace from timeline to GPU
-- `/Users/scjas/Developer/03 - solar-nl/02 - Github Public/study-creative-coding/notes/per-demoscene/apex-public/code-traces/scene-to-pixels.md` - Detailed code walkthrough of scene graph traversal and material expansion
+- `notes/per-demoscene/apex-public/architecture.md` - Phoenix engine module structure and design philosophy
+- `notes/per-demoscene/apex-public/rendering/pipeline.md` - Complete rendering pipeline trace from timeline to GPU
+- `notes/per-demoscene/apex-public/code-traces/scene-to-pixels.md` - Detailed code walkthrough of scene graph traversal and material expansion
 - `demoscene/apex-public/apEx/Phoenix/Timeline.cpp` - Timeline event execution and spline evaluation
 - `demoscene/apex-public/apEx/Phoenix/Scene.cpp` - Scene graph traversal and render layer management
 - `demoscene/apex-public/apEx/Phoenix/Material.cpp` - Material pass expansion into render instances

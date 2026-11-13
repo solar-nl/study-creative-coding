@@ -343,6 +343,19 @@ Transparent materials:
 
 This limits transparent object complexity. Each transparent object re-evaluates all lights. For a few transparent objects with a few lights, this is acceptable.
 
+### Particle System Integration
+
+Particle systems render exclusively on the Transparent Layer. They can't participate in deferred rendering because billboard quads have no meaningful surface normals, PBR properties, or stable geometry for G-Buffer output.
+
+Standard particles (billboards) use `TECH_PARTICLE` materials that target the Transparent Layer through `CphxMaterialTechnique::TargetLayer`. During rendering, particles:
+
+- **Read depth**: Depth testing is enabled, so particles are correctly occluded by solid geometry from the Solid Layer
+- **Don't write depth**: `DepthWriteMask = ZERO` prevents particles from occluding each other through depth; visual ordering comes from back-to-front CPU sorting (`qsort` on camera-space distances)
+- **Don't receive deferred lighting**: Particle colors are purely emissive, driven by lifetime spline curves. This is intentional — most particle effects (fire, sparks, magic) emit light rather than reflecting it
+- **Blend additively or with alpha**: Blend mode is configured per-material, typically additive (`SrcBlend=ONE, DstBlend=ONE`) for glow effects or alpha blend (`SrcBlend=SRC_ALPHA, DstBlend=INV_SRC_ALPHA`) for smoke/fog
+
+Mesh and subscene particles render as standard geometry but inherit the Transparent Layer targeting from their material. Each particle instance generates independent draw calls — see **[../particles/rendering.md](../particles/rendering.md)** for draw call count analysis and performance characteristics.
+
 ## Forward vs. Deferred Trade-offs
 
 | Aspect | Forward | Deferred |

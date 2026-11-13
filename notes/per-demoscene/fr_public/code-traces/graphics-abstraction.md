@@ -537,7 +537,7 @@ Altona uses `#if sRENDERER==sRENDER_*` throughout the codebase to include differ
 - Each binary targets exactly one graphics API
 - Dead code elimination removes unused backends
 
-This is different from runtime abstraction layers (like BGFX or Sokol) where a single binary can switch backends.
+This is different from runtime abstraction layers (like BGFX or Sokol) where a single binary can switch backends. [Harfang 3D](../../../per-framework/harfang3d/README.md) is the bgfx-based engine in this repository, if you want to read the two approaches side by side.
 
 ### 2. Inheritance-Based Private Data
 

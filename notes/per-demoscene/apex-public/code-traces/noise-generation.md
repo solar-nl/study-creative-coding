@@ -251,7 +251,7 @@ This has a performance cost (256×256×4 = 262,144 PRNG calls per pass, plus tex
 
 ## Shader Execution: First Octave
 
-**File**: `Projects/Clean Slate/extracted/shaders/texgen/noise.hlsl` (annotated version)
+**File**: `research/apex-public/clean-slate/extracted/shaders/texgen/noise.hlsl` (annotated version)
 
 The pixel shader executes once per pixel in the 256×256 (or higher resolution) target. For the first pass (index 0), it generates the base frequency octave.
 

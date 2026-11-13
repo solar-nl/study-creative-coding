@@ -873,7 +873,7 @@ Phoenix generators form the input layer of a larger texture processing pipeline.
 
 ## Source Files
 
-All generator shaders reside in `/demoscene/apex-public/Projects/Clean Slate/extracted/shaders/`:
+All generator shaders reside in `research/apex-public/clean-slate/extracted/shaders/`:
 
 **Annotated Versions** (with detailed comments):
 - `annotated/texgen/noise.hlsl` — Multi-octave Perlin noise (177 lines)

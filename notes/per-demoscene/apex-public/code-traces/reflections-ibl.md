@@ -16,7 +16,7 @@ The key enabling technique: importance sampling. Instead of sampling the environ
 
 ## The DeCube Trick: 3D to 2D Projection
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:103-111`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:103-111`
 
 The `DeCube()` function is the heart of the fake cubemap technique. It projects a 3D direction vector onto a 2D texture coordinate as if the texture were a cubemap face.
 
@@ -44,7 +44,7 @@ float2 DeCube(float3 v2)
 
 ## Hammersley Quasi-Random Sampling
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:94-101`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:94-101`
 
 Monte Carlo integration requires random samples across the hemisphere. Pure random sampling converges slowly — it takes thousands of samples to achieve smooth results. Quasi-random sequences provide much better stratification: each new sample fills gaps left by previous samples.
 
@@ -74,7 +74,7 @@ float radicalInverse_VdC(uint bits)
 
 ## Phase 1: Diffuse Irradiance Integration
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:166-186`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:166-186`
 
 The diffuse pass integrates incoming light from all directions across the hemisphere, weighted by the Lambertian BRDF (which is just cosine).
 
@@ -122,7 +122,7 @@ for (int i = 0; i < NumSamples; i++)
 
 ## Phase 2: Specular Reflections with GGX Sampling
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:188-226`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:188-226`
 
 The specular pass is more sophisticated. It importance-samples the GGX normal distribution, selecting half-vectors (microfacet normals) according to how likely they are to contribute to the final reflection.
 
@@ -229,7 +229,7 @@ if (maxAxis == absUV.y)
 
 ### Fresnel: Schlick Approximation
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:89-92`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:89-92`
 
 ```hlsl
 float3 fresnelSchlick(float cosTheta, float3 F0)
@@ -246,7 +246,7 @@ Fresnel describes how much light reflects versus refracts at a surface. At glanc
 
 ### Geometry: Smith GGX
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:113-132`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:113-132`
 
 ```hlsl
 float GeometrySchlickGGX(float NdotV, float roughness)
@@ -281,7 +281,7 @@ The geometry term accounts for microfacet self-shadowing. Rough surfaces have ta
 
 ### Distribution: GGX
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:139-145`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:139-145`
 
 ```hlsl
 float sqr(in float x)
@@ -308,7 +308,7 @@ GGX (also called Trowbridge-Reitz) defines how microfacet normals are distribute
 
 ## Energy Conservation and the kD Factor
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:159-164`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl:159-164`
 
 ```hlsl
 float3 F0 = lerp(0.04, albedo, metallic);
@@ -501,7 +501,7 @@ For importance sampling theory and implementation:
 
 **Extracted shader path**:
 ```
-demoscene/apex-public/Projects/Clean Slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl
+research/apex-public/clean-slate/extracted/shaders/materials/deferred-fake-cubemap.hlsl
 ```
 
 **Shader metadata**:

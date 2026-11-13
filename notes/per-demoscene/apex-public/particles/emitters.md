@@ -86,11 +86,13 @@ CphxMaterial *Material;
 #endif
 ```
 
-Standard particles render as billboarded quads using a vertex buffer and material system. The `VertexBuffer` holds per-particle data: position, lifetime (normalized 0-1), rotation angle, and chaos value. The vertex shader reads this data and generates quad corners in screen space. The geometry shader can expand points into quads, or the vertex shader can use instancing with a quad template mesh.
+Standard particles render as billboarded quads using a vertex buffer and material system. The `VertexBuffer` holds 8 floats per particle: position (xyz + w=1), lifetime (normalized 0-1), rotation angle, chaos value, and padding. The vertex shader transforms positions to view space, samples lifetime curves, and passes data to the geometry shader, which expands each point into a rotated camera-facing quad. The pixel shader applies sprite textures and lifetime-driven alpha test dissolution.
 
-The `SplineTexture` holds particle-lifetime-driven material parameters sampled in shaders. Instead of uploading per-particle material data, the system bakes animated splines into a 1D texture (2048 pixels wide). The pixel shader samples this texture using normalized lifetime as the U coordinate. Different material parameters (color, opacity, size) occupy different V rows. This approach compresses animation data: 100 particles with lifetime-driven color can share a single 2048x1 texture instead of requiring 100 separate color uploads.
+The `SplineTexture` holds particle-lifetime-driven material parameters sampled in shaders. Instead of uploading per-particle material data, the system bakes all `PARAM_PARTICLELIFEFLOAT` splines into a 2048×N R32_FLOAT texture via `UpdateSplineTexture()` (Scene.cpp:729-774). Each row represents a different parameter: rows 0-4 are base curves (R, G, B, A, Size), rows 5-9 are chaos curves for per-particle variation, and row 10 is the alpha test dissolution threshold. The shader uses `Load()` for integer-addressed sampling with manual linear interpolation, avoiding hardware filtering bleed between rows.
 
-The `Material` pointer references the material used for rendering. The `MaterialState` array holds per-pass constant buffer states, populated during `CreateRenderDataInstances()` with animated parameter values.
+The `Material` pointer references the material used for rendering. The `MaterialState` array holds per-pass constant buffer states, populated during `CreateRenderDataInstances()` with animated parameter values. During render instance creation, `Textures[0]` is unconditionally overridden with `SplineTextureView`, connecting the particle lifetime system to the material's texture slots.
+
+For full rendering pipeline details including the VS→GS→PS shader pipeline, deferred pipeline integration, mesh/subscene rendering modes, and blend state configuration, see **[rendering.md](rendering.md)**. For a line-by-line trace from `CreateRenderDataInstances()` through to pixel output, see **[../code-traces/particle-rendering.md](../code-traces/particle-rendering.md)**.
 
 ### Multi-Object Emission
 
@@ -705,5 +707,7 @@ For framework designers, the lesson is that constraints can be liberating. Inste
 **Related Documentation:**
 - `notes/per-demoscene/apex-public/scene/objects.md` — Base CphxObject and type system
 - `notes/per-demoscene/apex-public/spline/overview.md` — Spline animation system
-- To be written: `particles/simulation.md` — Particle aging and affector forces
-- To be written: `particles/rendering.md` — Vertex buffer updates and billboard rendering
+- **[simulation.md](simulation.md)** — Particle aging, affector forces, fixed timestep physics
+- **[rendering.md](rendering.md)** — Billboard expansion, spline textures, mesh/subscene rendering, deferred pipeline integration
+- **[gap-analysis.md](gap-analysis.md)** — Documentation gap inventory and resolution status
+- **[../code-traces/particle-rendering.md](../code-traces/particle-rendering.md)** — Step-by-step rendering pipeline trace

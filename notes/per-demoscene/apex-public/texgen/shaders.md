@@ -746,8 +746,8 @@ For hot-reloading during development, watch shader files and recompile on change
 ## Source References
 
 All shader source code is located in:
-- `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/texgen/` — Original minified shaders
-- `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/annotated/texgen/` — Annotated versions with detailed comments
+- `research/apex-public/clean-slate/extracted/shaders/texgen/` — Original minified shaders
+- `research/apex-public/clean-slate/extracted/shaders/annotated/texgen/` — Annotated versions with detailed comments
 
 Infrastructure code:
 - `demoscene/apex-public/apEx/Phoenix/Texgen.cpp` — Render loop, constant buffer packing, texture binding (lines 92-186)

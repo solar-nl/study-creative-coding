@@ -1046,7 +1046,7 @@ All paths relative to `demoscene/apex-public/apEx/Phoenix/`:
 | **Texgen.cpp** | Core implementation | PHXTEXTUREFILTER::Render (120-185), PHXTEXTUREOPERATOR::Generate (464-497), constant buffer setup (151-158), texture binding (162-169) |
 | **Texgen.cpp** | Lookup texture generation | GetLookupTexture (205-346): image (221-237), text (240-299), spline (301-321), hash (323-333) |
 
-**Shader examples** (all relative to `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/annotated/texgen/`):
+**Shader examples** (all relative to `research/apex-public/clean-slate/extracted/shaders/annotated/texgen/`):
 
 | Shader | Parameters | Key Techniques |
 |--------|------------|----------------|

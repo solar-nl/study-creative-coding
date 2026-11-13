@@ -18,7 +18,7 @@ This explains both the technique's strength and its limitation. Strength: it's t
 
 ## Mirror Line Definition
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/mirror.hlsl:18-27`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/mirror.hlsl:18-27`
 
 The shader defines the mirror using three parameters:
 
@@ -56,7 +56,7 @@ The line extends infinitely in both directions. The shader doesn't need to defin
 
 ## Aspect Ratio Correction
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/mirror.hlsl:46-50`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/mirror.hlsl:46-50`
 
 Before performing any reflection math, the shader corrects for non-square pixels:
 
@@ -79,7 +79,7 @@ The hardcoded 16:9 aspect ratio is acceptable for a demo with a known target res
 
 ## Side Test: Which Pixels Reflect?
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/mirror.hlsl:52-54`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/mirror.hlsl:52-54`
 
 Not every pixel needs reflection. The mirror divides the screen into two half-planes: the "keep" side (original pixels) and the "reflect" side. The shader uses a perpendicular dot product to test which side:
 
@@ -105,7 +105,7 @@ The early exit is a performance optimization. For roughly half the screen, the s
 
 ## Reflection Calculation: The Core Math
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/mirror.hlsl:56-62`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/mirror.hlsl:56-62`
 
 For pixels that fail the side test (negative dot product), the shader calculates their reflection:
 
@@ -167,7 +167,7 @@ The elegance of this approach is that the reflection formula doesn't change rega
 
 ## Bounds Checking: Preventing Invalid Samples
 
-**File**: `Projects/Clean Slate/extracted/shaders/materials/mirror.hlsl:64-73`
+**File**: `research/apex-public/clean-slate/extracted/shaders/materials/mirror.hlsl:64-73`
 
 After computing the reflected coordinate, the shader checks whether it's within the valid texture range:
 

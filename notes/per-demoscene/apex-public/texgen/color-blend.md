@@ -881,7 +881,7 @@ Cross-system integration:
 
 ## Source File Reference
 
-All source paths relative to `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/texgen/`.
+All source paths relative to `research/apex-public/clean-slate/extracted/shaders/texgen/`.
 
 **Color Adjustment Shaders**:
 - `hsl.hlsl` (73 lines) — HSV color space adjustment with hue rotation, saturation scaling, lightness bidirectional control

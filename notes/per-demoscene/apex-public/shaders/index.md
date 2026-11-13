@@ -43,7 +43,7 @@ The Clean Slate demo uses 71 custom HLSL shaders split between material renderin
 
 All material shaders are located in:
 ```
-demoscene/apex-public/Projects/Clean Slate/extracted/shaders/materials/
+research/apex-public/clean-slate/extracted/shaders/materials/
 ```
 
 ### G-Buffer / Geometry (3)
@@ -135,7 +135,7 @@ Texture utilities and special-purpose shaders.
 
 All texgen shaders are located in:
 ```
-demoscene/apex-public/Projects/Clean Slate/extracted/shaders/texgen/
+research/apex-public/clean-slate/extracted/shaders/texgen/
 ```
 
 These shaders implement the procedural texture operator system. Each shader is invoked via the texgen pipeline to generate or transform textures.
@@ -307,6 +307,6 @@ Detailed line-by-line annotations are available for key shaders:
 - [code-traces/operator-evaluation.md](../code-traces/operator-evaluation.md) — Shader dispatch trace
 
 ### Source Files
-- Material shaders: `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/materials/`
-- Texgen shaders: `demoscene/apex-public/Projects/Clean Slate/extracted/shaders/texgen/`
+- Material shaders: `research/apex-public/clean-slate/extracted/shaders/materials/`
+- Texgen shaders: `research/apex-public/clean-slate/extracted/shaders/texgen/`
 - Engine code: `demoscene/apex-public/apEx/Phoenix/`
