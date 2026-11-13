@@ -421,9 +421,9 @@ For deeper dives into specific systems, see:
 
 ## Sources
 
-- `libraries/pixijs/src/rendering/renderers/gpu/WebGPURenderer.ts`
-- `libraries/pixijs/src/rendering/renderers/gpu/GpuEncoderSystem.ts`
-- `libraries/pixijs/src/rendering/renderers/shared/system/AbstractRenderer.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/WebGPURenderer.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/GpuEncoderSystem.ts`
+- `libraries/web/pixijs/src/rendering/renderers/shared/system/AbstractRenderer.ts`
 
 ---
 

@@ -502,7 +502,7 @@ The savings compound dramatically with batching. A thousand sprites sharing a te
 
 ## Sources
 
-- `libraries/pixijs/src/rendering/renderers/gpu/GpuEncoderSystem.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/GpuEncoderSystem.ts`
 
 ---
 

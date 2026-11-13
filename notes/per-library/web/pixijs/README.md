@@ -64,7 +64,7 @@ One of our goals is translating these patterns to Rust/[wgpu](https://github.com
 The WebGPU renderer lives in the rendering subsystem:
 
 ```
-libraries/pixijs/src/rendering/
+libraries/web/pixijs/src/rendering/
 ├── renderers/gpu/
 │   ├── WebGPURenderer.ts        # Main entry point, composes systems
 │   ├── GpuEncoderSystem.ts      # Command encoding with state caching
@@ -80,7 +80,7 @@ libraries/pixijs/src/rendering/
 The scene/graphics folder handles the canvas-like drawing API:
 
 ```
-libraries/pixijs/src/scene/
+libraries/web/pixijs/src/scene/
 ├── graphics/
 │   ├── gpu/
 │   │   └── GpuGraphicsAdaptor.ts

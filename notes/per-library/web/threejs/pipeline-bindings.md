@@ -428,7 +428,7 @@ impl Bindings {
 
 ## Sources
 
-- `libraries/threejs/src/renderers/common/Pipelines.js`
-- `libraries/threejs/src/renderers/common/Bindings.js`
-- `libraries/threejs/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`
-- `libraries/threejs/src/renderers/webgpu/utils/WebGPUBindingUtils.js`
+- `libraries/web/threejs/src/renderers/common/Pipelines.js`
+- `libraries/web/threejs/src/renderers/common/Bindings.js`
+- `libraries/web/threejs/src/renderers/webgpu/utils/WebGPUPipelineUtils.js`
+- `libraries/web/threejs/src/renderers/webgpu/utils/WebGPUBindingUtils.js`

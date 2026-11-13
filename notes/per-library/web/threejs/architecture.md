@@ -375,9 +375,9 @@ A few gotchas that catch most newcomers:
 
 ## Sources
 
-- `libraries/threejs/src/core/Object3D.js`
-- `libraries/threejs/src/core/BufferGeometry.js`
-- `libraries/threejs/src/materials/Material.js`
-- `libraries/threejs/src/renderers/WebGLRenderer.js`
+- `libraries/web/threejs/src/core/Object3D.js`
+- `libraries/web/threejs/src/core/BufferGeometry.js`
+- `libraries/web/threejs/src/materials/Material.js`
+- `libraries/web/threejs/src/renderers/WebGLRenderer.js`
 - [Three.js Documentation](https://threejs.org/docs/)
 - [Three.js Fundamentals](https://threejs.org/manual/)

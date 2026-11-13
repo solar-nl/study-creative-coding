@@ -465,8 +465,8 @@ All WebGPU-specific code is in `WebGPUBackend`. The core `Renderer` class does n
 
 ## Sources
 
-- `libraries/threejs/src/renderers/common/Renderer.js`
-- `libraries/threejs/src/renderers/common/RenderObject.js`
-- `libraries/threejs/src/renderers/common/RenderList.js`
-- `libraries/threejs/src/renderers/common/RenderContext.js`
-- `libraries/threejs/src/renderers/webgpu/WebGPUBackend.js`
+- `libraries/web/threejs/src/renderers/common/Renderer.js`
+- `libraries/web/threejs/src/renderers/common/RenderObject.js`
+- `libraries/web/threejs/src/renderers/common/RenderList.js`
+- `libraries/web/threejs/src/renderers/common/RenderContext.js`
+- `libraries/web/threejs/src/renderers/webgpu/WebGPUBackend.js`

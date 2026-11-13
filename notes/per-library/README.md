@@ -19,6 +19,7 @@ Cross-platform libraries available in multiple languages.
 | Library | Languages | Status | Description |
 |---------|-----------|--------|-------------|
 | [mixbox](https://github.com/scrtwpns/mixbox) | C++, JS, Rust, GLSL, Python | Complete | Pigment-based color mixing (Kubelka-Munk) |
+| [ltc](./universal/ltc/) | C++, GLSL | Planned | Real-time area light shading (Linearly Transformed Cosines) |
 
 ## OPENRNDR Ecosystem
 
@@ -37,6 +38,22 @@ Java libraries for the Processing environment.
 | [controlp5](./processing-ecosystem/controlp5/) | Partial | GUI library with 30+ widgets and method-chaining API |
 | [toxiclibs](./processing-ecosystem/toxiclibs/) | Planned | Computational geometry, physics, color |
 
+## vvvv Ecosystem
+
+C# node libraries for vvvv gamma.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [VL.StandardLibs](./vvvv-ecosystem/vl-standardlibs/) | Planned | Standard nodes; VL.Skia 2D layer model over SkiaSharp (GPU via ANGLE) |
+
+## C++ Libraries
+
+Native C++ rendering libraries.
+
+| Library | Status | Description |
+|---------|--------|-------------|
+| [filament](./cpp/filament/) | Planned | Real-time physically based rendering engine (Vulkan/Metal/OpenGL/WebGL) |
+
 ## Rust Libraries
 
 Native Rust graphics libraries.
@@ -45,6 +62,7 @@ Native Rust graphics libraries.
 |---------|--------|-------------|
 | [wgpu](https://github.com/gfx-rs/wgpu) | Planned | Cross-platform WebGPU implementation |
 | [rend3](./rust/rend3/) | Planned | High-level rendering framework on wgpu |
+| [vello](./rust/vello/) | Complete | GPU-accelerated 2D vector renderer: architecture, sparse strips, CPU/GPU split, wgpu integration, paints and layers, text, compute renderer, fill_path code-trace |
 
 ## Status Legend
 

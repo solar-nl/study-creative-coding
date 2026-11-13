@@ -349,9 +349,9 @@ impl BindGroupCache {
 
 ## Sources
 
-- `libraries/pixijs/src/rendering/batcher/shared/Batcher.ts`
-- `libraries/pixijs/src/rendering/batcher/gpu/GpuBatchAdaptor.ts`
-- `libraries/pixijs/src/rendering/batcher/gpu/getTextureBatchBindGroup.ts`
+- `libraries/web/pixijs/src/rendering/batcher/shared/Batcher.ts`
+- `libraries/web/pixijs/src/rendering/batcher/gpu/GpuBatchAdaptor.ts`
+- `libraries/web/pixijs/src/rendering/batcher/gpu/getTextureBatchBindGroup.ts`
 
 ---
 

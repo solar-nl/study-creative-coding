@@ -455,9 +455,9 @@ The caching strategy ensures expensive GPU bind group creation happens once per 
 
 ## Sources
 
-- `libraries/pixijs/src/rendering/renderers/gpu/BindGroupSystem.ts`
-- `libraries/pixijs/src/rendering/renderers/gpu/shader/BindGroup.ts`
-- `libraries/pixijs/src/rendering/batcher/gpu/getTextureBatchBindGroup.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/BindGroupSystem.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/shader/BindGroup.ts`
+- `libraries/web/pixijs/src/rendering/batcher/gpu/getTextureBatchBindGroup.ts`
 
 ---
 

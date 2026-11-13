@@ -440,8 +440,8 @@ There is no perfect API. Every choice favors some users over others, some use ca
 
 ## Sources
 
-- `libraries/threejs/src/Three.js` - Main entry point; export structure reveals the public API surface
-- `libraries/threejs/src/core/Object3D.js` - Scene graph base; source for add/remove trace and event patterns
-- `libraries/threejs/src/materials/Material.js` - Material base; options object pattern and dispose lifecycle
-- `libraries/threejs/src/geometries/BoxGeometry.js` - Geometry example; positional constructor pattern
-- `libraries/threejs/src/math/Vector3.js` - Math operations; method chaining and mutation patterns
+- `libraries/web/threejs/src/Three.js` - Main entry point; export structure reveals the public API surface
+- `libraries/web/threejs/src/core/Object3D.js` - Scene graph base; source for add/remove trace and event patterns
+- `libraries/web/threejs/src/materials/Material.js` - Material base; options object pattern and dispose lifecycle
+- `libraries/web/threejs/src/geometries/BoxGeometry.js` - Geometry example; positional constructor pattern
+- `libraries/web/threejs/src/math/Vector3.js` - Math operations; method chaining and mutation patterns

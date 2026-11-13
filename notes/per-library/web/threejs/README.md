@@ -100,7 +100,7 @@ The key insight: 89KB of rendering logic lives in the shared `Renderer` class. T
 If you want to follow along in the source code, here is where to look for each concept:
 
 ```
-libraries/threejs/src/renderers/
+libraries/web/threejs/src/renderers/
 +-- common/                          # Shared renderer infrastructure
 |   +-- Renderer.js                  # If you want to understand scene traversal
 |   |                                # and render list building, start here (89KB)

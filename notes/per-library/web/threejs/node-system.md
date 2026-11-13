@@ -560,6 +560,6 @@ Rust's ownership model helps here: nodes cannot accidentally share mutable state
 
 ## Sources
 
-- `libraries/threejs/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
-- `libraries/threejs/src/nodes/` (node implementations)
-- `libraries/threejs/src/materials/nodes/NodeMaterial.js`
+- `libraries/web/threejs/src/renderers/webgpu/nodes/WGSLNodeBuilder.js`
+- `libraries/web/threejs/src/nodes/` (node implementations)
+- `libraries/web/threejs/src/materials/nodes/NodeMaterial.js`

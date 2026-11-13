@@ -475,7 +475,7 @@ Pipeline caching interacts with several other PixiJS systems:
 
 ## Sources
 
-- `libraries/pixijs/src/rendering/renderers/gpu/pipeline/PipelineSystem.ts`
+- `libraries/web/pixijs/src/rendering/renderers/gpu/pipeline/PipelineSystem.ts`
 
 ---
 

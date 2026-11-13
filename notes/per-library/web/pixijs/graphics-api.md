@@ -431,10 +431,10 @@ Simple graphics merge with sprite batches for fewer draw calls. Complex graphics
 
 ## Sources
 
-- `libraries/pixijs/src/scene/graphics/shared/Graphics.ts`
-- `libraries/pixijs/src/scene/graphics/shared/GraphicsContext.ts`
-- `libraries/pixijs/src/scene/graphics/shared/GraphicsPipe.ts`
-- `libraries/pixijs/src/scene/graphics/gpu/GpuGraphicsAdaptor.ts`
+- `libraries/web/pixijs/src/scene/graphics/shared/Graphics.ts`
+- `libraries/web/pixijs/src/scene/graphics/shared/GraphicsContext.ts`
+- `libraries/web/pixijs/src/scene/graphics/shared/GraphicsPipe.ts`
+- `libraries/web/pixijs/src/scene/graphics/gpu/GpuGraphicsAdaptor.ts`
 
 ---
 
